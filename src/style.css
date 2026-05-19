@@ -1,0 +1,184 @@
+/* 
+==========================================================================
+   DISEÑO BRUTALISTA ESTILO ADIDAS — OVERRIDES BOOTSTRAP
+========================================================================== 
+*/
+
+:root {
+  --bs-body-bg: #FFFFFF;
+  --bs-body-color: #000000;
+  --bs-primary: #000000;
+  --bs-secondary: #EBEBEB;
+  --bs-border-radius: 0px;
+  --bs-border-radius-sm: 0px;
+  --bs-border-radius-lg: 0px;
+  --bs-border-radius-xl: 0px;
+  --bs-border-radius-2xl: 0px;
+  --bs-border-radius-pill: 0px;
+  --bs-border-width: 2px;
+  --bs-border-color: #000000;
+  --bs-font-sans-serif: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+  --bs-heading-font-family: 'Archivo Black', 'Impact', 'Arial Black', sans-serif;
+}
+
+body {
+  background-color: #FFFFFF !important;
+  color: #000000 !important;
+  font-family: var(--bs-font-sans-serif);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  margin: 0;
+  padding: 0;
+}
+
+/* Forzar Border Radius 0 en TODOS los elementos */
+* {
+  border-radius: 0px !important;
+}
+
+/* Títulos y Encabezados */
+h1, h2, h3, h4, h5, h6, .display-1, .display-2, .display-3, .display-4 {
+  font-family: var(--bs-heading-font-family) !important;
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
+  letter-spacing: -0.05em;
+  color: #000000 !important;
+}
+
+/* Botones estilo Adidas Brutalista */
+.btn, button {
+  font-family: var(--bs-heading-font-family) !important;
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
+  padding: 14px 28px !important;
+  letter-spacing: 1px !important;
+  border: 2px solid #000000 !important;
+  transition: all 0.2s ease-in-out !important;
+  box-shadow: 4px 4px 0px #000000 !important;
+  cursor: pointer;
+}
+
+.btn:hover, button:hover {
+  transform: translate(-2px, -2px) !important;
+  box-shadow: 6px 6px 0px #000000 !important;
+}
+
+.btn:active, button:active {
+  transform: translate(2px, 2px) !important;
+  box-shadow: 2px 2px 0px #000000 !important;
+}
+
+/* Botón Primario (Negro con texto blanco) */
+.btn-primary {
+  background-color: #000000 !important;
+  color: #FFFFFF !important;
+}
+
+.btn-primary:hover {
+  background-color: #222222 !important;
+  color: #FFFFFF !important;
+}
+
+/* Botón Secundario / Acento */
+.btn-secondary {
+  background-color: #EBEBEB !important;
+  color: #000000 !important;
+  border-color: #000000 !important;
+}
+
+.btn-secondary:hover {
+  background-color: #D8D8D8 !important;
+  color: #000000 !important;
+}
+
+/* Botón de Peligro / Eliminar */
+.btn-danger {
+  background-color: #FF0000 !important;
+  color: #FFFFFF !important;
+  border-color: #000000 !important;
+}
+
+/* Tarjetas y Contenedores Brutalistas */
+.card, .modal-content, .dropdown-menu, .form-control, .input-group-text, .alert {
+  border: 2px solid #000000 !important;
+  box-shadow: 4px 4px 0px #000000 !important;
+  background-color: #FFFFFF !important;
+  color: #000000 !important;
+}
+
+/* Inputs de Formulario */
+.form-control, .form-select {
+  font-weight: 700 !important;
+  padding: 12px 16px !important;
+  border: 2px solid #000000 !important;
+  background-color: #FFFFFF !important;
+  color: #000000 !important;
+}
+
+.form-control:focus, .form-select:focus {
+  outline: none !important;
+  box-shadow: 4px 4px 0px #000000 !important;
+  border-color: #000000 !important;
+  background-color: #FAFFA0 !important; /* Acento amarillo neón brutalista en foco */
+}
+
+/* Tablas estilo Brutalista */
+.table {
+  border: 2px solid #000000 !important;
+  margin-bottom: 0 !important;
+}
+
+.table th {
+  font-family: var(--bs-heading-font-family) !important;
+  text-transform: uppercase !important;
+  background-color: #EBEBEB !important;
+  color: #000000 !important;
+  border-bottom: 2px solid #000000 !important;
+  border-right: 2px solid #000000 !important;
+  padding: 14px !important;
+}
+
+.table td {
+  border-bottom: 2px solid #000000 !important;
+  border-right: 2px solid #000000 !important;
+  padding: 14px !important;
+  vertical-align: middle !important;
+}
+
+/* Navbar Brutalista */
+.navbar {
+  border-bottom: 2px solid #000000 !important;
+  background-color: #FFFFFF !important;
+  padding: 16px 32px !important;
+}
+
+.navbar-brand {
+  font-family: var(--bs-heading-font-family) !important;
+  font-size: 2rem !important;
+  font-weight: 900 !important;
+  letter-spacing: -2px !important;
+  text-transform: uppercase !important;
+}
+
+/* Badges */
+.badge {
+  font-family: var(--bs-heading-font-family) !important;
+  padding: 8px 12px !important;
+  border: 2px solid #000000 !important;
+  text-transform: uppercase !important;
+  font-size: 0.85rem !important;
+}
+
+.badge.bg-primary { background-color: #000000 !important; color: #FFFFFF !important; }
+.badge.bg-success { background-color: #00FF88 !important; color: #000000 !important; } /* Verde neón brutalista */
+.badge.bg-warning { background-color: #FAFFA0 !important; color: #000000 !important; } /* Amarillo neón */
+
+/* Modales */
+.modal-header {
+  border-bottom: 2px solid #000000 !important;
+  background-color: #EBEBEB !important;
+}
+
+.modal-footer {
+  border-top: 2px solid #000000 !important;
+}
