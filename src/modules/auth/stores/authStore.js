@@ -1,7 +1,6 @@
 import { reactive } from 'vue'
-import api from '@/plugins/axios.js'
-import axios from 'axios'
-import router from '@/router/index.js'
+import authService from '../services/authService.js'
+import router from '@/router.js'
 
 export const authStore = reactive({
   user: JSON.parse(localStorage.getItem('auth_user')) || null,
@@ -9,24 +8,13 @@ export const authStore = reactive({
   loading: false,
   error: null,
 
-  async initCsrf() {
-    try {
-      await api.get('/sanctum/csrf-cookie', {
-        baseURL: ''
-      })
-    } catch (e) {
-      console.warn('Advertencia al inicializar CSRF cookie:', e)
-    }
-  },
-
   async login(email, password, remember = false) {
     this.loading = true
     this.error = null
     try {
-      await this.initCsrf()
-      const response = await api.post('/auth/login', { email, password, remember })
-      if (response.data && response.data.success) {
-        this.user = response.data.user
+      const data = await authService.login(email, password, remember)
+      if (data && data.success) {
+        this.user = data.user
         this.isAuthenticated = true
         localStorage.setItem('auth_user', JSON.stringify(this.user))
         return true
@@ -42,23 +30,23 @@ export const authStore = reactive({
   async logout() {
     this.loading = true
     try {
-      await api.post('/auth/logout')
+      await authService.logout()
     } catch (e) {
       console.warn('Error durante logout en servidor', e)
     } finally {
       this.user = null
       this.isAuthenticated = false
       localStorage.removeItem('auth_user')
-      router.push('/login')
+      window.location.href = '/login'
       this.loading = false
     }
   },
 
   async fetchUser() {
     try {
-      const response = await api.get('/auth/user')
-      if (response.data && response.data.success) {
-        this.user = response.data.user
+      const data = await authService.fetchUser()
+      if (data && data.success) {
+        this.user = data.user
         this.isAuthenticated = true
         localStorage.setItem('auth_user', JSON.stringify(this.user))
       }

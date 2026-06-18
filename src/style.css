@@ -182,3 +182,29 @@ h1, h2, h3, h4, h5, h6, .display-1, .display-2, .display-3, .display-4 {
 .modal-footer {
   border-top: 2px solid #000000 !important;
 }
+
+/* Clases Utilitarias Reutilizables (Extraídas de vistas duplicadas) */
+.shadow-solid {
+  box-shadow: 8px 8px 0px 0px #000000 !important;
+}
+
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1050;
+  padding: 1rem;
+}
+
+.modal-card {
+  width: 100%;
+  max-width: 650px;
+  max-height: 90vh;
+  overflow-y: auto;
+}

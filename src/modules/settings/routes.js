@@ -1,0 +1,8 @@
+export default [
+  {
+    path: '/admin/social-media',
+    name: 'AdminSocialMedia',
+    component: () => import('./views/AdminSocialMedia.vue'),
+    meta: { requiresAuth: true, roles: [1] }
+  }
+]

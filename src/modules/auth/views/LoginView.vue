@@ -10,19 +10,50 @@ const remember = ref(false)
 const errorMessage = ref('')
 const loading = ref(false)
 
+const errors = ref({
+  email: '',
+  password: ''
+})
+
+const clearError = (field) => {
+  errors.value[field] = ''
+}
+
 const handleLogin = async () => {
-  if (!email.value || !password.value) {
+  errors.value.email = ''
+  errors.value.password = ''
+  errorMessage.value = ''
+
+  let hasError = false
+  if (!email.value || !email.value.trim()) {
+    errors.value.email = 'El correo electrónico es obligatorio.'
+    hasError = true
+  }
+  if (!password.value) {
+    errors.value.password = 'La contraseña es obligatoria.'
+    hasError = true
+  }
+
+  if (hasError) {
     errorMessage.value = 'Por favor completa todos los campos.'
     return
   }
 
   loading.value = true
-  errorMessage.value = ''
   
   const success = await authStore.login(email.value, password.value, remember.value)
   
   if (success) {
-    router.push(authStore.isAdmin() ? '/admin' : '/')
+    const user = authStore.user
+    const roleId = Number(user?.role_id)
+    
+    if (roleId === 1) {
+      window.location.href = '/admin'
+    } else if (roleId === 2) {
+      window.location.href = '/seller'
+    } else {
+      window.location.href = '/'
+    }
   } else {
     errorMessage.value = authStore.error || 'Error al iniciar sesión'
   }
@@ -40,15 +71,37 @@ const handleLogin = async () => {
         {{ errorMessage }}
       </div>
       
-      <form @submit.prevent="handleLogin">
+      <form @submit.prevent="handleLogin" novalidate>
         <div class="mb-4">
-          <label class="form-label fw-black text-uppercase fs-5">CORREO ELECTRÓNICO</label>
-          <input v-model="email" type="email" class="form-control form-control-lg border-2 shadow-none" required>
+          <label for="email" class="form-label fw-black text-uppercase fs-5">CORREO ELECTRÓNICO</label>
+          <input 
+            id="email"
+            v-model="email" 
+            type="email" 
+            class="form-control form-control-lg border-2 shadow-none" 
+            :class="{ 'is-invalid': errors.email }"
+            @input="clearError('email')"
+            required
+          >
+          <div v-if="errors.email" class="invalid-feedback fw-bold text-uppercase mt-2">
+            {{ errors.email }}
+          </div>
         </div>
         
         <div class="mb-4">
-          <label class="form-label fw-black text-uppercase fs-5">CONTRASEÑA</label>
-          <input v-model="password" type="password" class="form-control form-control-lg border-2 shadow-none" required>
+          <label for="password" class="form-label fw-black text-uppercase fs-5">CONTRASEÑA</label>
+          <input 
+            id="password"
+            v-model="password" 
+            type="password" 
+            class="form-control form-control-lg border-2 shadow-none" 
+            :class="{ 'is-invalid': errors.password }"
+            @input="clearError('password')"
+            required
+          >
+          <div v-if="errors.password" class="invalid-feedback fw-bold text-uppercase mt-2">
+            {{ errors.password }}
+          </div>
         </div>
         
         <div class="mb-5 form-check d-flex align-items-center gap-2">
@@ -61,10 +114,11 @@ const handleLogin = async () => {
           <span v-else>INGRESAR</span>
         </button>
 
-        <div class="text-center mt-4">
+        <!-- <div class="text-center mt-4">
           <router-link to="/register" class="text-black fw-bold text-decoration-none border-bottom border-black pb-1">¿NO TIENES CUENTA? REGÍSTRATE</router-link>
-        </div>
+        </div> -->
       </form>
     </div>
   </div>
 </template>
+

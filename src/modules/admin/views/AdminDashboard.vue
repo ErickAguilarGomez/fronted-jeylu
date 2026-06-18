@@ -1,13 +1,12 @@
 <script setup>
 import { authStore } from '@/modules/auth/stores/authStore.js'
+import PageHeader from '@/shared/components/PageHeader.vue'
 </script>
 
 <template>
   <div class="container py-5">
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-5 border-bottom border-black pb-4 gap-3">
-      <h1 class="display-4 m-0 text-uppercase fw-black">Panel de Administración</h1>
-      <span class="badge bg-black text-white fs-5 py-2 px-4 border border-black">HOLA, {{ authStore.user?.name.toUpperCase() }}</span>
-    </div>
+    <PageHeader title="Panel de Administración">
+    </PageHeader>
 
     <div class="row g-4 mb-5">
       <div class="col-md-4">
@@ -20,22 +19,7 @@ import { authStore } from '@/modules/auth/stores/authStore.js'
             </div>
             <h2 class="fw-black text-uppercase mb-3 fs-3">Productos</h2>
             <p class="fw-bold mb-4 text-muted">Gestiona el inventario, actualiza precios y genera códigos QR.</p>
-            <router-link to="/admin/products" class="btn btn-primary w-100 py-3 fw-black mt-auto fs-5">ADMINISTRAR</router-link>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-md-4">
-        <div class="card h-100 border-2 shadow-sm transition-hover bg-secondary">
-          <div class="card-body p-5 d-flex flex-column align-items-center text-center">
-            <div class="bg-black text-white rounded-circle d-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
-              <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor" class="bi bi-upc-scan" viewBox="0 0 16 16">
-                <path d="M1.5 1a.5.5 0 0 0-.5.5v3a.5.5 0 0 1-1 0v-3A1.5 1.5 0 0 1 1.5 0h3a.5.5 0 0 1 0 1h-3zM11 .5a.5.5 0 0 1 .5-.5h3A1.5 1.5 0 0 1 16 1.5v3a.5.5 0 0 1-1 0v-3a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 1-.5-.5zM.5 11a.5.5 0 0 1 .5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 1 0 1h-3A1.5 1.5 0 0 1 0 14.5v-3a.5.5 0 0 1 .5-.5zm15 0a.5.5 0 0 1 .5.5v3a1.5 1.5 0 0 1-1.5 1.5h-3a.5.5 0 0 1 0-1h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 1 .5-.5zM3 4.5a.5.5 0 0 1 1 0v7a.5.5 0 0 1-1 0v-7zm2 0a.5.5 0 0 1 1 0v7a.5.5 0 0 1-1 0v-7zm2 0a.5.5 0 0 1 1 0v7a.5.5 0 0 1-1 0v-7zm2 0a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-7zm3 0a.5.5 0 0 1 1 0v7a.5.5 0 0 1-1 0v-7z"/>
-              </svg>
-            </div>
-            <h2 class="fw-black text-uppercase mb-3 fs-3">Punto de Venta</h2>
-            <p class="fw-bold mb-4">Escanea códigos QR de productos y procesa ventas rápidamente.</p>
-            <router-link to="/admin/pos" class="btn btn-primary w-100 py-3 fw-black mt-auto fs-5 m-0" style="box-shadow: none !important;">IR AL POS</router-link>
+            <router-link to="/admin/products" class="btn btn-outline-dark border-2 w-100 py-3 fw-black mt-auto fs-5">ADMINISTRAR</router-link>
           </div>
         </div>
       </div>
@@ -98,6 +82,37 @@ import { authStore } from '@/modules/auth/stores/authStore.js'
             <h2 class="fw-black text-uppercase mb-3 fs-3">Ventas</h2>
             <p class="fw-bold mb-4 text-muted">Revisa el historial de ventas.</p>
             <router-link to="/admin/sales" class="btn btn-outline-dark border-2 w-100 py-3 fw-black mt-auto fs-5">HISTORIAL</router-link>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="card h-100 border-2 shadow-sm transition-hover">
+          <div class="card-body p-5 d-flex flex-column align-items-center text-center">
+            <div class="bg-black text-white rounded-circle d-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor" class="bi bi-images" viewBox="0 0 16 16">
+                <path d="M4.502 9a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/>
+                <path d="M14.002 13a2 2 0 0 1-2 2h-10a2 2 0 0 1-2-2V5A2 2 0 0 1 2 3a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2zM14 3a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V3z"/>
+              </svg>
+            </div>
+            <h2 class="fw-black text-uppercase mb-3 fs-3">Banners</h2>
+            <p class="fw-bold mb-4 text-muted">Gestiona las imágenes del carrusel del inicio.</p>
+            <router-link to="/admin/banners" class="btn btn-outline-dark border-2 w-100 py-3 fw-black mt-auto fs-5">ADMINISTRAR</router-link>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="card h-100 border-2 shadow-sm transition-hover">
+          <div class="card-body p-5 d-flex flex-column align-items-center text-center">
+            <div class="bg-black text-white rounded-circle d-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor" class="bi bi-share" viewBox="0 0 16 16">
+                <path d="M13.5 1a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM11 2.5a2.5 2.5 0 1 1 .603 1.628l-6.718 3.12a2.499 2.499 0 0 1 0 1.504l6.718 3.12a2.5 2.5 0 1 1-.488.876l-6.718-3.12a2.5 2.5 0 1 1 0-3.256l6.718-3.12A2.5 2.5 0 0 1 11 2.5zm-8.5 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm11 5.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z"/>
+              </svg>
+            </div>
+            <h2 class="fw-black text-uppercase mb-3 fs-3">Redes Sociales</h2>
+            <p class="fw-bold mb-4 text-muted">Configura enlaces de contacto y redes de la tienda.</p>
+            <router-link to="/admin/social-media" class="btn btn-outline-dark border-2 w-100 py-3 fw-black mt-auto fs-5">CONFIGURAR</router-link>
           </div>
         </div>
       </div>
