@@ -2,7 +2,7 @@ import axios from 'axios'
 import router from '@/router.js'
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
+  baseURL: 'https://apijeylu.dinho.lat/api',
   withCredentials: true,
   xsrfCookieName: 'XSRF-TOKEN',
   xsrfHeaderName: 'X-XSRF-TOKEN',
