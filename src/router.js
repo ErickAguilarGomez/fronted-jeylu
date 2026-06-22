@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { authStore } from '@/modules/auth/stores/authStore.js'
+import { cancelPendingRequests } from '@/plugins/axios.js'
 
 import catalogRoutes from '@/modules/catalog/routes.js'
 import authRoutes from '@/modules/auth/routes.js'
@@ -37,6 +38,7 @@ const router = createRouter({
 })
 
 router.beforeEach(async (to, from, next) => {
+  cancelPendingRequests()
   const isAuthenticated = authStore.isAuthenticated
   const roleId = Number(authStore.user?.role_id)
 
@@ -54,8 +56,15 @@ router.beforeEach(async (to, from, next) => {
     if (roleId === 2) return next({ name: 'SellerDashboard' })
     return next({ name: 'Home' })
   }
-  
+
   next()
+})
+
+router.onError((error) => {
+  const pattern = /Failed to fetch dynamically imported module|chunk/i;
+  if (pattern.test(error.message)) {
+    window.location.reload()
+  }
 })
 
 export default router

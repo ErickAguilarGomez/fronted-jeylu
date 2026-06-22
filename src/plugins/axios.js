@@ -1,5 +1,20 @@
 import axios from 'axios'
-import router from '@/router.js'
+
+let pendingRequests = []
+
+export const cancelPendingRequests = () => {
+  pendingRequests.forEach(request => {
+    if (request && typeof request.cancel === 'function') {
+      request.cancel('Route changed')
+    }
+  })
+  pendingRequests = []
+}
+
+const removePendingRequest = (config) => {
+  if (!config) return
+  pendingRequests = pendingRequests.filter(req => req.url !== config.url)
+}
 
 const api = axios.create({
   baseURL: 'https://apijeylu.dinho.lat/api',
@@ -15,6 +30,14 @@ const api = axios.create({
 // Interceptor para solicitudes: asegura que Sanctum CSRF cookie esté presente si se requiere
 api.interceptors.request.use(
   config => {
+    // Generar token de cancelación para la petición
+    const source = axios.CancelToken.source()
+    config.cancelToken = source.token
+    pendingRequests.push({
+      url: config.url,
+      cancel: source.cancel
+    })
+
     const matches = document.cookie.match(/XSRF-TOKEN=([^;]+)/)
     if (matches) {
       config.headers['X-XSRF-TOKEN'] = decodeURIComponent(matches[1])
@@ -26,8 +49,18 @@ api.interceptors.request.use(
 
 // Interceptor para respuestas: manejo de errores y redirección 401
 api.interceptors.response.use(
-  response => response,
+  response => {
+    removePendingRequest(response.config)
+    return response
+  },
   error => {
+    removePendingRequest(error.config)
+
+    // Silenciar errores de peticiones canceladas para evitar ruidos en la consola o toasts
+    if (axios.isCancel(error)) {
+      return new Promise(() => {})
+    }
+
     if (error.response && error.response.status === 401) {
       // Limpiar sesión local porque el servidor dice que ya no estamos autenticados
       localStorage.removeItem('auth_user')
@@ -37,9 +70,12 @@ api.interceptors.response.use(
         module.authStore.isAuthenticated = false
 
         // Redirigir a login SOLO DESPUÉS de haber actualizado el estado
-        if (router.currentRoute.value.path !== '/login') {
-          router.push('/login')
-        }
+        import('@/router.js').then(routerModule => {
+          const router = routerModule.default
+          if (router.currentRoute.value.path !== '/login') {
+            router.push('/login')
+          }
+        })
       })
     }
     return Promise.reject(error)

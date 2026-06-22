@@ -30,7 +30,7 @@ export const storeStore = reactive({
 
   async fetchAllUsers() {
     try {
-      const res = await api.get('/users', { params: { all: 1 } })
+      const res = await api.get('/users', { params: { all: 1, role_id: 2, unassigned: 1 } })
       if (res.data && res.data.success) {
         this.users = res.data.users
       }
@@ -72,6 +72,7 @@ export const storeStore = reactive({
     try {
       await storeService.assignEmployee(storeId, employeeData)
       await this.fetchEmployees(storeId)
+      await this.fetchAllUsers()
     } finally {
       this.loading = false
     }
@@ -82,6 +83,7 @@ export const storeStore = reactive({
     try {
       await storeService.unassignEmployee(storeId, userId)
       await this.fetchEmployees(storeId)
+      await this.fetchAllUsers()
     } finally {
       this.loading = false
     }
