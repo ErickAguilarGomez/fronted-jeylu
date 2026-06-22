@@ -14,7 +14,13 @@ const api = axios.create({
 
 // Interceptor para solicitudes: asegura que Sanctum CSRF cookie esté presente si se requiere
 api.interceptors.request.use(
-  config => config,
+  config => {
+    const matches = document.cookie.match(/XSRF-TOKEN=([^;]+)/)
+    if (matches) {
+      config.headers['X-XSRF-TOKEN'] = decodeURIComponent(matches[1])
+    }
+    return config
+  },
   error => Promise.reject(error)
 )
 
