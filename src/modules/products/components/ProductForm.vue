@@ -240,9 +240,9 @@ defineExpose({
               <input v-model="form.base_sku" type="text" class="form-control form-control-lg border-black border-2 shadow-none fw-bold" placeholder="Autogenerado si está vacío" :disabled="modalMode === 'edit'">
             </div>
             <div class="col-md-3">
-              <label class="form-label fw-black text-uppercase fs-6">PRECIO UNITARIO (S/)</label>
+              <label class="form-label fw-black text-uppercase fs-6">PRECIO UNITARIO ($)</label>
               <div class="input-group border border-black border-2">
-                <span class="input-group-text bg-secondary border-0 fw-black px-3">S/</span>
+                <span class="input-group-text bg-secondary border-0 fw-black px-3">$</span>
                 <input v-model="form.price" type="number" step="0.01" min="0" class="form-control border-0 shadow-none fw-bold fs-5 py-2" placeholder="0.00" required>
               </div>
             </div>

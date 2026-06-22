@@ -80,7 +80,7 @@ watch(() => posStore.selectedStoreId, (newStore, oldStore) => {
 
             <div class="d-flex justify-content-between align-items-end mb-4 bg-white border border-black border-2 p-3 shadow-sm">
               <h2 class="fw-black text-uppercase m-0">TOTAL</h2>
-              <h1 class="fw-black m-0 text-black text-uppercase" style="font-size: 3rem;">S/ {{ posStore.cartTotal.toFixed(2) }}</h1>
+              <h1 class="fw-black m-0 text-black text-uppercase" style="font-size: 3rem;">$ {{ posStore.cartTotal.toFixed(2) }}</h1>
             </div>
             <button 
               @click="processSale" 

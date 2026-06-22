@@ -135,7 +135,7 @@ onMounted(async () => {
         {{ item.customer_name || item.customer_account_name || 'Anónimo' }}
       </template>
       <template #cell-total_amount="{ item }">
-        <span class="text-success fw-bold">S/ {{ Number(item.total_amount).toFixed(2) }}</span>
+        <span class="text-success fw-bold">$ {{ Number(item.total_amount).toFixed(2) }}</span>
       </template>
       <template #cell-created_at="{ item }">
         {{ new Date(item.created_at).toLocaleString() }}

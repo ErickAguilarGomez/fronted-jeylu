@@ -20,7 +20,7 @@ defineProps({
         loading="lazy"
       />
       <span class="badge bg-black text-white position-absolute top-0 start-0 m-3 fs-6 border border-black shadow-sm fw-black">
-        S/ {{ Number(product.price).toFixed(2) }}
+        $ {{ Number(product.price).toFixed(2) }}
       </span>
     </div>
 

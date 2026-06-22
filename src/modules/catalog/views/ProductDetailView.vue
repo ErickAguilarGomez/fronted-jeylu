@@ -64,7 +64,7 @@ const whatsappUrl = computed(() => {
   
   const whatsappConfig = socialMediaStore.socialMedia.find(s => s.type === 'whatsapp')
   
-  const defaultTemplate = "¡Hola JEILU Store! Quiero comprar el siguiente producto:\n\n*Producto:* {product_name}\n*SKU:* {product_sku}\n*Precio:* S/ {product_price}\n\n¿Tienen disponibilidad para envío inmediato?"
+  const defaultTemplate = "¡Hola JEILU Store! Quiero comprar el siguiente producto:\n\n*Producto:* {product_name}\n*SKU:* {product_sku}\n*Precio:* $ {product_price}\n\n¿Tienen disponibilidad para envío inmediato?"
   let template = whatsappConfig?.default_message || defaultTemplate
   
   const activeSku = selectedVariant.value?.sku || product.value.sku
@@ -220,7 +220,7 @@ onMounted(async () => {
                 class="main-featured-image w-100 object-fit-contain"
               />
               <span class="badge bg-black text-white position-absolute top-0 start-0 m-3 fs-5 border border-black shadow-sm fw-black">
-                S/ {{ Number(product.price).toFixed(2) }}
+                $ {{ Number(product.price).toFixed(2) }}
               </span>
             </div>
 
@@ -264,7 +264,7 @@ onMounted(async () => {
             <!-- Price -->
             <div class="mb-4">
               <div class="price-display border border-black border-2 p-3 bg-black d-inline-block shadow-solid">
-                <span class="fs-2 fw-black text-white">S/ {{ Number(product.price).toFixed(2) }}</span>
+                <span class="fs-2 fw-black text-white">$ {{ Number(product.price).toFixed(2) }}</span>
               </div>
             </div>
 

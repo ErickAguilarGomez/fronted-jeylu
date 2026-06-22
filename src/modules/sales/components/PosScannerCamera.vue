@@ -125,7 +125,7 @@ const addManualSku = () => {
               <div class="text-muted fs-6 font-monospace">SKU: {{ item.sku }}</div>
             </div>
             <div class="text-end ms-3">
-              <div class="fw-black fs-4">S/ {{ Number(item.price).toFixed(2) }}</div>
+              <div class="fw-black fs-4">$ {{ Number(item.price).toFixed(2) }}</div>
               <span :class="['badge border border-black fs-7 fw-bold', item.total_stock > 0 ? 'bg-warning text-black' : 'bg-danger text-white']">
                 STOCK: {{ item.total_stock }}
               </span>

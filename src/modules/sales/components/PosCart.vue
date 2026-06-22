@@ -35,7 +35,7 @@ const toast = useToast()
               </div>
             </div>
             <div class="text-end">
-              <h3 class="fw-black m-0">S/ {{ (item.price * item.quantity).toFixed(2) }}</h3>
+              <h3 class="fw-black m-0">$ {{ (item.price * item.quantity).toFixed(2) }}</h3>
             </div>
           </div>
           

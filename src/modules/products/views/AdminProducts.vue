@@ -148,7 +148,7 @@ const executeDeleteProduct = async () => {
         {{ item.name }}
       </template>
       <template #cell-price="{ item }">
-        S/ {{ Number(item.price).toFixed(2) }}
+        $ {{ Number(item.price).toFixed(2) }}
       </template>
       <template #cell-status="{ item }">
         <span class="badge px-3 py-2 fs-7 border border-black fw-bold" :class="item.is_available ? 'bg-success text-black' : 'bg-danger text-white'">

@@ -51,7 +51,7 @@ const clear = () => {
         v-model="query" 
         @input="onInput"
         type="text" 
-        class="form-control form-control-lg border-black border-2 shadow-none fw-bold ps-5 pe-5" 
+        class="form-control form-control-lg border-black border-2 shadow-none fw-bold ps-5 pe-5 search-input" 
         :placeholder="placeholder"
       />
       <button 
@@ -71,6 +71,9 @@ const clear = () => {
 <style scoped>
 .search-bar-container {
   max-width: 500px;
+}
+.search-input {
+  padding-left: 3.5rem !important;
 }
 .search-bar-container button {
   padding: 0 !important;
