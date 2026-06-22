@@ -13,7 +13,7 @@ const selectCategory = (categoryId) => {
 }
 
 const totalProductsCount = computed(() => {
-  return catalogStore.categories.reduce((acc, cat) => acc + (cat.products_count || 0), 0)
+  return catalogStore.categories.reduce((acc, cat) => acc + Number(cat.products_count || 0), 0)
 })
 
 onMounted(() => {
