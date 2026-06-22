@@ -2,7 +2,8 @@ import api from '@/plugins/axios'
 
 class AuthService {
   async initCsrf() {
-    await api.get('/sanctum/csrf-cookie', { baseURL: '' })
+    const backendUrl = import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace('/api', '') : '';
+    await api.get('/sanctum/csrf-cookie', { baseURL: backendUrl })
   }
 
   async login(email, password, remember = false) {

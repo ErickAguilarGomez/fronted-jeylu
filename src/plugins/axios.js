@@ -2,7 +2,7 @@ import axios from 'axios'
 import router from '@/router.js'
 
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
   withCredentials: true,
   xsrfCookieName: 'XSRF-TOKEN',
   xsrfHeaderName: 'X-XSRF-TOKEN',
@@ -25,11 +25,11 @@ api.interceptors.response.use(
     if (error.response && error.response.status === 401) {
       // Limpiar sesión local porque el servidor dice que ya no estamos autenticados
       localStorage.removeItem('auth_user')
-      
+
       import('@/modules/auth/stores/authStore.js').then(module => {
         module.authStore.user = null
         module.authStore.isAuthenticated = false
-        
+
         // Redirigir a login SOLO DESPUÉS de haber actualizado el estado
         if (router.currentRoute.value.path !== '/login') {
           router.push('/login')
