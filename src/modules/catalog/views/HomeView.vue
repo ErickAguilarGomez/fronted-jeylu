@@ -2,7 +2,6 @@
 import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import api from '@/plugins/axios'
 import ProductCard from '@/modules/catalog/components/ProductCard.vue'
-import { settingsStore } from '@/modules/settings/stores/settingsStore.js'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 
@@ -163,7 +162,6 @@ const focusStore = (store) => {
 }
 
 onMounted(async () => {
-  settingsStore.fetchSettings()
   await fetchBanners()
   await fetchBestSellers()
   await fetchStores()

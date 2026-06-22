@@ -5,8 +5,11 @@ export const socialMediaStore = reactive({
   socialMedia: [],
   adminSocialMedia: [],
   loading: false,
+  _fetchingActive: false,
 
   async fetchActiveSocialMedia() {
+    if (this._fetchingActive || this.socialMedia.length > 0) return
+    this._fetchingActive = true
     this.loading = true
     try {
       const res = await api.get('/settings/social-media')
@@ -17,6 +20,7 @@ export const socialMediaStore = reactive({
       console.error('Error fetching active social media:', e)
     } finally {
       this.loading = false
+      this._fetchingActive = false
     }
   },
 

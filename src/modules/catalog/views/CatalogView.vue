@@ -2,7 +2,6 @@
 import { onMounted, computed } from 'vue'
 import { catalogStore } from '../stores/catalogStore.js'
 import ProductCard from '@/modules/catalog/components/ProductCard.vue'
-import { settingsStore } from '@/modules/settings/stores/settingsStore.js'
 
 const searchProducts = () => {
   catalogStore.fetchProducts(1)
@@ -18,7 +17,6 @@ const totalProductsCount = computed(() => {
 })
 
 onMounted(() => {
-  settingsStore.fetchSettings()
   catalogStore.fetchCategories()
   catalogStore.fetchProducts()
 })
