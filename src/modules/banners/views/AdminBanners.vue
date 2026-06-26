@@ -61,8 +61,8 @@ const openEditModal = (banner) => {
   isEditing.value = true
   editId.value = banner.id
   activeBannerData.value = { 
-    is_active: banner.is_active === 1 || banner.is_active === true, 
-    sort_order: banner.sort_order 
+    is_active: String(banner.is_active) === '1' || String(banner.is_active).toLowerCase() === 'true' || banner.is_active === true, 
+    sort_order: Number(banner.sort_order)
   }
   initialImagePreview.value = banner.image_url
   showModal.value = true
