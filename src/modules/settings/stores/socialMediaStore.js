@@ -12,7 +12,7 @@ export const socialMediaStore = reactive({
     this._fetchingActive = true
     this.loading = true
     try {
-      const res = await api.get('/settings/social-media')
+      const res = await api.get('/settings/socials')
       if (res.data && res.data.success) {
         this.socialMedia = res.data.data
       }
@@ -27,7 +27,7 @@ export const socialMediaStore = reactive({
   async fetchAdminSocialMedia() {
     this.loading = true
     try {
-      const res = await api.get('/settings/social-media/admin')
+      const res = await api.get('/settings/socials/admin')
       if (res.data && res.data.success) {
         this.adminSocialMedia = res.data.data
       }
@@ -41,7 +41,7 @@ export const socialMediaStore = reactive({
   async createSocialMedia(data) {
     this.loading = true
     try {
-      const res = await api.post('/settings/social-media', data)
+      const res = await api.post('/settings/socials', data)
       if (res.data && res.data.success) {
         await this.fetchAdminSocialMedia()
         return { success: true }
@@ -59,7 +59,7 @@ export const socialMediaStore = reactive({
   async updateSocialMedia(id, data) {
     this.loading = true
     try {
-      const res = await api.put(`/settings/social-media/${id}`, data)
+      const res = await api.put(`/settings/socials/${id}`, data)
       if (res.data && res.data.success) {
         await this.fetchAdminSocialMedia()
         return { success: true }
@@ -77,7 +77,7 @@ export const socialMediaStore = reactive({
   async deleteSocialMedia(id) {
     this.loading = true
     try {
-      const res = await api.delete(`/settings/social-media/${id}`)
+      const res = await api.delete(`/settings/socials/${id}`)
       if (res.data && res.data.success) {
         await this.fetchAdminSocialMedia()
         return { success: true }
@@ -95,7 +95,7 @@ export const socialMediaStore = reactive({
   async updateOrder(orderArray) {
     this.loading = true
     try {
-      const res = await api.post('/settings/social-media/sort', { order: orderArray })
+      const res = await api.post('/settings/socials/sort', { order: orderArray })
       if (res.data && res.data.success) {
         await this.fetchAdminSocialMedia()
         return { success: true }
