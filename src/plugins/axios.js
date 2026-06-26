@@ -38,9 +38,12 @@ api.interceptors.request.use(
       cancel: source.cancel
     })
 
-    const matches = document.cookie.match(/XSRF-TOKEN=([^;]+)/)
-    if (matches) {
-      config.headers['X-XSRF-TOKEN'] = decodeURIComponent(matches[1])
+    const method = config.method ? config.method.toLowerCase() : 'get'
+    if (['post', 'put', 'delete', 'patch'].includes(method)) {
+      const matches = document.cookie.match(/XSRF-TOKEN=([^;]+)/)
+      if (matches) {
+        config.headers['X-XSRF-TOKEN'] = decodeURIComponent(matches[1])
+      }
     }
     return config
   },
