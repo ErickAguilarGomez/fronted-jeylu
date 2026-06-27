@@ -30,9 +30,9 @@ const api = axios.create({
 // Interceptor para solicitudes: asegura que Sanctum CSRF cookie esté presente si se requiere
 api.interceptors.request.use(
   config => {
-    // Generar token de cancelación para la petición (excluyendo peticiones globales de autenticación)
-    const isAuthRequest = config.url && config.url.includes('/auth/')
-    if (!isAuthRequest) {
+    // Generar token de cancelación para la petición (excluyendo peticiones globales de autenticación y settings)
+    const isGlobalRequest = config.url && (config.url.includes('/auth/') || config.url.includes('/settings/'))
+    if (!isGlobalRequest) {
       const source = axios.CancelToken.source()
       config.cancelToken = source.token
       pendingRequests.push({
