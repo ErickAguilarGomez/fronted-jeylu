@@ -65,7 +65,7 @@ defineExpose({
 
       <div class="card-body p-4 bg-white">
         <p class="fw-bold text-muted mb-4 fs-6">
-          {{ targetProduct.value ? 'Selecciona un canal para consultar sobre este producto:' : 'Selecciona el área con la que deseas comunicarte:' }}
+          {{ targetProduct ? 'Selecciona un canal para consultar sobre este producto:' : 'Selecciona el área con la que deseas comunicarte:' }}
         </p>
 
         <!-- Loading state -->
