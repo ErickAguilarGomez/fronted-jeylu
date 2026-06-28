@@ -24,6 +24,7 @@ const activeStoreData = ref({
   name: '',
   address: '',
   phone: '',
+  type: 'tienda',
   latitude: null,
   longitude: null
 })
@@ -31,6 +32,7 @@ const activeStoreData = ref({
 const columns = [
   { key: 'id', label: 'ID', class: 'fw-black font-monospace' },
   { key: 'name', label: 'Sucursal', class: 'fw-bold text-uppercase' },
+  { key: 'type', label: 'Tipo', class: 'fw-bold text-uppercase' },
   { key: 'address', label: 'Dirección' },
   { key: 'actions', label: 'Acciones', headerClass: 'text-center', class: 'text-center' }
 ]
@@ -56,7 +58,7 @@ onMounted(() => {
 const openAddModal = () => {
   isEditing.value = false
   editId.value = null
-  activeStoreData.value = { name: '', address: '', phone: '', latitude: null, longitude: null }
+  activeStoreData.value = { name: '', address: '', phone: '', type: 'tienda', latitude: null, longitude: null }
   showModal.value = true
 }
 
@@ -67,6 +69,7 @@ const openEditModal = (store) => {
     name: store.name, 
     address: store.address, 
     phone: store.phone || '',
+    type: store.type || 'tienda',
     latitude: store.latitude ? parseFloat(store.latitude) : null,
     longitude: store.longitude ? parseFloat(store.longitude) : null
   }
@@ -141,6 +144,11 @@ const openEmployeesModal = (store) => {
     >
       <template #cell-id="{ item }">
         #{{ item.id }}
+      </template>
+      <template #cell-type="{ item }">
+        <span class="badge px-3 py-2 fs-7 border border-black fw-bold text-uppercase" :class="item.type === 'almacen' ? 'bg-secondary text-white' : 'bg-success text-black'">
+          {{ item.type === 'almacen' ? 'Almacén' : 'Tienda' }}
+        </span>
       </template>
       <template #cell-address="{ item }">
         <div class="text-muted">{{ item.address }}</div>

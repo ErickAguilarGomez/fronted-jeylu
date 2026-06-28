@@ -20,13 +20,16 @@ export const productStore = reactive({
     }
   },
 
-  async fetchProducts(page = 1, search = '') {
+  async fetchProducts(page = 1, search = '', includeDeleted = false) {
     this.loading = true
     this.page = page
     try {
       const params = { page, per_page: 10, search }
       if (this.selectedFilterStore) {
         params.store_id = this.selectedFilterStore
+      }
+      if (includeDeleted) {
+        params.include_deleted = 1
       }
       const data = await productService.getAll(params)
       this.products = data.data
@@ -57,6 +60,12 @@ export const productStore = reactive({
   async deleteProduct(sku) {
     this.loading = true
     await productService.delete(sku)
+    await this.fetchProducts(this.page)
+  },
+
+  async restoreProduct(sku) {
+    this.loading = true
+    await productService.restore(sku)
     await this.fetchProducts(this.page)
   },
 

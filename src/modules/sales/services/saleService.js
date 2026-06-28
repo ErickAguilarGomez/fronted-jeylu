@@ -10,6 +10,11 @@ class SaleService {
     const res = await api.get('/sales/stats', { params })
     return res.data
   }
+
+  async updateSale(id, payload) {
+    const res = await api.put(`/sales/${id}`, payload)
+    return res.data
+  }
 }
 
 export default new SaleService()

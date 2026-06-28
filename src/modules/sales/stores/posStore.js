@@ -158,7 +158,8 @@ export const posStore = reactive({
       const payload = {
         items: this.cart.map(item => ({
           sku: item.sku,
-          quantity: item.quantity
+          quantity: item.quantity,
+          price: Number(item.price)
         }))
       }
 

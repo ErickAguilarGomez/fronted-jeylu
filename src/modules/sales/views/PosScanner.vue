@@ -14,7 +14,6 @@ const selectedBaseProduct = ref(null)
 const showVariantModal = ref(false)
 
 onMounted(() => {
-  posStore.fetchUsers()
   posStore.fetchStores()
 })
 

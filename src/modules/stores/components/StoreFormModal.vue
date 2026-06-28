@@ -24,7 +24,7 @@ const props = defineProps({
   },
   storeData: {
     type: Object,
-    default: () => ({ name: '', address: '', phone: '', latitude: null, longitude: null })
+    default: () => ({ name: '', address: '', phone: '', latitude: null, longitude: null, type: 'tienda' })
   },
   loading: {
     type: Boolean,
@@ -38,6 +38,7 @@ const localForm = ref({
   name: '',
   address: '',
   phone: '',
+  type: 'tienda',
   latitude: null,
   longitude: null
 })
@@ -202,6 +203,24 @@ const handleSubmit = () => {
       <div>
         <label class="form-label fw-black text-uppercase fs-5">Teléfono (Opcional)</label>
         <input v-model="localForm.phone" type="text" class="form-control border-black border-3 p-3 fs-5 fw-bold" placeholder="+51 999 999 999" />
+      </div>
+      
+      <div>
+        <label class="form-label fw-black text-uppercase fs-5">Tipo (Obligatorio)</label>
+        <div class="d-flex gap-4 mt-2">
+          <div class="form-check fs-5">
+            <input class="form-check-input border-black border-3" type="radio" v-model="localForm.type" value="tienda" id="typeStore" required />
+            <label class="form-check-label fw-bold text-uppercase text-black" for="typeStore">
+              Tienda
+            </label>
+          </div>
+          <div class="form-check fs-5">
+            <input class="form-check-input border-black border-3" type="radio" v-model="localForm.type" value="almacen" id="typeWarehouse" required />
+            <label class="form-check-label fw-bold text-uppercase text-black" for="typeWarehouse">
+              Almacén
+            </label>
+          </div>
+        </div>
       </div>
       
       <div class="row">

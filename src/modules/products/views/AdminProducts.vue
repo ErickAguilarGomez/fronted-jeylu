@@ -11,6 +11,7 @@ import { useToast } from '@/composables/useToast.js'
 
 const toast = useToast()
 
+const showDeleted = ref(false)
 const searchQuery = ref('')
 const productFormRef = ref(null)
 
@@ -19,7 +20,8 @@ const columns = computed(() => {
     { key: 'image', label: 'IMG', headerClass: 'text-nowrap' },
     { key: 'sku', label: 'SKU', class: 'fw-bold font-monospace fs-6 text-nowrap' },
     { key: 'name', label: 'NOMBRE', class: 'fw-black text-uppercase fs-6 w-25' },
-    { key: 'price', label: 'PRECIO', class: 'text-end fw-black fs-5 text-nowrap', headerClass: 'text-end text-nowrap' },
+    { key: 'purchase_price', label: 'P. COMPRA', class: 'text-end fw-bold fs-6 text-nowrap text-muted', headerClass: 'text-end text-nowrap' },
+    { key: 'price', label: 'P. VENTA', class: 'text-end fw-black fs-5 text-nowrap', headerClass: 'text-end text-nowrap' },
     { key: 'status', label: 'ESTADO', class: 'text-center', headerClass: 'text-center text-nowrap' },
     { key: 'stock', label: 'STOCK', class: 'text-center', headerClass: 'text-center text-nowrap' }
   ]
@@ -30,7 +32,7 @@ const columns = computed(() => {
 })
 
 const fetchProducts = async (page = 1) => {
-  await productStore.fetchProducts(page, searchQuery.value)
+  await productStore.fetchProducts(page, searchQuery.value, showDeleted.value)
 }
 
 const handleSearch = (query) => {
@@ -87,6 +89,14 @@ const executeDeleteProduct = async () => {
     productSkuToDelete.value = null
   }
 }
+const handleRestore = async (sku) => {
+  try {
+    await productStore.restoreProduct(sku)
+    toast.success('Producto restaurado con éxito.', 'Restaurado')
+  } catch (err) {
+    toast.error(err, 'Error al restaurar')
+  }
+}
 </script>
 
 <template>
@@ -120,8 +130,24 @@ const executeDeleteProduct = async () => {
       </div>
       
       <!-- Buscador -->
-      <div class="d-flex align-items-center" :class="authStore.isAdmin() ? '' : 'w-100'" style="min-width: 300px;">
+      <div class="d-flex align-items-center gap-3" :class="authStore.isAdmin() ? '' : 'w-100'" style="min-width: 300px;">
         <BaseSearch v-model="searchQuery" :loading="productStore.loading" @search="handleSearch" placeholder="Buscar producto por nombre o SKU..." />
+        
+        <!-- Toggle para eliminados -->
+        <div v-if="authStore.isAdmin()" class="form-check form-switch text-nowrap m-0 ms-2">
+          <input 
+            v-model="showDeleted" 
+            @change="fetchProducts(1)" 
+            class="form-check-input border-black border-2 cursor-pointer" 
+            type="checkbox" 
+            role="switch" 
+            id="showDeletedSwitch"
+            style="width: 2.8em; height: 1.4em;"
+          >
+          <label class="form-check-label fw-black text-uppercase small ms-2 cursor-pointer text-danger" for="showDeletedSwitch">
+            MOSTRAR ELIMINADOS
+          </label>
+        </div>
       </div>
     </div>
 
@@ -145,14 +171,20 @@ const executeDeleteProduct = async () => {
         {{ item.sku }}
       </template>
       <template #cell-name="{ item }">
-        {{ item.name }}
+        <div class="d-flex align-items-center gap-2">
+          <span>{{ item.name }}</span>
+          <span v-if="item.deleted_at" class="badge bg-danger text-white border border-black small fw-bold py-1 px-2">ELIMINADO</span>
+        </div>
+      </template>
+      <template #cell-purchase_price="{ item }">
+        $ {{ Number(item.purchase_price || 0).toFixed(2) }}
       </template>
       <template #cell-price="{ item }">
         $ {{ Number(item.price).toFixed(2) }}
       </template>
       <template #cell-status="{ item }">
-        <span class="badge px-3 py-2 fs-7 border border-black fw-bold" :class="item.is_available ? 'bg-success text-black' : 'bg-danger text-white'">
-          {{ item.is_available ? 'ACTIVO' : 'AGOTADO' }}
+        <span class="badge px-3 py-2 fs-7 border border-black fw-bold" :class="(!item.deleted_at && item.is_available) ? 'bg-success text-black' : 'bg-danger text-white'">
+          {{ item.deleted_at ? 'ELIMINADO' : (item.is_available ? 'ACTIVO' : 'AGOTADO') }}
         </span>
       </template>
       <template #cell-stock="{ item }">
@@ -161,8 +193,13 @@ const executeDeleteProduct = async () => {
         </span>
       </template>
       <template #cell-actions="{ item }">
-        <button @click="openEditModal(item.sku)" class="btn btn-secondary fw-black me-2 px-3 m-0 shadow-none">EDITAR</button>
-        <button @click="triggerDeleteProduct(item.sku)" class="btn btn-danger fw-black px-3 m-0 shadow-none">ELIMINAR</button>
+        <template v-if="item.deleted_at">
+          <button @click="handleRestore(item.sku)" class="btn btn-success fw-black px-3 m-0 shadow-none text-black">RESTAURAR</button>
+        </template>
+        <template v-else>
+          <button @click="openEditModal(item.sku)" class="btn btn-secondary fw-black me-2 px-3 m-0 shadow-none">EDITAR</button>
+          <button @click="triggerDeleteProduct(item.sku)" class="btn btn-danger fw-black px-3 m-0 shadow-none">ELIMINAR</button>
+        </template>
       </template>
     </BaseTable>
 

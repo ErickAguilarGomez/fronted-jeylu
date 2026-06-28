@@ -34,8 +34,18 @@ const toast = useToast()
                 <span class="badge bg-secondary text-black fw-bold fs-7 font-monospace border border-black">SKU: {{ item.sku }}</span>
               </div>
             </div>
-            <div class="text-end">
-              <h3 class="fw-black m-0">$ {{ (item.price * item.quantity).toFixed(2) }}</h3>
+            <div class="text-end d-flex flex-column align-items-end justify-content-center">
+              <div class="input-group border border-black border-2 bg-white" style="width: 130px; height: 40px; box-shadow: 3px 3px 0px #000;">
+                <span class="input-group-text bg-light border-0 fw-black px-2 py-0 fs-6">$</span>
+                <input 
+                  v-model.number="item.price" 
+                  type="number" 
+                  step="0.01" 
+                  min="0" 
+                  class="form-control border-0 shadow-none fw-black fs-5 py-0 px-2 text-black text-end" 
+                  placeholder="0.00"
+                >
+              </div>
             </div>
           </div>
           

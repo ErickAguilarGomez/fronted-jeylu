@@ -1,6 +1,6 @@
 <script setup>
 import { ref, defineExpose, defineEmits } from 'vue'
-import { productStore } from '../../stores/productStore.js'
+import { productStore } from '../stores/productStore.js'
 import { useToast } from '@/composables/useToast.js'
 
 const toast = useToast()
@@ -14,10 +14,12 @@ const saving = ref(false)
 const form = ref({
   base_sku: '',
   category_id: '',
-  store_id: '',
+  store_id: 1,
   name: '',
   description: '',
+  video_url: '',
   price: 0,
+  purchase_price: 0,
   existing_images: [],
   new_image_boxes: [{ file: null, preview: null }],
   variants: []
@@ -53,7 +55,14 @@ const deleteExistingImage = async (imgUrl, index) => {
 
 // Add new variant row
 const addVariant = () => {
-  form.value.variants.push({ id: null, sku: '', size: '', stock: 0 })
+  form.value.variants.push({ 
+    id: null, 
+    size: '', 
+    stocks: productStore.stores.reduce((acc, s) => {
+      acc[s.id] = 0
+      return acc
+    }, {})
+  })
 }
 
 // Remove variant row
@@ -66,13 +75,22 @@ const openCreateModal = () => {
   form.value = { 
     base_sku: '', 
     category_id: productStore.categories[0]?.id || '',
-    store_id: productStore.selectedFilterStore || productStore.stores[0]?.id || 1,
+    store_id: productStore.stores[0]?.id || 1,
     name: '', 
     description: '',
+    video_url: '',
     price: 0, 
+    purchase_price: 0,
     existing_images: [],
     new_image_boxes: [{ file: null, preview: null }],
-    variants: [{ id: null, sku: '', size: '', stock: 0 }] 
+    variants: [{ 
+      id: null, 
+      size: '', 
+      stocks: productStore.stores.reduce((acc, s) => {
+        acc[s.id] = 0
+        return acc
+      }, {})
+    }] 
   }
   showModal.value = true
 }
@@ -85,18 +103,30 @@ const openEditModal = async (productSku) => {
     form.value = { 
       base_sku: product.sku, 
       category_id: product.category_id || productStore.categories[0]?.id || '',
-      store_id: productStore.selectedFilterStore || productStore.stores[0]?.id || 1,
+      store_id: product.store_id || productStore.stores[0]?.id || 1,
       name: product.name, 
       description: product.description || '',
+      video_url: product.video_url || '',
       price: product.price, 
+      purchase_price: product.purchase_price || 0,
       existing_images: product.images || [],
       new_image_boxes: [{ file: null, preview: null }],
-      variants: product.variants.map(v => ({
-        id: v.id,
-        sku: v.sku || '',
-        size: v.size || '',
-        stock: v.stock
-      }))
+      variants: product.variants.map(v => {
+        const stocks = {}
+        productStore.stores.forEach(s => {
+          stocks[s.id] = 0
+        })
+        if (v.inventories) {
+          v.inventories.forEach(inv => {
+            stocks[inv.store_id] = inv.stock
+          })
+        }
+        return {
+          id: v.id,
+          size: v.size || '',
+          stocks: stocks
+        }
+      })
     }
     
     if (form.value.variants.length === 0) {
@@ -122,22 +152,27 @@ const submitForm = async () => {
   }
 
   if (form.value.price === null || form.value.price === undefined || form.value.price === '') {
-    toast.warning('El precio unitario es obligatorio.', 'Formulario incompleto')
+    toast.warning('El precio de venta es obligatorio.', 'Formulario incompleto')
     return
   }
 
   if (Number(form.value.price) <= 0) {
-    toast.warning('El precio unitario debe ser mayor a 0.', 'Precio inválido')
+    toast.warning('El precio de venta debe ser mayor a 0.', 'Precio inválido')
+    return
+  }
+
+  if (form.value.purchase_price === null || form.value.purchase_price === undefined || form.value.purchase_price === '') {
+    toast.warning('El precio de compra es obligatorio.', 'Formulario incompleto')
+    return
+  }
+
+  if (Number(form.value.purchase_price) < 0) {
+    toast.warning('El precio de compra no puede ser negativo.', 'Precio de compra inválido')
     return
   }
 
   if (!form.value.category_id) {
     toast.warning('La categoría es obligatoria.', 'Formulario incompleto')
-    return
-  }
-
-  if (!form.value.store_id) {
-    toast.warning('La sucursal de registro es obligatoria.', 'Formulario incompleto')
     return
   }
 
@@ -149,13 +184,20 @@ const submitForm = async () => {
   // Validate variant stocks
   for (let i = 0; i < form.value.variants.length; i++) {
     const v = form.value.variants[i]
-    if (v.stock === null || v.stock === undefined || v.stock === '') {
-      toast.warning(`El stock para la variante #${i + 1} es obligatorio.`, 'Formulario incompleto')
+    if (!v.size || !v.size.trim()) {
+      toast.warning(`La talla para la variante #${i + 1} es obligatoria.`, 'Formulario incompleto')
       return
     }
-    if (Number(v.stock) < 0) {
-      toast.warning(`El stock para la variante #${i + 1} no puede ser negativo.`, 'Stock inválido')
-      return
+    for (const storeId in v.stocks) {
+      const stock = v.stocks[storeId]
+      if (stock === null || stock === undefined || stock === '') {
+        toast.warning(`El stock para la variante #${i + 1} en la tienda de ID ${storeId} es obligatorio.`, 'Formulario incompleto')
+        return
+      }
+      if (Number(stock) < 0) {
+        toast.warning(`El stock para la variante #${i + 1} no puede ser negativo.`, 'Stock inválido')
+        return
+      }
     }
   }
 
@@ -164,25 +206,23 @@ const submitForm = async () => {
   const formData = new FormData()
   
   if (modalMode.value === 'create') {
-    if (!form.value.base_sku) {
-      const cleanName = form.value.name.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4)
-      const randomNum = Math.floor(1000 + Math.random() * 9000)
-      form.value.base_sku = `${cleanName || 'PRD'}-${randomNum}`
-    }
-    formData.append('base_sku', form.value.base_sku)
+    formData.append('base_sku', '')
   }
   
   formData.append('category_id', form.value.category_id)
   formData.append('store_id', form.value.store_id)
   formData.append('name', form.value.name)
-  formData.append('description', form.value.description)
+  formData.append('description', form.value.description || '')
+  formData.append('video_url', form.value.video_url || '')
   formData.append('price', form.value.price)
+  formData.append('purchase_price', form.value.purchase_price)
 
   form.value.variants.forEach((v, index) => {
     if (v.id) formData.append(`variants[${index}][id]`, v.id)
-    if (v.sku) formData.append(`variants[${index}][sku]`, v.sku)
-    if (v.size) formData.append(`variants[${index}][size]`, v.size)
-    formData.append(`variants[${index}][stock]`, v.stock)
+    formData.append(`variants[${index}][size]`, v.size)
+    for (const storeId in v.stocks) {
+      formData.append(`variants[${index}][stocks][${storeId}]`, v.stocks[storeId])
+    }
   })
 
   let imgCount = 0
@@ -231,16 +271,19 @@ defineExpose({
           <h4 class="fw-black mb-3 border-bottom border-black pb-2 text-uppercase text-primary">1. Datos Principales y Clasificación</h4>
           
           <div class="row g-3 mb-4 align-items-end">
-            <div class="col-md-5">
+            <div class="col-md-6">
               <label class="form-label fw-black text-uppercase fs-6">NOMBRE DEL PRODUCTO (Obligatorio)</label>
               <input v-model="form.name" type="text" class="form-control form-control-lg border-black border-2 shadow-none fw-bold" placeholder="Ejem: Adidas Samba Clásico" required>
             </div>
-            <div class="col-md-4">
-              <label class="form-label fw-black text-uppercase fs-6">SKU BASE (Opcional)</label>
-              <input v-model="form.base_sku" type="text" class="form-control form-control-lg border-black border-2 shadow-none fw-bold" placeholder="Autogenerado si está vacío" :disabled="modalMode === 'edit'">
+            <div class="col-md-3">
+              <label class="form-label fw-black text-uppercase fs-6">PRECIO DE COMPRA ($)</label>
+              <div class="input-group border border-black border-2">
+                <span class="input-group-text bg-secondary border-0 fw-black px-3">$</span>
+                <input v-model="form.purchase_price" type="number" step="0.01" min="0" class="form-control border-0 shadow-none fw-bold fs-5 py-2" placeholder="0.00" required>
+              </div>
             </div>
             <div class="col-md-3">
-              <label class="form-label fw-black text-uppercase fs-6">PRECIO UNITARIO ($)</label>
+              <label class="form-label fw-black text-uppercase fs-6">PRECIO DE VENTA ($)</label>
               <div class="input-group border border-black border-2">
                 <span class="input-group-text bg-secondary border-0 fw-black px-3">$</span>
                 <input v-model="form.price" type="number" step="0.01" min="0" class="form-control border-0 shadow-none fw-bold fs-5 py-2" placeholder="0.00" required>
@@ -249,19 +292,11 @@ defineExpose({
           </div>
 
           <div class="row g-3 mb-4">
-            <div class="col-md-6">
+            <div class="col-md-12">
               <label class="form-label fw-black text-uppercase fs-6">CATEGORÍA (Obligatorio)</label>
               <select v-model="form.category_id" class="form-select form-select-lg border-black border-2 fw-bold bg-white shadow-none" required>
                 <option value="" disabled>Seleccione una categoría...</option>
                 <option v-for="cat in productStore.categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
-              </select>
-            </div>
-
-            <div class="col-md-6">
-              <label class="form-label fw-black text-uppercase fs-6">SUCURSAL / TIENDA (Obligatorio)</label>
-              <select v-model="form.store_id" class="form-select form-select-lg border-black border-2 fw-bold bg-white shadow-none" required>
-                <option value="" disabled>Seleccione la sucursal de registro...</option>
-                <option v-for="store in productStore.stores" :key="store.id" :value="store.id">{{ store.name }}</option>
               </select>
             </div>
           </div>
@@ -269,6 +304,11 @@ defineExpose({
           <div class="mb-4">
             <label class="form-label fw-black text-uppercase fs-6">DESCRIPCIÓN (Opcional)</label>
             <textarea v-model="form.description" class="form-control border-black border-2 shadow-none fw-bold" rows="2" placeholder="Descripción breve..."></textarea>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label fw-black text-uppercase fs-6">URL del Video (Opcional - YouTube, TikTok, Vimeo, etc.)</label>
+            <input v-model="form.video_url" type="text" class="form-control border-black border-2 shadow-none fw-bold" placeholder="Ejem: https://www.youtube.com/watch?v=xxxxxx">
           </div>
 
           <!-- IMAGENES DINÁMICAS -->
@@ -315,26 +355,34 @@ defineExpose({
             <button type="button" @click="addVariant" class="btn btn-sm btn-dark fw-black">+ AÑADIR TALLA / VARIANTE</button>
           </h4>
 
-          <div v-for="(v, idx) in form.variants" :key="idx" class="row g-2 mb-3 align-items-end bg-light p-3 border border-black border-2 mx-0 position-relative">
-            <div class="col-md-3">
-              <label class="form-label fw-black fs-6 m-0 mb-1">TALLA (Letra/Número)</label>
-              <input v-model="v.size" type="text" class="form-control border-black fw-bold" placeholder="Ejem: 40 o M" required>
+          <div v-for="(v, idx) in form.variants" :key="idx" class="bg-light p-3 border border-black border-2 mb-3 mx-0">
+            <div class="row g-2 align-items-center mb-3">
+              <div class="col-md-6">
+                <label class="form-label fw-black fs-6 m-0 mb-1">TALLA (Letra/Número) (Obligatorio)</label>
+                <input v-model="v.size" type="text" class="form-control border-black fw-bold" placeholder="Ejem: 40 o M" required>
+              </div>
+              <div class="col-md-6 text-end">
+                <button type="button" @click="removeVariant(idx)" class="btn btn-danger fw-black border-black border-2 m-0" :disabled="form.variants.length === 1">ELIMINAR TALLA</button>
+              </div>
             </div>
-            <div class="col-md-4">
-              <label class="form-label fw-black fs-6 m-0 mb-1">SKU PROPIO (Opcional)</label>
-              <input v-model="v.sku" type="text" class="form-control border-black fw-bold" placeholder="Autogenerado si está vacío">
-            </div>
-            <div class="col-md-3">
-              <label class="form-label fw-black fs-6 m-0 mb-1">STOCK SUCURSAL</label>
-              <input v-model="v.stock" type="number" min="0" class="form-control border-black fw-bold" required>
-            </div>
-            <div class="col-md-2 text-end">
-              <button type="button" @click="removeVariant(idx)" class="btn btn-danger fw-black w-100 border-black border-2 m-0" :disabled="form.variants.length === 1">X</button>
+            
+            <div>
+              <label class="form-label fw-black fs-6 mb-2 text-primary">STOCK POR TIENDA / ALMACÉN</label>
+              <div class="row g-2">
+                <div v-for="store in productStore.stores" :key="store.id" class="col-md-6 col-lg-4">
+                  <div class="input-group border border-black border-2 shadow-none">
+                    <span class="input-group-text bg-secondary border-0 fw-bold fs-7 py-2 text-uppercase text-truncate" style="max-width: 150px;">
+                      {{ store.name }}
+                    </span>
+                    <input v-model.number="v.stocks[store.id]" type="number" min="0" class="form-control border-0 shadow-none fw-bold" placeholder="Stock" required>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
           <button type="submit" class="btn btn-primary w-100 py-4 mt-4 fw-black text-uppercase fs-4 m-0 shadow" :disabled="saving">
-            {{ saving ? 'GUARDANDO DATOS E IMÁGENES...' : (modalMode === 'create' ? 'REGISTRAR PRODUCTO EN SUCURSAL' : 'GUARDAR CAMBIOS') }}
+            {{ saving ? 'GUARDANDO DATOS E IMÁGENES...' : (modalMode === 'create' ? 'REGISTRAR PRODUCTO' : 'GUARDAR CAMBIOS') }}
           </button>
         </form>
       </div>

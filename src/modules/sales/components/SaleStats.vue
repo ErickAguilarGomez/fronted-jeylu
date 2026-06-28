@@ -1,4 +1,6 @@
 <script setup>
+import { authStore } from '@/modules/auth/stores/authStore.js'
+
 defineProps({
   stats: {
     type: Object,
@@ -9,13 +11,21 @@ defineProps({
 
 <template>
   <div class="row g-4 mb-5" v-if="stats">
-    <div class="col-md-6">
+    <div :class="authStore.isAdmin() ? 'col-md-4' : 'col-md-6'">
       <div class="card border-2 border-black shadow-sm p-4 bg-white" style="box-shadow: 4px 4px 0px #000; border-radius: 0px;">
         <div class="fs-6 fw-bold text-uppercase text-muted mb-1">Total Facturado</div>
         <div class="fs-1 fw-black text-black">$ {{ Number(stats.total_amount).toFixed(2) }}</div>
       </div>
     </div>
-    <div class="col-md-6">
+
+    <div v-if="authStore.isAdmin()" class="col-md-4">
+      <div class="card border-2 border-black shadow-sm p-4 bg-white" style="box-shadow: 4px 4px 0px #000; border-radius: 0px;">
+        <div class="fs-6 fw-bold text-uppercase text-muted mb-1">Total Comisiones</div>
+        <div class="fs-1 fw-black text-warning">$ {{ Number(stats.total_commission || 0).toFixed(2) }}</div>
+      </div>
+    </div>
+
+    <div :class="authStore.isAdmin() ? 'col-md-4' : 'col-md-6'">
       <div class="card border-2 border-black shadow-sm p-4 bg-white" style="box-shadow: 4px 4px 0px #000; border-radius: 0px;">
         <div class="fs-6 fw-bold text-uppercase text-muted mb-1">Cantidad de Ventas</div>
         <div class="fs-1 fw-black text-black">{{ stats.total_sales }}</div>

@@ -116,6 +116,23 @@ import PageHeader from '@/shared/components/PageHeader.vue'
           </div>
         </div>
       </div>
+
+      <div class="col-md-4">
+        <div class="card h-100 border-2 shadow-sm transition-hover">
+          <div class="card-body p-5 d-flex flex-column align-items-center text-center">
+            <div class="bg-black text-white rounded-circle d-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor" class="bi bi-wallet2" viewBox="0 0 16 16">
+                <path d="M12.146.146a.5.5 0 0 1 .708 0L14 1.293l1.146-1.147a.5.5 0 1 1 .708.708L14.707 2l1.147 1.146a.5.5 0 0 1-.708.708L14 2.707l-1.146 1.147a.5.5 0 0 1-.708-.708L13.293 2l-1.147-1.146a.5.5 0 0 1 0-.708z"/>
+                <path d="M3.5 11.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5zm0-3a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5z"/>
+                <path d="M1.5 2A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5V3.5A1.5 1.5 0 0 0 14.5 2h-13zM1 3.5a.5.5 0 0 1 .5-.5h13a.5.5 0 0 1 .5.5v9a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5v-9z"/>
+              </svg>
+            </div>
+            <h2 class="fw-black text-uppercase mb-3 fs-3">Comisiones</h2>
+            <p class="fw-bold mb-4 text-muted">Configura las comisiones para vendedores cajeros.</p>
+            <router-link to="/admin/commissions" class="btn btn-outline-dark border-2 w-100 py-3 fw-black mt-auto fs-5">CONFIGURAR</router-link>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>

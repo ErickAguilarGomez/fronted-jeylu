@@ -31,6 +31,11 @@ class ProductService {
     return res.data
   }
 
+  async restore(sku) {
+    const res = await api.post(`/products/${sku}/restore`)
+    return res.data
+  }
+
   async deleteImage(imageUrl) {
     const res = await api.delete('/products/images', { data: { image_url: imageUrl } })
     return res.data

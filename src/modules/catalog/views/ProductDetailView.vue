@@ -3,10 +3,13 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import catalogService from '../services/catalogService.js'
 import { socialMediaStore } from '@/modules/settings/stores/socialMediaStore.js'
+import { whatsappStore } from '@/modules/settings/stores/whatsappStore.js'
+import WhatsappSelector from '@/shared/components/WhatsappSelector.vue'
 import ProductCard from '../components/ProductCard.vue'
 
 const route = useRoute()
 const router = useRouter()
+const whatsappSelectorRef = ref(null)
 
 const product = ref(null)
 const loading = ref(true)
@@ -58,29 +61,32 @@ const currentStock = computed(() => {
   return 0
 })
 
-// WhatsApp link generation
-const whatsappUrl = computed(() => {
-  if (!product.value) return '#'
-  
-  const whatsappConfig = socialMediaStore.socialMedia.find(s => s.type === 'whatsapp')
-  
-  const defaultTemplate = "¡Hola JEILU Store! Quiero comprar el siguiente producto:\n\n*Producto:* {product_name}\n*SKU:* {product_sku}\n*Precio:* $ {product_price}\n\n¿Tienen disponibilidad para envío inmediato?"
-  let template = whatsappConfig?.default_message || defaultTemplate
-  
-  const activeSku = selectedVariant.value?.sku || product.value.sku
-  
-  let text = template
-    .replace(/{product_name}/g, product.value.name || '')
-    .replace(/{product_sku}/g, activeSku || '')
-    .replace(/{product_price}/g, Number(product.value.price || 0).toFixed(2))
-
-  const number = whatsappConfig?.phone || '51999999999'
-  return `https://wa.me/${number}?text=${encodeURIComponent(text)}`
-})
-
 const openWhatsApp = () => {
-  if (currentStock.value === 0) return
-  window.open(whatsappUrl.value, '_blank')
+  if (currentStock.value === 0 || (sizes.value.length > 0 && !selectedSize.value)) return
+
+  const activeNumbers = whatsappStore.whatsappNumbers
+  if (activeNumbers.length === 1) {
+    const num = activeNumbers[0]
+    const cleanPhone = num.phone.replace(/[^0-9+]/g, '')
+    const defaultTemplate = "¡Hola JEILU Store! Quiero comprar el siguiente producto:\n\n*Producto:* {product_name}\n*SKU:* {product_sku}\n*Precio:* S/ {product_price}\n\n¿Tienen disponibilidad para envío inmediato?"
+    
+    const activeSku = selectedVariant.value?.sku || product.value.sku
+    const text = defaultTemplate
+      .replace('{product_name}', product.value.name || '')
+      .replace('{product_sku}', activeSku || '')
+      .replace('{product_price}', Number(product.value.price || 0).toFixed(2))
+    
+    window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`, '_blank')
+  } else if (activeNumbers.length >= 2) {
+    if (whatsappSelectorRef.value) {
+      const activeSku = selectedVariant.value?.sku || product.value.sku
+      whatsappSelectorRef.value.open({
+        name: product.value.name,
+        sku: activeSku,
+        price: Number(product.value.price || 0).toFixed(2)
+      })
+    }
+  }
 }
 
 // Fetch related products
@@ -159,8 +165,35 @@ watch(
   }
 )
 
+const embedUrl = computed(() => {
+  if (!product.value || !product.value.video_url) return null
+  const url = product.value.video_url
+  
+  // YouTube
+  let regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/
+  let match = url.match(regExp)
+  if (match && match[2].length === 11) {
+    return `https://www.youtube.com/embed/${match[2]}`
+  }
+  
+  // Vimeo
+  regExp = /vimeo\.com\/([0-9]+)/
+  match = url.match(regExp)
+  if (match) {
+    return `https://player.vimeo.com/video/${match[1]}`
+  }
+  
+  return null
+})
+
+const isDirectVideo = computed(() => {
+  if (!product.value || !product.value.video_url) return false
+  return !!product.value.video_url.match(/\.(mp4|webm|ogg)($|\?)/i)
+})
+
 onMounted(async () => {
   socialMediaStore.fetchActiveSocialMedia()
+  whatsappStore.fetchActiveNumbers()
   if (route.params.slug) {
     await loadProduct(route.params.slug)
   }
@@ -361,6 +394,33 @@ onMounted(async () => {
         </div>
       </div>
 
+      <!-- Video Section -->
+      <div v-if="product.video_url" class="row mt-5">
+        <div class="col-12">
+          <div class="border border-black border-3 p-4 shadow-solid bg-white">
+            <h3 class="fw-black text-uppercase mb-3 font-monospace">Video del Producto 🎥</h3>
+            
+            <div v-if="embedUrl" class="ratio ratio-16x9 border border-black border-2 bg-black">
+              <iframe :src="embedUrl" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen class="w-100 h-100"></iframe>
+            </div>
+            
+            <div v-else-if="isDirectVideo" class="ratio ratio-16x9 border border-black border-2 bg-black">
+              <video controls class="w-100 h-100 object-fit-contain">
+                <source :src="product.video_url">
+                Tu navegador no soporta reproducción de video.
+              </video>
+            </div>
+            
+            <div v-else class="text-center py-4 bg-light border border-black">
+              <p class="fw-bold mb-3">Hay un video de demostración disponible para este producto:</p>
+              <a :href="product.video_url" target="_blank" class="btn btn-dark py-3 px-5 border-2 border-black font-monospace fw-black fs-5 shadow-solid">
+                VER VIDEO EN PLATAFORMA EXTERNA
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Related Products Section -->
       <div class="row mt-5 pt-4">
         <div class="col-12">
@@ -386,6 +446,9 @@ onMounted(async () => {
         </div>
       </div>
     </div>
+    
+    <!-- Selector de WhatsApp reusable -->
+    <WhatsappSelector ref="whatsappSelectorRef" />
   </div>
 </template>
 
