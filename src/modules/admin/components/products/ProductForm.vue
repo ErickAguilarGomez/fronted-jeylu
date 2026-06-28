@@ -1,5 +1,5 @@
 <script setup>
-import { ref, defineExpose, defineEmits } from 'vue'
+import { ref } from 'vue'
 import { productStore } from '../stores/productStore.js'
 import { useToast } from '@/composables/useToast.js'
 
