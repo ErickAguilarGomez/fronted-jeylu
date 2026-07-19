@@ -27,6 +27,7 @@ const columns = [
   { key: 'id', label: 'ID', class: 'fw-black font-monospace' },
   { key: 'name', label: 'Nombre', class: 'fw-bold text-uppercase' },
   { key: 'description', label: 'Descripción', class: 'text-muted' },
+  { key: 'unit_of_measure', label: 'Unidad de Medida', class: 'font-monospace small fw-bold' },
   { key: 'actions', label: 'Acciones', headerClass: 'text-center', class: 'text-center' }
 ]
 
@@ -50,14 +51,18 @@ onMounted(() => {
 const openAddModal = () => {
   isEditing.value = false
   editId.value = null
-  activeCategoryData.value = { name: '', description: '' }
+  activeCategoryData.value = { name: '', description: '', unit_of_measure: '' }
   showModal.value = true
 }
 
 const openEditModal = (cat) => {
   isEditing.value = true
   editId.value = cat.id
-  activeCategoryData.value = { name: cat.name, description: cat.description || '' }
+  activeCategoryData.value = { 
+    name: cat.name, 
+    description: cat.description || '', 
+    unit_of_measure: cat.unit_of_measure || ''
+  }
   showModal.value = true
 }
 
@@ -127,6 +132,10 @@ const executeDeleteCategory = async () => {
       </template>
       <template #cell-description="{ item }">
         {{ item.description || 'Sin descripción' }}
+      </template>
+      <template #cell-unit_of_measure="{ item }">
+        <span v-if="item.unit_of_measure" class="badge bg-black text-white">{{ item.unit_of_measure.toUpperCase() }}</span>
+        <span v-else class="text-muted font-monospace">—</span>
       </template>
       <template #cell-actions="{ item }">
         <div class="d-flex justify-content-center gap-2">

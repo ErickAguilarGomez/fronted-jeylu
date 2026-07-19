@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { productStore } from '../stores/productStore.js'
 import { useToast } from '@/composables/useToast.js'
 import PurchaseOrderSelector from './PurchaseOrderSelector.vue'
@@ -36,6 +36,18 @@ const form = ref({
   purchase_order_status: 'COMPLETADA',
   purchase_order_observations: '',
   purchase_order: null
+})
+
+const selectedCategory = computed(() => {
+  if (!form.value.category_id) return null
+  return productStore.categories.find(c => Number(c.id) === Number(form.value.category_id)) || null
+})
+
+const sizeLabel = computed(() => {
+  if (selectedCategory.value && selectedCategory.value.unit_of_measure) {
+    return selectedCategory.value.unit_of_measure
+  }
+  return 'Talle'
 })
 
 // Dynamic image boxes
@@ -219,9 +231,9 @@ const submitForm = async () => {
   // Validate variant stocks
   for (let i = 0; i < form.value.variants.length; i++) {
     const v = form.value.variants[i]
+    // Size is always optional — if left blank it defaults to 'Único'
     if (!v.size || !v.size.trim()) {
-      toast.warning(`La talla para la variante #${i + 1} es obligatoria.`, 'Formulario incompleto')
-      return
+      v.size = 'Único'
     }
     for (const storeId in v.stocks) {
       const stock = v.stocks[storeId]
@@ -415,18 +427,18 @@ defineExpose({
 
           <!-- VARIANTES -->
           <h4 class="fw-black mb-3 border-bottom border-black pb-2 text-uppercase text-primary d-flex justify-content-between align-items-center mt-5">
-            3. Gestión de Tallas y Stock
-            <button type="button" @click="addVariant" class="btn btn-sm btn-dark fw-black">+ AÑADIR TALLA / VARIANTE</button>
+            3. Gestión de {{ sizeLabel }}s y Stock
+            <button type="button" @click="addVariant" class="btn btn-sm btn-dark fw-black">+ AÑADIR {{ sizeLabel.toUpperCase() }} / VARIANTE</button>
           </h4>
 
           <div v-for="(v, idx) in form.variants" :key="idx" class="bg-light p-3 border border-black border-2 mb-3 mx-0">
             <div class="row g-2 align-items-center mb-3">
               <div class="col-md-6">
-                <label class="form-label fw-black fs-6 m-0 mb-1">TALLA (Letra/Número) (Obligatorio)</label>
-                <input v-model="v.size" type="text" class="form-control border-black fw-bold" placeholder="Ejem: 40 o M" required>
+                <label class="form-label fw-black fs-6 m-0 mb-1">{{ sizeLabel.toUpperCase() }} (Letra/Número) (Opcional)</label>
+                <input v-model="v.size" type="text" class="form-control border-black fw-bold" :placeholder="selectedCategory?.unit_of_measure ? 'Ejem: 1 o 5' : 'Ejem: 40, M, S — dejar vacío si no aplica'">
               </div>
               <div class="col-md-6 text-end">
-                <button type="button" @click="removeVariant(idx)" class="btn btn-danger fw-black border-black border-2 m-0" :disabled="form.variants.length === 1">ELIMINAR TALLA</button>
+                <button type="button" @click="removeVariant(idx)" class="btn btn-danger fw-black border-black border-2 m-0" :disabled="form.variants.length === 1">ELIMINAR {{ sizeLabel.toUpperCase() }}</button>
               </div>
             </div>
             

@@ -1,30 +1,20 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted } from 'vue'
 import { authStore } from '@/modules/auth/stores/authStore.js'
 import { useRouter } from 'vue-router'
 import { socialMediaStore } from '@/modules/settings/stores/socialMediaStore.js'
-import { whatsappStore } from '@/modules/settings/stores/whatsappStore.js'
-import WhatsappSelector from '@/shared/components/WhatsappSelector.vue'
 
 const router = useRouter()
-const whatsappSelectorRef = ref(null)
 
 onMounted(() => {
   if (socialMediaStore.socialMedia.length === 0) {
     socialMediaStore.fetchActiveSocialMedia()
   }
-  whatsappStore.fetchActiveNumbers()
 })
 
 const handleLogout = async () => {
   await authStore.logout()
   window.location.href = '/login'
-}
-
-const openWhatsappSelector = () => {
-  if (whatsappSelectorRef.value) {
-    whatsappSelectorRef.value.open()
-  }
 }
 </script>
 
@@ -63,18 +53,7 @@ const openWhatsappSelector = () => {
         </div>
 
         <!-- Social Media Icons (Navbar) -->
-        <div v-if="socialMediaStore.socialMedia.length > 0 || whatsappStore.whatsappNumbers.length > 0" class="d-flex align-items-center gap-3 me-xl-4 my-3 my-xl-0 justify-content-center">
-          <!-- WhatsApp Icon (Selector Trigger) -->
-          <a 
-            v-if="whatsappStore.whatsappNumbers.length > 0"
-            href="#"
-            @click.prevent="openWhatsappSelector"
-            class="social-nav-link" 
-            title="WHATSAPP"
-          >
-            <i class="bi bi-whatsapp fs-4"></i>
-          </a>
-
+        <div v-if="socialMediaStore.socialMedia.length > 0" class="d-flex align-items-center gap-3 me-xl-4 my-3 my-xl-0 justify-content-center">
           <!-- Other networks -->
           <a 
             v-for="item in socialMediaStore.socialMedia" 
@@ -105,9 +84,6 @@ const openWhatsappSelector = () => {
       </div>
       
     </div>
-    
-    <!-- Selector de WhatsApp reusable -->
-    <WhatsappSelector ref="whatsappSelectorRef" />
   </nav>
 </template>
 

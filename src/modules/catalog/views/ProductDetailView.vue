@@ -18,6 +18,18 @@ const productNotFound = ref(false)
 
 const activeImage = ref('')
 const selectedSize = ref(null)
+const quantity = ref(1)
+
+const sizeLabel = computed(() => {
+  if (product.value && product.value.unit_of_measure) {
+    return product.value.unit_of_measure
+  }
+  return 'Talle'
+})
+
+const showSizeSelector = computed(() => {
+  return sizes.value.length > 0
+})
 
 const relatedProducts = ref([])
 const loadingRelated = ref(false)
@@ -62,29 +74,51 @@ const currentStock = computed(() => {
 })
 
 const openWhatsApp = () => {
-  if (currentStock.value === 0 || (sizes.value.length > 0 && !selectedSize.value)) return
+  if (currentStock.value === 0 || (showSizeSelector.value && !selectedSize.value)) return
 
   const activeNumbers = whatsappStore.whatsappNumbers
+  if (activeNumbers.length === 0) {
+    toast.error('No hay números de WhatsApp configurados para la tienda.', 'Error')
+    return
+  }
+
+  const name = product.value.name
+  const activeSku = selectedVariant.value?.sku || product.value.sku
+  const price = product.value.price
+  const sizeValue = selectedSize.value || null
+  const variantColor = selectedVariant.value?.color || null
+  const qty = quantity.value || 1
+  const totalPrice = (Number(price || 0) * qty).toFixed(2)
+  const unitPriceFormatted = Number(price || 0).toFixed(2)
+
+  const productUrl = window.location.origin + '/catalog/detail/' + (product.value.sku || product.value.base_sku || route.params.slug)
+
+  let text = `¡Hola! Me interesa comprar el siguiente producto en JEILU Store:\n\n`
+  text += `🛍️ *Producto:* ${name}\n`
+  text += `🆔 *SKU:* ${activeSku}\n`
+  if (variantColor) {
+    text += `🎨 *Variante:* ${variantColor}\n`
+  }
+  if (sizeValue && sizeValue !== 'Único') {
+    text += `📏 *${sizeLabel.value}:* ${sizeValue}\n`
+  }
+  text += `🔢 *Cantidad:* ${qty}\n`
+  text += `💰 *Precio Unitario:* S/ ${unitPriceFormatted}\n`
+  if (qty > 1) {
+    text += `💵 *Total:* S/ ${totalPrice}\n`
+  }
+  if (productUrl) {
+    text += `\n🔗 *Link del producto:* ${productUrl}\n`
+  }
+  text += `\n¿Tienen disponibilidad para envío inmediato?`
+
   if (activeNumbers.length === 1) {
     const num = activeNumbers[0]
     const cleanPhone = num.phone.replace(/[^0-9+]/g, '')
-    const defaultTemplate = "¡Hola JEILU Store! Quiero comprar el siguiente producto:\n\n*Producto:* {product_name}\n*SKU:* {product_sku}\n*Precio:* S/ {product_price}\n\n¿Tienen disponibilidad para envío inmediato?"
-    
-    const activeSku = selectedVariant.value?.sku || product.value.sku
-    const text = defaultTemplate
-      .replace('{product_name}', product.value.name || '')
-      .replace('{product_sku}', activeSku || '')
-      .replace('{product_price}', Number(product.value.price || 0).toFixed(2))
-    
     window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`, '_blank')
   } else if (activeNumbers.length >= 2) {
     if (whatsappSelectorRef.value) {
-      const activeSku = selectedVariant.value?.sku || product.value.sku
-      whatsappSelectorRef.value.open({
-        name: product.value.name,
-        sku: activeSku,
-        price: Number(product.value.price || 0).toFixed(2)
-      })
+      whatsappSelectorRef.value.open(null, text)
     }
   }
 }
@@ -126,6 +160,7 @@ const loadProduct = async (slug) => {
   error.value = null
   productNotFound.value = false
   selectedSize.value = null
+  quantity.value = 1
   
   try {
     const res = await catalogService.getProductBySku(slug)
@@ -246,12 +281,12 @@ onMounted(async () => {
         <div class="col-lg-6 col-md-12">
           <div class="gallery-wrapper d-flex flex-column gap-3">
             <!-- Main Featured Image -->
-            <div class="main-image-container border border-black border-3 shadow-solid bg-secondary position-relative">
+            <div class="main-image-container border border-black border-3 shadow-solid bg-white position-relative">
               <img 
                 v-if="activeImage"
                 :src="activeImage" 
                 :alt="product.name" 
-                class="main-featured-image w-100 object-fit-contain"
+                class="main-featured-image w-100"
               />
               <div v-else class="main-featured-image w-100 d-flex justify-content-center align-items-center bg-light text-muted fw-black fs-4 text-uppercase">
                 Sin Imagen
@@ -328,8 +363,8 @@ onMounted(async () => {
 
             <!-- Variant Selectors -->
             <!-- Size selector -->
-            <div v-if="sizes.length > 0" class="mb-4">
-              <label class="fw-black text-uppercase font-monospace mb-2 d-block fs-6">Tallas disponibles:</label>
+            <div v-if="showSizeSelector" class="mb-4">
+              <label class="fw-black text-uppercase font-monospace mb-2 d-block fs-6">{{ sizeLabel }}s disponibles:</label>
               <div class="d-flex flex-wrap gap-2">
                 <button 
                   v-for="size in sizes" 
@@ -343,9 +378,35 @@ onMounted(async () => {
               </div>
             </div>
 
-
-
-
+            <!-- Quantity Selector -->
+            <div v-if="currentStock > 0" class="mb-4">
+              <label class="fw-black text-uppercase font-monospace mb-2 d-block fs-6">Cantidad:</label>
+              <div class="d-inline-flex align-items-center border border-black border-3 shadow-solid-sm bg-white">
+                <button 
+                  type="button"
+                  @click="if (quantity > 1) quantity--" 
+                  class="btn btn-white border-0 rounded-0 fw-black fs-4 m-0 d-flex align-items-center justify-content-center" 
+                  style="width: 44px; height: 44px; transition: background-color 0.15s;"
+                >
+                  -
+                </button>
+                <input 
+                  type="text" 
+                  v-model.number="quantity" 
+                  class="form-control border-0 rounded-0 text-center fw-black font-monospace fs-5 bg-white p-0 m-0" 
+                  style="width: 60px; height: 44px;" 
+                  readonly 
+                />
+                <button 
+                  type="button"
+                  @click="if (quantity < currentStock) quantity++" 
+                  class="btn btn-white border-0 rounded-0 fw-black fs-4 m-0 d-flex align-items-center justify-content-center" 
+                  style="width: 44px; height: 44px; transition: background-color 0.15s;"
+                >
+                  +
+                </button>
+              </div>
+            </div>
 
             <!-- Store Details Card -->
             <div class="mb-4">
@@ -371,14 +432,14 @@ onMounted(async () => {
             <div class="mb-4 mt-auto">
               <button 
                 @click="openWhatsApp"
-                :class="['btn btn-lg w-100 py-3 fs-4 border-3 border-black d-flex justify-content-center align-items-center gap-3 transition shadow-solid', currentStock > 0 && (!sizes.length || selectedSize) ? 'whatsapp-btn text-white' : 'btn-secondary text-muted']"
-                :disabled="currentStock === 0 || (sizes.length > 0 && !selectedSize)"
+                :class="['btn btn-lg w-100 py-3 fs-4 border-3 border-black d-flex justify-content-center align-items-center gap-3 transition shadow-solid', currentStock > 0 && (!showSizeSelector || selectedSize) ? 'whatsapp-btn text-white' : 'btn-secondary text-muted']"
+                :disabled="currentStock === 0 || (showSizeSelector && !selectedSize)"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-whatsapp" viewBox="0 0 16 16">
                   <path d="M13.601 2.326A7.85 7.85 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.9 7.9 0 0 0 13.6 2.326zM7.994 14.521a6.6 6.6 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.56 6.56 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592m3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.23.148-.427.05-.197-.099-.835-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.73.73 0 0 0-.529.247c-.182.198-.691.677-.691 1.654s.71 1.916.81 2.049c.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232"/>
                 </svg>
                 <span v-if="currentStock === 0">PRODUCTO AGOTADO</span>
-                <span v-else-if="sizes.length > 0 && !selectedSize">SELECCIONAR TALLA</span>
+                <span v-else-if="showSizeSelector && !selectedSize">SELECCIONAR {{ sizeLabel.toUpperCase() }}</span>
                 <span v-else>COMPRAR POR WHATSAPP</span>
               </button>
             </div>
@@ -460,14 +521,21 @@ onMounted(async () => {
 .main-image-container {
   overflow: hidden;
   transition: transform 0.2s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #fff;
+  height: auto;
 }
 .main-featured-image {
-  background-color: #EBEBEB;
-  height: 480px;
+  width: 100%;
+  height: auto;
+  max-height: 550px;
+  object-fit: contain;
 }
 @media (max-width: 767.98px) {
   .main-featured-image {
-    height: 320px;
+    max-height: 350px;
   }
 }
 .thumbnail-card {

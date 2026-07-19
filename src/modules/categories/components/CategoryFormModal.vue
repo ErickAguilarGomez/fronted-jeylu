@@ -28,12 +28,17 @@ const toast = useToast()
 
 const localForm = ref({
   name: '',
-  description: ''
+  description: '',
+  unit_of_measure: ''
 })
 
 watch(() => props.show, (newShow) => {
   if (newShow) {
-    localForm.value = { ...props.categoryData }
+    localForm.value = {
+      name: props.categoryData.name || '',
+      description: props.categoryData.description || '',
+      unit_of_measure: props.categoryData.unit_of_measure || ''
+    }
   }
 })
 
@@ -67,6 +72,15 @@ const handleSubmit = () => {
           rows="3"
           placeholder="Descripción breve..."
         ></textarea>
+      </div>
+      <div>
+        <label class="form-label fw-black text-uppercase fs-5">Unidad de Medida (Opcional)</label>
+        <input 
+          v-model="localForm.unit_of_measure" 
+          type="text" 
+          class="form-control border-black border-3 p-3 fs-5 fw-bold" 
+          placeholder="Ejem: kg, g, ml, L, caja, paquete, unidad..." 
+        />
       </div>
       <div class="d-flex justify-content-end gap-3 mt-3">
         <BaseButton type="button" variant="secondary" @click="emit('close')" class="py-3 px-4 fs-5">CANCELAR</BaseButton>

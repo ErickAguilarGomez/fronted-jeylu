@@ -17,8 +17,8 @@ onMounted(() => {
         <a 
           v-for="item in socialMediaStore.socialMedia" 
           :key="item.id" 
-          v-show="(item.type === 'whatsapp' && item.phone) || (item.type !== 'whatsapp' && item.url)"
-          :href="item.type === 'whatsapp' ? `https://wa.me/${item.phone}` : item.url" 
+          v-show="item.type !== 'whatsapp' && item.url"
+          :href="item.url" 
           target="_blank" 
           class="btn btn-outline-light rounded-circle p-2 d-flex align-items-center justify-content-center border-2 text-white" 
           style="width: 44px; height: 44px; transition: transform 0.15s, background-color 0.15s;"
