@@ -28,7 +28,7 @@ const allImages = computed(() => {
   if (product.value.images && product.value.images.length > 0) {
     return product.value.images.map(img => img.image_url)
   }
-  return [product.value.image_url || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&auto=format&fit=crop&q=80']
+  return product.value.image_url ? [product.value.image_url] : []
 })
 
 // Unique sizes
@@ -248,10 +248,14 @@ onMounted(async () => {
             <!-- Main Featured Image -->
             <div class="main-image-container border border-black border-3 shadow-solid bg-secondary position-relative">
               <img 
+                v-if="activeImage"
                 :src="activeImage" 
                 :alt="product.name" 
                 class="main-featured-image w-100 object-fit-contain"
               />
+              <div v-else class="main-featured-image w-100 d-flex justify-content-center align-items-center bg-light text-muted fw-black fs-4 text-uppercase">
+                Sin Imagen
+              </div>
               <span class="badge bg-black text-white position-absolute top-0 start-0 m-3 fs-5 border border-black shadow-sm fw-black">
                 $ {{ Number(product.price).toFixed(2) }}
               </span>

@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { productStore } from '../stores/productStore.js'
 import { useToast } from '@/composables/useToast.js'
+import PurchaseOrderSelector from './PurchaseOrderSelector.vue'
 
 const toast = useToast()
 const emit = defineEmits(['closed'])
@@ -22,7 +23,19 @@ const form = ref({
   purchase_price: 0,
   existing_images: [],
   new_image_boxes: [{ file: null, preview: null }],
-  variants: []
+  variants: [],
+  
+  // Purchase order fields
+  purchase_order_option: 'none',
+  purchase_order_id: null,
+  purchase_order_file: null,
+  purchase_order_number: '',
+  purchase_order_provider: '',
+  purchase_order_date: '',
+  purchase_order_total: '',
+  purchase_order_status: 'COMPLETADA',
+  purchase_order_observations: '',
+  purchase_order: null
 })
 
 // Dynamic image boxes
@@ -90,7 +103,18 @@ const openCreateModal = () => {
         acc[s.id] = 0
         return acc
       }, {})
-    }] 
+    }],
+    // Purchase order fields
+    purchase_order_option: 'none',
+    purchase_order_id: null,
+    purchase_order_file: null,
+    purchase_order_number: '',
+    purchase_order_provider: '',
+    purchase_order_date: '',
+    purchase_order_total: '',
+    purchase_order_status: 'COMPLETADA',
+    purchase_order_observations: '',
+    purchase_order: null
   }
   showModal.value = true
 }
@@ -126,7 +150,18 @@ const openEditModal = async (productSku) => {
           size: v.size || '',
           stocks: stocks
         }
-      })
+      }),
+      // Purchase order fields
+      purchase_order_option: product.purchase_order ? 'existing' : 'none',
+      purchase_order_id: product.purchase_order_id || null,
+      purchase_order_file: null,
+      purchase_order_number: product.purchase_order?.order_number || '',
+      purchase_order_provider: product.purchase_order?.provider || '',
+      purchase_order_date: product.purchase_order?.purchase_date || '',
+      purchase_order_total: product.purchase_order?.total_amount || '',
+      purchase_order_status: product.purchase_order?.status || 'COMPLETADA',
+      purchase_order_observations: product.purchase_order?.observations || '',
+      purchase_order: product.purchase_order || null
     }
     
     if (form.value.variants.length === 0) {
@@ -233,6 +268,23 @@ const submitForm = async () => {
     }
   })
 
+  // Append Purchase Order fields
+  if (form.value.purchase_order_option) {
+    formData.append('purchase_order_option', form.value.purchase_order_option)
+    if (form.value.purchase_order_option === 'existing' && form.value.purchase_order_id) {
+      formData.append('purchase_order_id', form.value.purchase_order_id)
+    }
+    if (form.value.purchase_order_file) {
+      formData.append('purchase_order_file', form.value.purchase_order_file)
+    }
+    formData.append('purchase_order_number', form.value.purchase_order_number || '')
+    formData.append('purchase_order_provider', form.value.purchase_order_provider || '')
+    formData.append('purchase_order_date', form.value.purchase_order_date || '')
+    formData.append('purchase_order_total', form.value.purchase_order_total || '')
+    formData.append('purchase_order_status', form.value.purchase_order_status || 'COMPLETADA')
+    formData.append('purchase_order_observations', form.value.purchase_order_observations || '')
+  }
+
   try {
     if (modalMode.value === 'create') {
       await productStore.createProduct(formData)
@@ -247,6 +299,18 @@ const submitForm = async () => {
   } finally {
     saving.value = false
   }
+}
+
+const handlePurchaseOrderUpdate = (data) => {
+  form.value.purchase_order_option = data.option
+  form.value.purchase_order_id = data.purchase_order_id
+  form.value.purchase_order_file = data.file
+  form.value.purchase_order_number = data.order_number
+  form.value.purchase_order_provider = data.provider
+  form.value.purchase_order_date = data.purchase_date
+  form.value.purchase_order_total = data.total_amount
+  form.value.purchase_order_status = data.status
+  form.value.purchase_order_observations = data.observations
 }
 
 // Expose methods to parent
@@ -380,6 +444,13 @@ defineExpose({
               </div>
             </div>
           </div>
+
+          <!-- ORDEN DE COMPRA -->
+          <PurchaseOrderSelector 
+            v-if="showModal"
+            :initial-order="form.purchase_order" 
+            @update="handlePurchaseOrderUpdate" 
+          />
 
           <button type="submit" class="btn btn-primary w-100 py-4 mt-4 fw-black text-uppercase fs-4 m-0 shadow" :disabled="saving">
             {{ saving ? 'GUARDANDO DATOS E IMÁGENES...' : (modalMode === 'create' ? 'REGISTRAR PRODUCTO' : 'GUARDAR CAMBIOS') }}

@@ -18,7 +18,7 @@ defineEmits(['close', 'select'])
     <div class="modal-card card border-black border-4 shadow-solid p-5 bg-white position-relative" style="max-width: 750px;">
       <button @click="$emit('close')" class="btn-close position-absolute top-0 end-0 m-4 fs-4"></button>
       <div class="d-flex align-items-center gap-4 mb-4 border-bottom border-black pb-4">
-        <img :src="product.image_url || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=100&q=80'" class="border border-black border-2 object-fit-cover shadow-sm" style="width: 90px; height: 90px;">
+        <img v-if="product.image_url" :src="product.image_url" class="border border-black border-2 object-fit-cover shadow-sm" style="width: 90px; height: 90px;">
         <div>
           <h2 class="display-6 fw-black text-uppercase m-0">{{ product.name }}</h2>
           <span class="badge bg-secondary text-black fs-6 font-monospace border border-black mt-1">SKU BASE: {{ product.sku }}</span>

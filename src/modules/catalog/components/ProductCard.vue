@@ -14,7 +14,8 @@ defineProps({
   >
     <div class="img-container position-relative bg-secondary border-bottom border-black">
       <img 
-        :src="product.image_url || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&auto=format&fit=crop&q=80'" 
+        v-if="product.image_url"
+        :src="product.image_url" 
         :alt="product.name" 
         class="product-img w-100 object-fit-cover"
         loading="lazy"

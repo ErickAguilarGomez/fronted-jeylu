@@ -33,13 +33,15 @@ const onCameraError = (error) => {
   scanning.value = false
 }
 
-const onDetect = (result) => {
-  const sku = result[0]?.rawValue
+const onDecode = (decodedString) => {
+  if (!decodedString) return
+  
+  const sku = decodedString.trim()
   if (!sku) return
   
   scanning.value = false
   emit('add-product', sku)
-  setTimeout(() => { scanning.value = true }, 1500)
+  setTimeout(() => { scanning.value = true }, 2000)
 }
 
 const handleSearchInput = () => {
@@ -99,7 +101,7 @@ const addManualSku = () => {
           <h4 class="fw-black text-uppercase text-danger mt-3">{{ cameraError }}</h4>
           <p class="fw-bold text-muted mt-2">Puedes utilizar el buscador de productos o ingresar el SKU manualmente abajo.</p>
         </div>
-        <QrcodeStream v-else-if="scanning" @detect="onDetect" @error="onCameraError" :track="true" />
+        <QrcodeStream v-else-if="scanning" @decode="onDecode" @error="onCameraError" />
         <div v-else class="text-center p-4">
           <div class="spinner-border text-black mb-3" style="width: 3rem; height: 3rem; border-width: 0.3em;" role="status"></div>
           <h3 class="fw-black text-uppercase m-0">PROCESANDO CÓDIGO...</h3>
@@ -119,7 +121,7 @@ const addManualSku = () => {
           <div v-if="searching" class="p-4 text-center fw-bold fs-5 bg-light">BUSCANDO INVENTARIO...</div>
           <div v-else-if="posStore.searchResults.length === 0" class="p-4 text-center fw-bold fs-5 text-muted bg-light">NO SE ENCONTRARON COINCIDENCIAS</div>
           <div v-for="item in posStore.searchResults" :key="item.sku" @click="selectProductFromSearch(item)" class="dropdown-item p-3 border-bottom border-black d-flex align-items-center gap-3 cursor-pointer transition-bg">
-            <img :src="item.image_url || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=100&q=80'" class="border border-black border-2 object-fit-cover shadow-sm" style="width: 60px; height: 60px;">
+            <img v-if="item.image_url" :src="item.image_url" class="border border-black border-2 object-fit-cover shadow-sm" style="width: 60px; height: 60px;">
             <div class="flex-grow-1 overflow-hidden">
               <div class="fw-black text-uppercase fs-5 text-truncate">{{ item.name }}</div>
               <div class="text-muted fs-6 font-monospace">SKU: {{ item.sku }}</div>

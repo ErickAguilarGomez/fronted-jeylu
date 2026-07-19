@@ -4,6 +4,7 @@ import { authStore } from '@/modules/auth/stores/authStore.js'
 import NavBar from '@/shared/components/NavBar.vue'
 import AppFooter from '@/shared/components/AppFooter.vue'
 import ToastContainer from '@/shared/components/ToastContainer.vue'
+import LowStockAlert from '@/modules/admin/components/LowStockAlert.vue'
 
 onMounted(() => {
   if (authStore.isAuthenticated) {
@@ -22,6 +23,7 @@ onMounted(() => {
 
     <AppFooter />
 
+    <LowStockAlert />
     <ToastContainer />
   </div>
 </template>

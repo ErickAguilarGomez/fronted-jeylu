@@ -48,6 +48,7 @@ const handleLogin = async () => {
     const roleId = Number(user?.role_id)
     
     if (roleId === 1) {
+      sessionStorage.setItem('just_logged_in', '1')
       window.location.href = '/admin'
     } else if (roleId === 2) {
       window.location.href = '/seller'

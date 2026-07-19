@@ -28,7 +28,7 @@ const toast = useToast()
         <div v-for="item in posStore.cart" :key="item.sku" class="list-group-item p-4 border-bottom border-black border-2 bg-white">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <div class="d-flex align-items-center gap-4">
-              <img :src="item.image || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=100&q=80'" class="border border-black border-2 object-fit-cover shadow-sm" style="width: 80px; height: 80px;">
+              <img v-if="item.image" :src="item.image" class="border border-black border-2 object-fit-cover shadow-sm" style="width: 80px; height: 80px;">
               <div>
                 <h4 class="fw-black text-uppercase m-0 mb-1">{{ item.name }}</h4>
                 <span class="badge bg-secondary text-black fw-bold fs-7 font-monospace border border-black">SKU: {{ item.sku }}</span>
