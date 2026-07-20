@@ -177,7 +177,7 @@ const handleRestore = async (sku) => {
         </div>
       </template>
       <template #cell-purchase_price="{ item }">
-        {{ item.purchase_price != null && item.purchase_price !== '' ? '$ ' + Number(item.purchase_price).toFixed(2) : '—' }}
+        $ {{ Number(item.purchase_price || 0).toFixed(2) }}
       </template>
       <template #cell-price="{ item }">
         $ {{ Number(item.price).toFixed(2) }}
