@@ -20,9 +20,26 @@ defineProps({
         class="product-img w-100 object-fit-cover"
         loading="lazy"
       />
-      <span class="badge bg-black text-white position-absolute top-0 start-0 m-3 fs-6 border border-black shadow-sm fw-black">
-        $ {{ Number(product.price).toFixed(2) }}
+      <!-- Discount Percentage Badge -->
+      <span 
+        v-if="product.discount_percentage > 0" 
+        class="badge bg-warning text-black position-absolute top-0 end-0 m-3 fs-6 border-2 border-black shadow-solid-sm fw-black"
+      >
+        -{{ Number(product.discount_percentage) }}%
       </span>
+
+      <!-- Price Badge -->
+      <div class="position-absolute top-0 start-0 m-3 d-flex flex-column align-items-start gap-1">
+        <span class="badge bg-black text-white fs-6 border border-black shadow-sm fw-black">
+          $ {{ Number(product.price).toFixed(2) }}
+        </span>
+        <span 
+          v-if="product.discount_percentage > 0 && product.original_price > product.price" 
+          class="badge bg-danger text-white text-decoration-line-through fs-7 border border-black shadow-sm fw-bold opacity-75"
+        >
+          $ {{ Number(product.original_price).toFixed(2) }}
+        </span>
+      </div>
     </div>
 
     <div class="card-body d-flex flex-column justify-content-between p-4 flex-grow-1">

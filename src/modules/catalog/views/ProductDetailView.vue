@@ -333,11 +333,22 @@ onMounted(async () => {
               {{ product.name }}
             </h1>
 
-            <!-- Price -->
-            <div class="mb-4">
+            <!-- Price & Discount -->
+            <div class="mb-4 d-flex align-items-center flex-wrap gap-3">
               <div class="price-display border border-black border-2 p-3 bg-black d-inline-block shadow-solid">
                 <span class="fs-2 fw-black text-white">$ {{ Number(product.price).toFixed(2) }}</span>
               </div>
+
+              <template v-if="product.discount_percentage > 0 && product.original_price > product.price">
+                <div class="d-flex flex-column align-items-start">
+                  <span class="text-danger text-decoration-line-through fw-black fs-4">
+                    $ {{ Number(product.original_price).toFixed(2) }}
+                  </span>
+                  <span class="badge bg-warning text-black border-2 border-black fw-black fs-6">
+                    -{{ Number(product.discount_percentage) }}% OFF
+                  </span>
+                </div>
+              </template>
             </div>
 
             <!-- SKU & Availability Display -->

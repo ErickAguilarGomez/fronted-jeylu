@@ -208,12 +208,7 @@ const submitForm = async () => {
     return
   }
 
-  if (form.value.purchase_price === null || form.value.purchase_price === undefined || form.value.purchase_price === '') {
-    toast.warning('El precio de compra es obligatorio.', 'Formulario incompleto')
-    return
-  }
-
-  if (Number(form.value.purchase_price) < 0) {
+  if (form.value.purchase_price !== null && form.value.purchase_price !== '' && Number(form.value.purchase_price) < 0) {
     toast.warning('El precio de compra no puede ser negativo.', 'Precio de compra inválido')
     return
   }
@@ -262,7 +257,7 @@ const submitForm = async () => {
   formData.append('description', form.value.description || '')
   formData.append('video_url', form.value.video_url || '')
   formData.append('price', form.value.price)
-  formData.append('purchase_price', form.value.purchase_price)
+  formData.append('purchase_price', form.value.purchase_price ?? '')
 
   form.value.variants.forEach((v, index) => {
     if (v.id) formData.append(`variants[${index}][id]`, v.id)
@@ -352,10 +347,10 @@ defineExpose({
               <input v-model="form.name" type="text" class="form-control form-control-lg border-black border-2 shadow-none fw-bold" placeholder="Ejem: Adidas Samba Clásico" required>
             </div>
             <div class="col-md-3">
-              <label class="form-label fw-black text-uppercase fs-6">PRECIO DE COMPRA ($)</label>
+              <label class="form-label fw-black text-uppercase fs-6">PRECIO DE COMPRA ($) <span class="text-muted fw-normal text-lowercase">(opcional)</span></label>
               <div class="input-group border border-black border-2">
                 <span class="input-group-text bg-secondary border-0 fw-black px-3">$</span>
-                <input v-model="form.purchase_price" type="number" step="0.01" min="0" class="form-control border-0 shadow-none fw-bold fs-5 py-2" placeholder="0.00" required>
+                <input v-model="form.purchase_price" type="number" step="0.01" min="0" class="form-control border-0 shadow-none fw-bold fs-5 py-2" placeholder="Opcional (ej: 25.00)">
               </div>
             </div>
             <div class="col-md-3">

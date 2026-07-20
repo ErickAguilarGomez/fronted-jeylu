@@ -28,6 +28,7 @@ const columns = [
   { key: 'name', label: 'Nombre', class: 'fw-bold text-uppercase' },
   { key: 'description', label: 'Descripción', class: 'text-muted' },
   { key: 'unit_of_measure', label: 'Unidad de Medida', class: 'font-monospace small fw-bold' },
+  { key: 'discount', label: 'Descuento', class: 'font-monospace small fw-bold' },
   { key: 'actions', label: 'Acciones', headerClass: 'text-center', class: 'text-center' }
 ]
 
@@ -51,7 +52,7 @@ onMounted(() => {
 const openAddModal = () => {
   isEditing.value = false
   editId.value = null
-  activeCategoryData.value = { name: '', description: '', unit_of_measure: '' }
+  activeCategoryData.value = { name: '', description: '', unit_of_measure: '', discount_enabled: false, discount_percentage: '' }
   showModal.value = true
 }
 
@@ -61,7 +62,9 @@ const openEditModal = (cat) => {
   activeCategoryData.value = { 
     name: cat.name, 
     description: cat.description || '', 
-    unit_of_measure: cat.unit_of_measure || ''
+    unit_of_measure: cat.unit_of_measure || '',
+    discount_enabled: Boolean(cat.discount_enabled),
+    discount_percentage: cat.discount_percentage || ''
   }
   showModal.value = true
 }
@@ -135,6 +138,12 @@ const executeDeleteCategory = async () => {
       </template>
       <template #cell-unit_of_measure="{ item }">
         <span v-if="item.unit_of_measure" class="badge bg-black text-white">{{ item.unit_of_measure.toUpperCase() }}</span>
+        <span v-else class="text-muted font-monospace">—</span>
+      </template>
+      <template #cell-discount="{ item }">
+        <span v-if="item.discount_enabled && item.discount_percentage > 0" class="badge bg-warning text-black border border-black fw-black fs-6">
+          -{{ Number(item.discount_percentage) }}%
+        </span>
         <span v-else class="text-muted font-monospace">—</span>
       </template>
       <template #cell-actions="{ item }">

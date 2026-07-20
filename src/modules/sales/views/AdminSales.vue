@@ -135,7 +135,7 @@ onMounted(async () => {
     try {
       const response = await userService.getAll({ all: 1 })
       if (response && response.success) {
-        sellers.value = response.users.filter(u => u.role_id === 1 || u.role_id === 2)
+        sellers.value = response.users.filter(u => Number(u.role_id) === 1 || Number(u.role_id) === 2)
       }
     } catch (e) {
       console.error('Error cargando usuarios cajeros:', e)
