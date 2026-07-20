@@ -5,6 +5,7 @@ import NavBar from '@/shared/components/NavBar.vue'
 import AppFooter from '@/shared/components/AppFooter.vue'
 import ToastContainer from '@/shared/components/ToastContainer.vue'
 import LowStockAlert from '@/modules/admin/components/LowStockAlert.vue'
+import WhatsappFloatButton from '@/shared/components/WhatsappFloatButton.vue'
 
 onMounted(() => {
   if (authStore.isAuthenticated) {
@@ -24,6 +25,7 @@ onMounted(() => {
     <AppFooter />
 
     <LowStockAlert />
+    <WhatsappFloatButton />
     <ToastContainer />
   </div>
 </template>
