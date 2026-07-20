@@ -384,7 +384,7 @@ onMounted(async () => {
               <div class="d-inline-flex align-items-center border border-black border-3 shadow-solid-sm bg-white">
                 <button 
                   type="button"
-                  @click="if (quantity > 1) quantity--" 
+                  @click="quantity = quantity > 1 ? quantity - 1 : 1"
                   class="btn btn-white border-0 rounded-0 fw-black fs-4 m-0 d-flex align-items-center justify-content-center" 
                   style="width: 44px; height: 44px; transition: background-color 0.15s;"
                 >
@@ -399,7 +399,7 @@ onMounted(async () => {
                 />
                 <button 
                   type="button"
-                  @click="if (quantity < currentStock) quantity++" 
+                  @click="quantity = quantity < currentStock ? quantity + 1 : currentStock"
                   class="btn btn-white border-0 rounded-0 fw-black fs-4 m-0 d-flex align-items-center justify-content-center" 
                   style="width: 44px; height: 44px; transition: background-color 0.15s;"
                 >
