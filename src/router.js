@@ -62,6 +62,7 @@ router.beforeEach(async (to, from, next) => {
     if (!allowedHelperRoutes.includes(to.name)) {
       return next({ name: 'AdminProducts' })
     }
+    return next()
   }
 
   if (to.meta.roles && !to.meta.roles.includes(roleId)) {
