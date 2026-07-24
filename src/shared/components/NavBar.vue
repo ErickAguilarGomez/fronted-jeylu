@@ -48,10 +48,8 @@ const handleLogout = async () => {
           <router-link to="/" class="nav-btn btn btn-outline-dark text-decoration-none py-2 px-3 fs-6 fw-black border-2 border-black text-center" :class="{ 'active-link': $route.path === '/' }">INICIO</router-link>
           <router-link to="/catalog" class="nav-btn btn btn-outline-dark text-decoration-none py-2 px-3 fs-6 fw-black border-2 border-black text-center" :class="{ 'active-link': $route.path === '/catalog' }">CATÁLOGO</router-link>
           <router-link v-if="authStore.hasPosAccess()" to="/pos" class="nav-btn btn btn-outline-dark text-decoration-none py-2 px-3 fs-6 fw-black border-2 border-black text-center">POS / SCANNER</router-link>
-          <router-link v-if="authStore.isAdmin() && !authStore.isHelper()" to="/admin" class="nav-btn btn btn-outline-dark text-decoration-none py-2 px-3 fs-6 fw-black border-2 border-black text-center">ADMINISTRACIÓN</router-link>
-          <router-link v-if="authStore.isHelper()" to="/admin/products" class="nav-btn btn btn-outline-dark text-decoration-none py-2 px-3 fs-6 fw-black border-2 border-black text-center">PRODUCTOS</router-link>
-          <router-link v-if="authStore.isHelper()" to="/admin/categories" class="nav-btn btn btn-outline-dark text-decoration-none py-2 px-3 fs-6 fw-black border-2 border-black text-center">CATEGORÍAS</router-link>
-          <router-link v-if="authStore.isSeller() && !authStore.isHelper()" to="/seller" class="nav-btn btn btn-outline-dark text-decoration-none py-2 px-3 fs-6 fw-black border-2 border-black text-center">MI PANEL</router-link>
+          <router-link v-if="authStore.isAdmin()" to="/admin" class="nav-btn btn btn-outline-dark text-decoration-none py-2 px-3 fs-6 fw-black border-2 border-black text-center">ADMINISTRACIÓN</router-link>
+          <router-link v-if="authStore.isSeller()" to="/seller" class="nav-btn btn btn-outline-dark text-decoration-none py-2 px-3 fs-6 fw-black border-2 border-black text-center">MI PANEL</router-link>
         </div>
 
         <!-- Social Media Icons (Navbar) -->

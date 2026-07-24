@@ -46,7 +46,6 @@ router.beforeEach(async (to, from, next) => {
   const isHelper = authStore.isHelper()
 
   if (to.meta.guestOnly && isAuthenticated) {
-    if (isHelper) return next({ name: 'AdminProducts' })
     if (roleId === 1) return next({ name: 'AdminDashboard' })
     if (roleId === 2) return next({ name: 'SellerDashboard' })
     return next({ name: 'Home' })
@@ -58,15 +57,15 @@ router.beforeEach(async (to, from, next) => {
 
   // Restricción estricta para Vendedor Ayudante
   if (isHelper && to.meta.requiresAuth) {
-    const allowedHelperRoutes = ['AdminProducts', 'AdminCategories']
+    const allowedHelperRoutes = ['SellerDashboard', 'AdminProducts', 'AdminCategories']
     if (!allowedHelperRoutes.includes(to.name)) {
-      return next({ name: 'AdminProducts' })
+      return next({ name: 'SellerDashboard' })
     }
     return next()
   }
 
   if (to.meta.roles && !to.meta.roles.includes(roleId)) {
-    if (isHelper) return next({ name: 'AdminProducts' })
+    if (isHelper) return next({ name: 'SellerDashboard' })
     if (roleId === 2) return next({ name: 'SellerDashboard' })
     return next({ name: 'Home' })
   }
