@@ -275,7 +275,7 @@ defineExpose({
           <div class="row g-3 mb-4 align-items-end">
             <div class="col-md-6">
               <label class="form-label fw-black text-uppercase fs-6">NOMBRE DEL PRODUCTO (Obligatorio)</label>
-              <input v-model="form.name" type="text" class="form-control form-control-lg border-black border-2 shadow-none fw-bold" placeholder="Ejem: Adidas Samba Clásico" required>
+              <input v-model="form.name" type="text" class="form-control form-control-lg border-black border-2 shadow-none fw-bold" placeholder="Ejem: Calzado Deportivo Clásico" required>
             </div>
             <div v-if="!authStore.isHelper()" class="col-md-3">
               <label class="form-label fw-black text-uppercase fs-6">PRECIO DE COMPRA ($) <span class="text-muted fw-normal text-lowercase">(opcional)</span></label>
