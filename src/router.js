@@ -13,7 +13,7 @@ import usersRoutes from '@/modules/users/routes.js'
 import bannersRoutes from '@/modules/banners/routes.js'
 import settingsRoutes from '@/modules/settings/routes.js'
 import salesRoutes from '@/modules/sales/routes.js'
-import discountsRoutes from '@/modules/discounts/routes.js'
+import priceIncreasesRoutes from '@/modules/price-increases/routes.js'
 
 const routes = [
   ...catalogRoutes,
@@ -27,7 +27,7 @@ const routes = [
   ...bannersRoutes,
   ...settingsRoutes,
   ...salesRoutes,
-  ...discountsRoutes,
+  ...priceIncreasesRoutes,
   {
     path: '/:pathMatch(.*)*',
     redirect: '/'

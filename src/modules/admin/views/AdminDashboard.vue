@@ -144,7 +144,7 @@ import PageHeader from '@/shared/components/PageHeader.vue'
             </div>
             <h2 class="fw-black text-uppercase mb-3 fs-3">Aumentos</h2>
             <p class="fw-bold mb-4 text-muted">Configura el aumento general de precios para la tienda.</p>
-            <router-link to="/admin/discounts" class="btn btn-outline-dark border-2 w-100 py-3 fw-black mt-auto fs-5">ADMINISTRAR</router-link>
+            <router-link to="/admin/price-increases" class="btn btn-outline-dark border-2 w-100 py-3 fw-black mt-auto fs-5">ADMINISTRAR</router-link>
           </div>
         </div>
       </div>

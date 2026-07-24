@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import { discountStore } from '../stores/discountStore.js'
+import { priceIncreaseStore } from '../stores/priceIncreaseStore.js'
 import PageHeader from '@/shared/components/PageHeader.vue'
 import BaseButton from '@/shared/components/BaseButton.vue'
 import { useToast } from '@/composables/useToast.js'
@@ -12,9 +12,9 @@ const isActiveInput = ref(false)
 
 const loadData = async () => {
   try {
-    await discountStore.fetchGeneralDiscount()
-    percentageInput.value = discountStore.generalDiscount.percentage || 0
-    isActiveInput.value = Boolean(discountStore.generalDiscount.is_active)
+    await priceIncreaseStore.fetchGeneralIncrease()
+    percentageInput.value = priceIncreaseStore.generalIncrease.percentage || 0
+    isActiveInput.value = Boolean(priceIncreaseStore.generalIncrease.is_active)
   } catch (e) {
     toast.error(e, 'Error al cargar aumento general')
   }
@@ -25,29 +25,16 @@ onMounted(() => {
 })
 
 const handleSave = async () => {
-  if (percentageInput.value < 1 || percentageInput.value > 100) {
+  if (isActiveInput.value && (percentageInput.value < 1 || percentageInput.value > 100)) {
     toast.warning('El porcentaje de aumento debe estar entre 1% y 100%.', 'Valor inválido')
     return
   }
 
   try {
-    await discountStore.saveGeneralDiscount(percentageInput.value, isActiveInput.value)
-    toast.success('El aumento general se ha guardado correctamente.', '¡Guardado!')
+    await priceIncreaseStore.saveGeneralIncrease(percentageInput.value, isActiveInput.value)
+    toast.success('Configuración guardada exitosamente.', '¡Guardado!')
   } catch (e) {
-    toast.error(e, 'Error al guardar aumento general')
-  }
-}
-
-const handleToggleStatus = async () => {
-  try {
-    await discountStore.toggleGeneralDiscount()
-    isActiveInput.value = Boolean(discountStore.generalDiscount.is_active)
-    toast.success(
-      discountStore.generalDiscount.is_active ? 'Aumento general activado.' : 'Aumento general desactivado.',
-      'Estado actualizado'
-    )
-  } catch (e) {
-    toast.error(e, 'Error al cambiar estado')
+    toast.error(e, 'Error al guardar configuración')
   }
 }
 </script>
@@ -65,11 +52,6 @@ const handleToggleStatus = async () => {
               <h3 class="fw-black text-uppercase m-0 fs-4">AUMENTO GENERAL</h3>
               <small class="text-muted fw-bold">Aplica a todos los productos cuyas categorías no tengan aumento propio</small>
             </div>
-            <span
-              :class="['badge fs-6 border-2 border-black fw-black py-2 px-3', discountStore.generalDiscount.is_active ? 'bg-success text-black' : 'bg-secondary text-black']"
-            >
-              {{ discountStore.generalDiscount.is_active ? '🟢 ACTIVO' : '⚪ INACTIVO' }}
-            </span>
           </div>
 
           <form @submit.prevent="handleSave" class="d-flex flex-column gap-4">
@@ -84,7 +66,7 @@ const handleToggleStatus = async () => {
                   max="100"
                   step="0.01"
                   class="form-control border-0 fw-black fs-3 p-3 text-center"
-                  placeholder="20"
+                  placeholder="10.00"
                   required
                 />
                 <span class="input-group-text bg-black text-white fw-black fs-3 border-0 px-4">%</span>
@@ -94,38 +76,40 @@ const handleToggleStatus = async () => {
               </small>
             </div>
 
-            <!-- Active / Inactive switch -->
-            <div class="form-check form-switch d-flex align-items-center gap-3 p-3 border border-black border-2 bg-light rounded-0">
-              <input
-                class="form-check-input border-2 border-black m-0"
-                type="checkbox"
-                role="switch"
-                id="generalActiveSwitch"
-                v-model="isActiveInput"
-                style="width: 50px; height: 26px; cursor: pointer;"
-              />
-              <label class="form-check-label fw-black text-uppercase fs-5 cursor-pointer m-0" for="generalActiveSwitch">
-                {{ isActiveInput ? 'Aumento General Activo' : 'Aumento General Inactivo' }}
-              </label>
+            <!-- Active / Inactive Switch Box -->
+            <div 
+              class="d-flex align-items-center justify-content-between p-3 border border-black border-3"
+              :class="isActiveInput ? 'bg-success bg-opacity-25' : 'bg-light'"
+            >
+              <div>
+                <label class="fw-black text-uppercase fs-5 m-0 cursor-pointer" for="generalActiveSwitch">
+                  Estado: {{ isActiveInput ? '🟢 ACTIVADO' : '⚪ DESACTIVADO' }}
+                </label>
+                <small class="text-muted fw-bold d-block">
+                  {{ isActiveInput ? 'El aumento se aplicará a los productos.' : 'El aumento está inactivo.' }}
+                </small>
+              </div>
+              <div class="form-check form-switch m-0 fs-3">
+                <input
+                  class="form-check-input border-2 border-black cursor-pointer m-0"
+                  type="checkbox"
+                  role="switch"
+                  id="generalActiveSwitch"
+                  v-model="isActiveInput"
+                  style="width: 54px; height: 28px;"
+                />
+              </div>
             </div>
 
-            <div class="d-flex justify-content-end gap-3 mt-2">
-              <BaseButton
-                type="button"
-                variant="secondary"
-                @click="handleToggleStatus"
-                :disabled="discountStore.loading || !discountStore.generalDiscount.id"
-                class="py-3 px-4 fs-6"
-              >
-                {{ isActiveInput ? 'DESACTIVAR' : 'ACTIVAR' }}
-              </BaseButton>
+            <!-- Single Action Button -->
+            <div class="mt-2">
               <BaseButton
                 type="submit"
                 variant="primary"
-                :disabled="discountStore.loading"
-                class="py-3 px-5 fs-6"
+                :disabled="priceIncreaseStore.loading"
+                class="w-100 py-3 fs-5 fw-black"
               >
-                {{ discountStore.loading ? 'GUARDANDO...' : 'GUARDAR CAMBIOS' }}
+                {{ priceIncreaseStore.loading ? 'GUARDANDO...' : 'GUARDAR CAMBIOS' }}
               </BaseButton>
             </div>
           </form>
