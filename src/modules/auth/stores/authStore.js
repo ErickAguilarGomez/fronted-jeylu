@@ -70,6 +70,6 @@ export const authStore = reactive({
   },
 
   hasPosAccess() {
-    return !this.isHelper() && (this.isAdmin() || this.isSeller())
+    return this.isAdmin() || this.isSeller()
   }
 })

@@ -110,7 +110,7 @@ const handleRestore = async (sku) => {
         <h1 class="display-5 fw-black text-uppercase m-0">INVENTARIO DE PRODUCTOS</h1>
         <p class="fw-bold text-muted m-0 mt-2">Gestión de Catálogo y Stock por Sucursal</p>
       </div>
-      <button v-if="authStore.isAdmin()" @click="openCreateModal" class="btn btn-primary btn-lg fw-black text-uppercase px-4 py-3">+ NUEVO PRODUCTO</button>
+      <button v-if="authStore.isAdmin() || authStore.isHelper()" @click="openCreateModal" class="btn btn-primary btn-lg fw-black text-uppercase px-4 py-3">+ NUEVO PRODUCTO</button>
     </div>
 
     <div class="d-flex flex-wrap gap-3 mb-4">
