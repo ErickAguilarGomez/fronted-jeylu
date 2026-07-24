@@ -84,7 +84,7 @@ const handleSubmit = () => {
           style="width: 50px; height: 26px; cursor: pointer;"
         />
         <label class="form-check-label fw-black text-uppercase fs-6 cursor-pointer" for="isHelperSwitch">
-          Es Vendedor Ayudante / Asistente (is_helper)
+          Es  Ayudante / Asistente 
         </label>
         <small class="text-muted fw-bold d-block mt-1">
           Al activar esta opción, el usuario solo tendrá acceso al módulo de Productos y Categorías, y el <strong>precio de compra permanecerá oculto</strong>.
