@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import api from '@/plugins/axios'
+import { compressImage } from '@/utils/imageCompressor.js'
 import PageHeader from '@/shared/components/PageHeader.vue'
 import BaseTable from '@/shared/components/BaseTable.vue'
 import BaseButton from '@/shared/components/BaseButton.vue'
@@ -94,7 +95,8 @@ const handleSubmit = async (submitData) => {
     formData.append('sort_order', submitData.sort_order)
     
     if (submitData.file) {
-      formData.append('image', submitData.file)
+      const compressed = await compressImage(submitData.file, 1920, 1080, 0.85)
+      formData.append('image', compressed)
     }
 
     if (isEditing.value) {

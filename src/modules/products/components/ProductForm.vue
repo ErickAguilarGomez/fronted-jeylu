@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import { productStore } from '../stores/productStore.js'
 import { authStore } from '@/modules/auth/stores/authStore.js'
 import { useToast } from '@/composables/useToast.js'
+import { compressImage, formatBytes } from '@/utils/imageCompressor.js'
 import PurchaseOrderSelector from './PurchaseOrderSelector.vue'
 
 const toast = useToast()
@@ -60,11 +61,15 @@ const removeImageBox = (index) => {
   form.value.new_image_boxes.splice(index, 1)
 }
 
-const handleImageFileChange = (e, index) => {
+const handleImageFileChange = async (e, index) => {
   const file = e.target.files[0]
   if (file) {
-    form.value.new_image_boxes[index].file = file
-    form.value.new_image_boxes[index].preview = URL.createObjectURL(file)
+    const originalSize = file.size
+    const compressed = await compressImage(file)
+    form.value.new_image_boxes[index].file = compressed
+    form.value.new_image_boxes[index].preview = URL.createObjectURL(compressed)
+    form.value.new_image_boxes[index].originalSize = originalSize
+    form.value.new_image_boxes[index].compressedSize = compressed.size
   }
 }
 
@@ -269,12 +274,13 @@ const submitForm = async () => {
   })
 
   let imgCount = 0
-  form.value.new_image_boxes.forEach(box => {
+  for (const box of form.value.new_image_boxes) {
     if (box.file) {
-      formData.append(`images[${imgCount}]`, box.file)
+      const compressed = await compressImage(box.file)
+      formData.append(`images[${imgCount}]`, compressed)
       imgCount++
     }
-  })
+  }
 
   // Append Purchase Order fields
   if (form.value.purchase_order_option) {
@@ -407,7 +413,12 @@ defineExpose({
             
             <div v-for="(box, idx) in form.new_image_boxes" :key="idx" class="d-flex flex-column flex-sm-row align-items-sm-center gap-3 mb-3 pb-3 border-bottom border-black">
               <div class="flex-grow-1">
-                <label class="form-label fw-bold fs-7 mb-1">Imagen #{{ idx + 1 }} {{ idx === 0 && form.existing_images.length === 0 ? '(Será la Portada)' : '' }}</label>
+                <label class="form-label fw-bold fs-7 mb-1 d-flex align-items-center flex-wrap gap-2">
+                  <span>Imagen #{{ idx + 1 }} {{ idx === 0 && form.existing_images.length === 0 ? '(Será la Portada)' : '' }}</span>
+                  <span v-if="box.compressedSize" class="badge bg-success text-black border border-black font-monospace fs-7 fw-black">
+                    ⚡ {{ formatBytes(box.originalSize) }} ➔ {{ formatBytes(box.compressedSize) }} ({{ Math.round((1 - box.compressedSize / box.originalSize) * 100) }}% menos)
+                  </span>
+                </label>
                 <input type="file" @change="(e) => handleImageFileChange(e, idx)" class="form-control border-black shadow-none fw-bold bg-white" accept="image/*">
               </div>
               

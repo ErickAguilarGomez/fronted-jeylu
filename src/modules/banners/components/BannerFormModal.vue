@@ -3,6 +3,7 @@ import { ref, watch } from 'vue'
 import BaseModal from '@/shared/components/BaseModal.vue'
 import BaseButton from '@/shared/components/BaseButton.vue'
 import { useToast } from '@/composables/useToast.js'
+import { compressImage, formatBytes } from '@/utils/imageCompressor.js'
 
 const props = defineProps({
   show: {
@@ -38,38 +39,35 @@ const localForm = ref({
 const selectedFile = ref(null)
 const imagePreview = ref(null)
 
+const originalSize = ref(null)
+const compressedSize = ref(null)
+
 watch(() => props.show, (newShow) => {
   if (newShow) {
     localForm.value = { ...props.bannerData }
     selectedFile.value = null
     imagePreview.value = props.initialImagePreview
+    originalSize.value = null
+    compressedSize.value = null
   }
 })
 
-const handleFileChange = (e) => {
+const handleFileChange = async (e) => {
   const file = e.target.files[0]
   if (!file) return
 
-  // Validate format
   if (!file.type.startsWith('image/')) {
     toast.warning('El archivo seleccionado debe ser una imagen.', 'Formato no soportado')
     return
   }
 
-  // Validate size (max 5MB)
-  if (file.size > 5 * 1024 * 1024) {
-    toast.warning('La imagen no debe pesar más de 5MB.', 'Archivo muy pesado')
-    return
-  }
+  const origSize = file.size
+  const compressed = await compressImage(file, 1920, 1080, 0.85)
 
-  selectedFile.value = file
-  
-  // Preview
-  const reader = new FileReader()
-  reader.onload = (event) => {
-    imagePreview.value = event.target.result
-  }
-  reader.readAsDataURL(file)
+  selectedFile.value = compressed
+  originalSize.value = origSize
+  compressedSize.value = compressed.size
+  imagePreview.value = URL.createObjectURL(compressed)
 }
 
 const handleSubmit = () => {
@@ -102,6 +100,11 @@ const handleSubmit = () => {
           </div>
           <div v-else class="py-2">
             <img :src="imagePreview" class="border border-black border-2 mw-100" style="max-height: 200px; object-fit: contain;" />
+            <div v-if="compressedSize" class="mt-2">
+              <span class="badge bg-success text-black border border-black font-monospace fs-7 fw-black">
+                ⚡ {{ formatBytes(originalSize) }} ➔ {{ formatBytes(compressedSize) }} ({{ Math.round((1 - compressedSize / originalSize) * 100) }}% menos)
+              </span>
+            </div>
             <p class="m-0 mt-2 small text-muted text-uppercase fw-bold">Clic para reemplazar la imagen</p>
           </div>
         </div>
