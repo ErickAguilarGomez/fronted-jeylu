@@ -1,11 +1,17 @@
 <script setup>
-import { onMounted } from 'vue'
+import { onMounted, computed } from 'vue'
+import { useRoute } from 'vue-router'
 import { authStore } from '@/modules/auth/stores/authStore.js'
 import NavBar from '@/shared/components/NavBar.vue'
 import AppFooter from '@/shared/components/AppFooter.vue'
 import ToastContainer from '@/shared/components/ToastContainer.vue'
 import LowStockAlert from '@/modules/admin/components/LowStockAlert.vue'
 import WhatsappFloatButton from '@/shared/components/WhatsappFloatButton.vue'
+
+const route = useRoute()
+const showWhatsappButton = computed(() => {
+  return ['Home', 'Catalog', 'ProductDetail'].includes(route.name)
+})
 
 onMounted(() => {
   if (authStore.isAuthenticated) {
@@ -25,7 +31,7 @@ onMounted(() => {
     <AppFooter />
 
     <LowStockAlert />
-    <WhatsappFloatButton />
+    <WhatsappFloatButton v-if="showWhatsappButton" />
     <ToastContainer />
   </div>
 </template>

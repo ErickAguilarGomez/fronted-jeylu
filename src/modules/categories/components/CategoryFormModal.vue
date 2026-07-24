@@ -55,7 +55,7 @@ const handleSubmit = () => {
   if (localForm.value.discount_enabled) {
     const pct = Number(localForm.value.discount_percentage)
     if (!pct || pct < 1 || pct > 100) {
-      toast.warning('El porcentaje de descuento debe estar entre 1% y 100%.', 'Descuento inválido')
+      toast.warning('El porcentaje de aumento debe estar entre 1% y 100%.', 'Aumento inválido')
       return
     }
   }
@@ -98,21 +98,21 @@ const handleSubmit = () => {
         />
       </div>
 
-      <!-- Discount section -->
+      <!-- Aumento section -->
       <div class="p-3 border border-black border-3 bg-light">
         <label class="form-label fw-black text-uppercase fs-5 mb-2 d-block">
-          🏷️ Configuración de Descuento
+          🏷️ Configuración de Aumento de Precios
         </label>
         
         <div class="mb-3">
-          <label class="form-label fw-bold small text-muted d-block">¿Aplicar descuento específico a esta categoría?</label>
+          <label class="form-label fw-bold small text-muted d-block">¿Aplicar aumento específico a esta categoría?</label>
           <div class="btn-group w-100 border border-black border-2" role="group">
             <button
               type="button"
               :class="['btn fw-black py-2 fs-6', localForm.discount_enabled ? 'btn-black text-white' : 'btn-white text-black']"
               @click="localForm.discount_enabled = true"
             >
-              SÍ, APLICAR DESCUENTO
+              SÍ, APLICAR AUMENTO
             </button>
             <button
               type="button"
@@ -125,7 +125,7 @@ const handleSubmit = () => {
         </div>
 
         <div v-if="localForm.discount_enabled" class="mt-3">
-          <label class="form-label fw-black text-uppercase fs-6">Porcentaje de Descuento (%)</label>
+          <label class="form-label fw-black text-uppercase fs-6">Porcentaje de Aumento (%)</label>
           <div class="input-group border border-black border-2">
             <input 
               v-model="localForm.discount_percentage" 
@@ -140,7 +140,7 @@ const handleSubmit = () => {
             <span class="input-group-text bg-black text-white fw-black fs-4 border-0 px-3">%</span>
           </div>
           <small class="text-muted fw-bold mt-1 d-block">
-            Este descuento tendrá prioridad sobre el descuento general de la tienda.
+            Este aumento tendrá prioridad sobre el aumento general de la tienda.
           </small>
         </div>
       </div>

@@ -142,8 +142,8 @@ import PageHeader from '@/shared/components/PageHeader.vue'
                 <path d="M13.442 2.558a.625.625 0 0 1 0 .884l-10 10a.625.625 0 1 1-.884-.884l10-10a.625.625 0 0 1 .884 0zM4.5 6a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zm0 1a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5zm7 6a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zm0 1a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/>
               </svg>
             </div>
-            <h2 class="fw-black text-uppercase mb-3 fs-3">Descuentos</h2>
-            <p class="fw-bold mb-4 text-muted">Configura el descuento general para la tienda.</p>
+            <h2 class="fw-black text-uppercase mb-3 fs-3">Aumentos</h2>
+            <p class="fw-bold mb-4 text-muted">Configura el aumento general de precios para la tienda.</p>
             <router-link to="/admin/discounts" class="btn btn-outline-dark border-2 w-100 py-3 fw-black mt-auto fs-5">ADMINISTRAR</router-link>
           </div>
         </div>

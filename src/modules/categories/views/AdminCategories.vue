@@ -28,7 +28,7 @@ const columns = [
   { key: 'name', label: 'Nombre', class: 'fw-bold text-uppercase' },
   { key: 'description', label: 'Descripción', class: 'text-muted' },
   { key: 'unit_of_measure', label: 'Unidad de Medida', class: 'font-monospace small fw-bold' },
-  { key: 'discount', label: 'Descuento', class: 'font-monospace small fw-bold' },
+  { key: 'discount', label: 'Aumento', class: 'font-monospace small fw-bold' },
   { key: 'actions', label: 'Acciones', headerClass: 'text-center', class: 'text-center' }
 ]
 
@@ -142,7 +142,7 @@ const executeDeleteCategory = async () => {
       </template>
       <template #cell-discount="{ item }">
         <span v-if="item.discount_enabled && item.discount_percentage > 0" class="badge bg-warning text-black border border-black fw-black fs-6">
-          -{{ Number(item.discount_percentage) }}%
+          +{{ Number(item.discount_percentage) }}%
         </span>
         <span v-else class="text-muted font-monospace">—</span>
       </template>
