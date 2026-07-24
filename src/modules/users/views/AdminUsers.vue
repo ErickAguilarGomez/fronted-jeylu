@@ -56,14 +56,21 @@ onMounted(() => {
 const openAddModal = () => {
   isEditing.value = false
   editId.value = null
-  activeUserData.value = { name: '', email: '', password: '', role_id: 3, store_id: '' }
+  activeUserData.value = { name: '', email: '', password: '', role_id: 3, store_id: '', is_helper: false }
   showModal.value = true
 }
 
 const openEditModal = (user) => {
   isEditing.value = true
   editId.value = user.id
-  activeUserData.value = { name: user.name, email: user.email, password: '', role_id: user.role_id, store_id: user.store_id || '' }
+  activeUserData.value = { 
+    name: user.name, 
+    email: user.email, 
+    password: '', 
+    role_id: user.role_id, 
+    store_id: user.store_id || '',
+    is_helper: Boolean(user.is_helper)
+  }
   showModal.value = true
 }
 
@@ -153,9 +160,14 @@ const executeDeleteUser = async () => {
         <div class="text-muted fs-6">{{ item.email }}</div>
       </template>
       <template #cell-role="{ item }">
-        <span class="badge bg-black text-white border border-black px-3 py-2 fs-6 shadow-sm">
-          {{ item.role_name.toUpperCase() }}
-        </span>
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <span class="badge bg-black text-white border border-black px-3 py-2 fs-6 shadow-sm">
+            {{ item.role_name.toUpperCase() }}
+          </span>
+          <span v-if="item.is_helper" class="badge bg-warning text-black border border-black px-2 py-1 fs-7 fw-black">
+            AYUDANTE
+          </span>
+        </div>
         <div v-if="item.store_name" class="mt-2 fs-6 fw-bold text-uppercase text-muted">
           🏢 {{ item.store_name }}
         </div>

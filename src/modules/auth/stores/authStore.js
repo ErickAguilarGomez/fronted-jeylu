@@ -57,6 +57,10 @@ export const authStore = reactive({
     }
   },
 
+  isHelper() {
+    return this.user && Boolean(this.user.is_helper)
+  },
+
   isAdmin() {
     return this.user && (this.user.role_id === 1 || this.user.role_name === 'Admin')
   },
@@ -66,6 +70,6 @@ export const authStore = reactive({
   },
 
   hasPosAccess() {
-    return this.isAdmin() || this.isSeller()
+    return !this.isHelper() && (this.isAdmin() || this.isSeller())
   }
 })

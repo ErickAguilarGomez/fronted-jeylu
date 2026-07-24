@@ -16,16 +16,20 @@ const searchQuery = ref('')
 const productFormRef = ref(null)
 
 const columns = computed(() => {
-  const cols = [
+  let cols = [
     { key: 'image', label: 'IMG', headerClass: 'text-nowrap' },
     { key: 'sku', label: 'SKU', class: 'fw-bold font-monospace fs-6 text-nowrap' },
-    { key: 'name', label: 'NOMBRE', class: 'fw-black text-uppercase fs-6 w-25' },
-    { key: 'purchase_price', label: 'P. COMPRA', class: 'text-end fw-bold fs-6 text-nowrap text-muted', headerClass: 'text-end text-nowrap' },
+    { key: 'name', label: 'NOMBRE', class: 'fw-black text-uppercase fs-6 w-25' }
+  ]
+  if (!authStore.isHelper()) {
+    cols.push({ key: 'purchase_price', label: 'P. COMPRA', class: 'text-end fw-bold fs-6 text-nowrap text-muted', headerClass: 'text-end text-nowrap' })
+  }
+  cols.push(
     { key: 'price', label: 'P. VENTA', class: 'text-end fw-black fs-5 text-nowrap', headerClass: 'text-end text-nowrap' },
     { key: 'status', label: 'ESTADO', class: 'text-center', headerClass: 'text-center text-nowrap' },
     { key: 'stock', label: 'STOCK', class: 'text-center', headerClass: 'text-center text-nowrap' }
-  ]
-  if (authStore.isAdmin()) {
+  )
+  if (authStore.isAdmin() || authStore.isHelper()) {
     cols.push({ key: 'actions', label: 'ACCIONES', class: 'text-end text-nowrap', headerClass: 'text-center text-nowrap' })
   }
   return cols

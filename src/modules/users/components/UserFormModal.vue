@@ -72,6 +72,24 @@ const handleSubmit = () => {
           <option v-for="store in userStore.stores" :key="store.id" :value="store.id">{{ store.name.toUpperCase() }}</option>
         </select>
       </div>
+
+      <!-- Is Helper Option -->
+      <div class="form-check form-switch p-3 border border-black border-3 bg-light">
+        <input 
+          v-model="localForm.is_helper" 
+          class="form-check-input border-2 border-black ms-0 me-3" 
+          type="checkbox" 
+          role="switch" 
+          id="isHelperSwitch" 
+          style="width: 50px; height: 26px; cursor: pointer;"
+        />
+        <label class="form-check-label fw-black text-uppercase fs-6 cursor-pointer" for="isHelperSwitch">
+          Es Vendedor Ayudante / Asistente (is_helper)
+        </label>
+        <small class="text-muted fw-bold d-block mt-1">
+          Al activar esta opción, el usuario solo tendrá acceso al módulo de Productos y Categorías, y el <strong>precio de compra permanecerá oculto</strong>.
+        </small>
+      </div>
       <div class="d-flex justify-content-end gap-3 mt-3">
         <BaseButton type="button" variant="secondary" @click="emit('close')" class="py-3 px-4 fs-5">CANCELAR</BaseButton>
         <BaseButton type="submit" variant="primary" :disabled="loading" class="py-3 px-5 fs-5">

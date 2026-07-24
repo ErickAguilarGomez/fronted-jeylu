@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { productStore } from '../stores/productStore.js'
+import { authStore } from '@/modules/auth/stores/authStore.js'
 import { useToast } from '@/composables/useToast.js'
 import PurchaseOrderSelector from './PurchaseOrderSelector.vue'
 
@@ -346,7 +347,7 @@ defineExpose({
               <label class="form-label fw-black text-uppercase fs-6">NOMBRE DEL PRODUCTO (Obligatorio)</label>
               <input v-model="form.name" type="text" class="form-control form-control-lg border-black border-2 shadow-none fw-bold" placeholder="Ejem: Adidas Samba Clásico" required>
             </div>
-            <div class="col-md-3">
+            <div v-if="!authStore.isHelper()" class="col-md-3">
               <label class="form-label fw-black text-uppercase fs-6">PRECIO DE COMPRA ($) <span class="text-muted fw-normal text-lowercase">(opcional)</span></label>
               <div class="input-group border border-black border-2">
                 <span class="input-group-text bg-secondary border-0 fw-black px-3">$</span>
