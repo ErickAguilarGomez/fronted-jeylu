@@ -50,7 +50,7 @@ class ProductService {
       categories = catRes.data?.categories || []
     } catch (e) { console.error('Error loading categories', e) }
 
-    if (authStore.user?.role_id === 1) {
+    if (authStore.user?.role_id === 1 || authStore.isHelper()) {
       try {
         const storesRes = await api.get('/stores', { params: { all: 1 } })
         stores = storesRes.data?.stores || []

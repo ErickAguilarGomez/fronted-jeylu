@@ -47,7 +47,7 @@ const handleSearch = (query) => {
 onMounted(async () => {
   await productStore.fetchMetadata()
   
-  if (authStore.isSeller() && authStore.user?.primary_store) {
+  if (authStore.isSeller() && !authStore.isHelper() && authStore.user?.primary_store) {
     productStore.filterByStore(authStore.user.primary_store.id)
   }
   
@@ -114,8 +114,8 @@ const handleRestore = async (sku) => {
     </div>
 
     <div class="d-flex flex-wrap gap-3 mb-4">
-      <!-- Filtro por Tiendas (Solo visible para Admin) -->
-      <div v-if="authStore.isAdmin()" class="d-flex flex-wrap gap-2 p-3 bg-light border border-black border-2 align-items-center flex-grow-1">
+      <!-- Filtro por Tiendas (Visible para Admin y Vendedor Ayudante) -->
+      <div v-if="authStore.isAdmin() || authStore.isHelper()" class="d-flex flex-wrap gap-2 p-3 bg-light border border-black border-2 align-items-center flex-grow-1">
         <span class="fw-black text-uppercase me-2"><i class="bi bi-shop"></i> SUCURSAL DE INVENTARIO:</span>
         <button 
           @click="filterByStore('')" 
