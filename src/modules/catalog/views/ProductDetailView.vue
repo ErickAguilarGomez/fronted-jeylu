@@ -519,23 +519,27 @@ onMounted(async () => {
 
 <style scoped>
 .main-image-container {
+  width: 100%;
+  aspect-ratio: 4 / 5;
   overflow: hidden;
-  transition: transform 0.2s ease;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: #fff;
-  height: auto;
+  position: relative;
+  background-color: #000;
+  border-width: 3px !important;
 }
 .main-featured-image {
   width: 100%;
-  height: auto;
-  max-height: 550px;
-  object-fit: contain;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  transition: transform 0.3s ease;
+}
+.main-image-container:hover .main-featured-image {
+  transform: scale(1.03);
 }
 @media (max-width: 767.98px) {
-  .main-featured-image {
-    max-height: 350px;
+  .main-image-container {
+    aspect-ratio: 1 / 1;
   }
 }
 .thumbnail-card {

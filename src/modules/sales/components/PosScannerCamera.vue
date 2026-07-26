@@ -101,7 +101,12 @@ const addManualSku = () => {
           <h4 class="fw-black text-uppercase text-danger mt-3">{{ cameraError }}</h4>
           <p class="fw-bold text-muted mt-2">Puedes utilizar el buscador de productos o ingresar el SKU manualmente abajo.</p>
         </div>
-        <QrcodeStream v-else-if="scanning" @decode="onDecode" @error="onCameraError" />
+        <QrcodeStream 
+          v-else-if="scanning" 
+          :formats="['qr_code', 'ean_13', 'ean_8', 'code_128', 'code_39', 'upc_a', 'upc_e', 'codabar', 'itf']" 
+          @decode="onDecode" 
+          @error="onCameraError" 
+        />
         <div v-else class="text-center p-4">
           <div class="spinner-border text-black mb-3" style="width: 3rem; height: 3rem; border-width: 0.3em;" role="status"></div>
           <h3 class="fw-black text-uppercase m-0">PROCESANDO CÓDIGO...</h3>

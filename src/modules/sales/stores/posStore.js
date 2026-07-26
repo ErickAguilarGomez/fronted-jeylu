@@ -1,5 +1,6 @@
 import { reactive } from 'vue'
 import posService from '../services/posService.js'
+import api from '@/plugins/axios.js'
 import { authStore } from '@/modules/auth/stores/authStore.js'
 
 export const posStore = reactive({
@@ -13,9 +14,23 @@ export const posStore = reactive({
   selectedStoreId: '',
   customerId: '',
   customerName: '',
+  paymentMethodId: '',
+  paymentMethods: [],
 
   get cartTotal() {
     return this.cart.reduce((total, item) => total + (item.price * item.quantity), 0)
+  },
+
+  async fetchPaymentMethods() {
+    try {
+      const res = await api.get('/payment-methods?active_only=1')
+      this.paymentMethods = res.data?.data || []
+      if (this.paymentMethods.length > 0 && !this.paymentMethodId) {
+        this.paymentMethodId = this.paymentMethods[0].id
+      }
+    } catch (e) {
+      console.error('Error cargando formas de pago:', e)
+    }
   },
 
   async fetchUsers() {
@@ -152,10 +167,16 @@ export const posStore = reactive({
       return false
     }
 
+    if (!this.paymentMethodId) {
+      toast.warning('Debe seleccionar una forma de pago antes de procesar la venta.', 'Forma de Pago Requerida')
+      return false
+    }
+
     this.processingSale = true
 
     try {
       const payload = {
+        payment_method_id: this.paymentMethodId,
         items: this.cart.map(item => ({
           sku: item.sku,
           quantity: item.quantity,

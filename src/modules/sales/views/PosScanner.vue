@@ -15,6 +15,7 @@ const showVariantModal = ref(false)
 
 onMounted(() => {
   posStore.fetchStores()
+  posStore.fetchPaymentMethods()
 })
 
 const addProductBySku = async (sku) => {
@@ -76,6 +77,19 @@ watch(() => posStore.selectedStoreId, (newStore, oldStore) => {
           
           <div class="card-footer bg-secondary p-4 border-top border-black border-2 mt-auto">
             <PosClientForm />
+
+            <!-- Selector de Forma de Pago -->
+            <div class="mb-4 bg-white border border-black border-2 p-3 shadow-sm">
+              <label class="form-label fw-black text-uppercase fs-6 mb-2 text-primary d-block">
+                💳 Forma de Pago (Obligatorio)
+              </label>
+              <select v-model="posStore.paymentMethodId" class="form-select form-select-lg border-black border-2 fw-bold bg-white shadow-none" required>
+                <option value="" disabled>Seleccione una forma de pago...</option>
+                <option v-for="pm in posStore.paymentMethods" :key="pm.id" :value="pm.id">
+                  {{ pm.name }}
+                </option>
+              </select>
+            </div>
 
             <div class="d-flex justify-content-between align-items-end mb-4 bg-white border border-black border-2 p-3 shadow-sm">
               <h2 class="fw-black text-uppercase m-0">TOTAL</h2>

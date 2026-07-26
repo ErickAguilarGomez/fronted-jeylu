@@ -138,6 +138,22 @@ import PageHeader from '@/shared/components/PageHeader.vue'
         <div class="card h-100 border-2 shadow-sm transition-hover">
           <div class="card-body p-5 d-flex flex-column align-items-center text-center">
             <div class="bg-black text-white rounded-circle d-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor" class="bi bi-credit-card-2-front" viewBox="0 0 16 16">
+                <path d="M2 2a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H2zm13 2v5H1V4a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1zm-1 7H2a1 1 0 0 1-1-1v-1h14v1a1 1 0 0 1-1 1z"/>
+                <path d="M2 5.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1-.5-.5v-1z"/>
+              </svg>
+            </div>
+            <h2 class="fw-black text-uppercase mb-3 fs-3">Formas de Pago</h2>
+            <p class="fw-bold mb-4 text-muted">Administra los métodos de pago aceptados en caja.</p>
+            <router-link to="/admin/payment-methods" class="btn btn-outline-dark border-2 w-100 py-3 fw-black mt-auto fs-5">ADMINISTRAR</router-link>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="card h-100 border-2 shadow-sm transition-hover">
+          <div class="card-body p-5 d-flex flex-column align-items-center text-center">
+            <div class="bg-black text-white rounded-circle d-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
               <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor" class="bi bi-percent" viewBox="0 0 16 16">
                 <path d="M13.442 2.558a.625.625 0 0 1 0 .884l-10 10a.625.625 0 1 1-.884-.884l10-10a.625.625 0 0 1 .884 0zM4.5 6a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zm0 1a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5zm7 6a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zm0 1a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/>
               </svg>

@@ -34,6 +34,7 @@ const columns = computed(() => {
   }
   list.push(
     { key: 'customer', label: 'Cliente', class: 'text-muted' },
+    { key: 'payment_method_name', label: 'Forma de Pago', class: 'fw-bold text-primary font-monospace' },
     { key: 'total_amount', label: 'Total', class: 'fw-black' }
   )
   if (authStore.isAdmin()) {
@@ -177,6 +178,11 @@ onMounted(async () => {
       </template>
       <template #cell-customer="{ item }">
         {{ item.customer_name || item.customer_account_name || 'Anónimo' }}
+      </template>
+      <template #cell-payment_method_name="{ item }">
+        <span class="badge bg-light text-black border border-black fw-bold font-monospace fs-7">
+          💳 {{ item.payment_method_name || 'Efectivo' }}
+        </span>
       </template>
       <template #cell-total_amount="{ item }">
         <span class="text-success fw-bold">$ {{ Number(item.total_amount).toFixed(2) }}</span>
