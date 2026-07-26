@@ -1,10 +1,20 @@
 <script setup>
-import { onMounted, computed } from 'vue'
+import { onMounted, computed, onUnmounted } from 'vue'
 import { catalogStore } from '../stores/catalogStore.js'
 import ProductCard from '@/modules/catalog/components/ProductCard.vue'
 
+let searchTimeout = null
+
 const searchProducts = () => {
+  if (searchTimeout) clearTimeout(searchTimeout)
   catalogStore.fetchProducts(1)
+}
+
+const handleSearchInput = () => {
+  if (searchTimeout) clearTimeout(searchTimeout)
+  searchTimeout = setTimeout(() => {
+    catalogStore.fetchProducts(1)
+  }, 300)
 }
 
 const selectCategory = (categoryId) => {
@@ -20,6 +30,10 @@ onMounted(() => {
   catalogStore.fetchCategories()
   catalogStore.fetchProducts()
 })
+
+onUnmounted(() => {
+  if (searchTimeout) clearTimeout(searchTimeout)
+})
 </script>
 
 <template>
@@ -31,6 +45,7 @@ onMounted(() => {
       <div class="input-group border border-black border-2" style="max-width: 400px; box-shadow: 4px 4px 0px #000;">
         <input 
           v-model="catalogStore.searchQuery" 
+          @input="handleSearchInput"
           @keyup.enter="searchProducts"
           type="text" 
           class="form-control border-0 fw-bold shadow-none" 
@@ -44,7 +59,7 @@ onMounted(() => {
     <div class="d-md-none d-flex overflow-auto text-nowrap gap-2 pb-3 mb-4 px-1" style="scrollbar-width: none; -ms-overflow-style: none;">
       <button 
         @click="selectCategory(null)" 
-        :class="['btn fw-black border-black border-2 fs-7 px-3 py-2 m-0', catalogStore.selectedCategoryId === null ? 'btn-black text-white bg-black' : 'btn-outline-dark bg-white']"
+        :class="['btn fw-black border-black border-2 fs-7 px-3 py-2 m-0 flex-shrink-0', catalogStore.selectedCategoryId === null ? 'btn-black text-white bg-black' : 'btn-outline-dark bg-white']"
       >
         TODAS ({{ totalProductsCount }})
       </button>
@@ -52,7 +67,7 @@ onMounted(() => {
         v-for="cat in catalogStore.categories" 
         :key="cat.id"
         @click="selectCategory(cat.id)"
-        :class="['btn fw-black border-black border-2 fs-7 px-3 py-2 m-0', catalogStore.selectedCategoryId === cat.id ? 'btn-primary' : 'btn-outline-dark bg-white']"
+        :class="['btn fw-black border-black border-2 fs-7 px-3 py-2 m-0 flex-shrink-0', catalogStore.selectedCategoryId === cat.id ? 'btn-primary' : 'btn-outline-dark bg-white']"
       >
         {{ cat.name.toUpperCase() }} ({{ cat.products_count || 0 }})
       </button>
@@ -66,19 +81,19 @@ onMounted(() => {
           <div class="d-flex flex-column gap-2">
             <button 
               @click="selectCategory(null)" 
-              :class="['btn w-100 text-start fw-black border-black border-2 px-3 py-3 d-flex justify-content-between align-items-center transition m-0', catalogStore.selectedCategoryId === null ? 'btn-black text-white bg-black shadow-none' : 'btn-outline-dark bg-white hover-btn']"
+              :class="['btn w-100 text-start fw-black border-black border-2 px-3 py-3 d-flex justify-content-between align-items-center transition m-0 gap-2', catalogStore.selectedCategoryId === null ? 'btn-black text-white bg-black shadow-none' : 'btn-outline-dark bg-white hover-btn']"
             >
-              <span>TODAS</span>
-              <span class="badge border border-black bg-light text-black fw-bold">{{ totalProductsCount }}</span>
+              <span class="text-wrap me-2 flex-grow-1 text-break" style="word-break: break-word; min-width: 0;">TODAS</span>
+              <span class="badge border border-black bg-light text-black fw-bold flex-shrink-0 ms-auto">{{ totalProductsCount }}</span>
             </button>
             <button 
               v-for="cat in catalogStore.categories" 
               :key="cat.id"
               @click="selectCategory(cat.id)"
-              :class="['btn w-100 text-start fw-black border-black border-2 px-3 py-3 d-flex justify-content-between align-items-center transition m-0', catalogStore.selectedCategoryId === cat.id ? 'btn-primary text-black shadow-none' : 'btn-outline-dark bg-white hover-btn']"
+              :class="['btn w-100 text-start fw-black border-black border-2 px-3 py-3 d-flex justify-content-between align-items-center transition m-0 gap-2', catalogStore.selectedCategoryId === cat.id ? 'btn-primary text-black shadow-none' : 'btn-outline-dark bg-white hover-btn']"
             >
-              <span>{{ cat.name.toUpperCase() }}</span>
-              <span class="badge border border-black bg-light text-black fw-bold">{{ cat.products_count || 0 }}</span>
+              <span class="text-wrap me-2 flex-grow-1 text-break" style="word-break: break-word; min-width: 0;">{{ cat.name.toUpperCase() }}</span>
+              <span class="badge border border-black bg-light text-black fw-bold flex-shrink-0 ms-auto">{{ cat.products_count || 0 }}</span>
             </button>
           </div>
         </div>
