@@ -1,20 +1,10 @@
 <script setup>
-import { onMounted, computed, onUnmounted } from 'vue'
+import { onMounted, computed } from 'vue'
 import { catalogStore } from '../stores/catalogStore.js'
 import ProductCard from '@/modules/catalog/components/ProductCard.vue'
 
-let searchTimeout = null
-
 const searchProducts = () => {
-  if (searchTimeout) clearTimeout(searchTimeout)
   catalogStore.fetchProducts(1)
-}
-
-const handleSearchInput = () => {
-  if (searchTimeout) clearTimeout(searchTimeout)
-  searchTimeout = setTimeout(() => {
-    catalogStore.fetchProducts(1)
-  }, 300)
 }
 
 const selectCategory = (categoryId) => {
@@ -30,10 +20,6 @@ onMounted(() => {
   catalogStore.fetchCategories()
   catalogStore.fetchProducts()
 })
-
-onUnmounted(() => {
-  if (searchTimeout) clearTimeout(searchTimeout)
-})
 </script>
 
 <template>
@@ -45,7 +31,6 @@ onUnmounted(() => {
       <div class="input-group border border-black border-2" style="max-width: 400px; box-shadow: 4px 4px 0px #000;">
         <input 
           v-model="catalogStore.searchQuery" 
-          @input="handleSearchInput"
           @keyup.enter="searchProducts"
           type="text" 
           class="form-control border-0 fw-bold shadow-none" 
