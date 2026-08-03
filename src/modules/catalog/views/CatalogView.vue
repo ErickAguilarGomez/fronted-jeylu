@@ -104,7 +104,7 @@ onMounted(() => {
 
         <template v-else>
           <div class="row row-cols-1 row-cols-sm-2 row-cols-md-2 row-cols-lg-3 g-4 mb-5">
-            <div class="col" v-for="product in catalogStore.products.filter(p => p.is_available)" :key="product.sku">
+            <div class="col" v-for="product in catalogStore.products" :key="product.sku">
               <ProductCard :product="product" />
             </div>
           </div>
