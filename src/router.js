@@ -59,7 +59,7 @@ router.beforeEach(async (to, from, next) => {
 
   // Restricción estricta para Vendedor Ayudante
   if (isHelper && to.meta.requiresAuth) {
-    const allowedHelperRoutes = ['SellerDashboard', 'AdminProducts', 'AdminCategories']
+    const allowedHelperRoutes = ['SellerDashboard', 'AdminProducts', 'AdminCategories', 'SellerSales']
     if (!allowedHelperRoutes.includes(to.name)) {
       return next({ name: 'SellerDashboard' })
     }
