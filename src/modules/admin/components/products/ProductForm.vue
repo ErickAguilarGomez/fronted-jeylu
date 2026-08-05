@@ -230,12 +230,7 @@ const submitForm = async () => {
 
   saving.value = true
   
-  const formData = new FormData()
-  
-  if (modalMode.value === 'create') {
-    formData.append('base_sku', '')
-  }
-  
+  formData.append('base_sku', form.value.base_sku ? form.value.base_sku.trim() : '')
   formData.append('category_id', form.value.category_id)
   formData.append('store_id', form.value.store_id)
   formData.append('name', form.value.name)
@@ -330,7 +325,13 @@ defineExpose({
           </div>
 
           <div class="row g-3 mb-4">
-            <div class="col-md-12">
+            <div class="col-md-5">
+              <label class="form-label fw-black text-uppercase fs-6">
+                SKU<span class="text-muted fw-normal text-lowercase">(opcional)</span>
+              </label>
+              <input v-model="form.base_sku" type="text" class="form-control form-control-lg border-black border-2 shadow-none fw-bold font-monospace" placeholder="Ejem: CABL-7851 (o dejar en blanco)">
+            </div>
+            <div class="col-md-7">
               <label class="form-label fw-black text-uppercase fs-6">CATEGORÍA (Obligatorio)</label>
               <select v-model="form.category_id" class="form-select form-select-lg border-black border-2 fw-bold bg-white shadow-none" required>
                 <option value="" disabled>Seleccione una categoría...</option>
