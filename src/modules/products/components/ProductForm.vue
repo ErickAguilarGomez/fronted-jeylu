@@ -12,6 +12,7 @@ const emit = defineEmits(['closed'])
 const showModal = ref(false)
 const modalMode = ref('create') // 'create' or 'edit'
 const saving = ref(false)
+const editingSku = ref('')
 
 const handleBeforeUnload = (e) => {
   if (saving.value) {
@@ -167,6 +168,7 @@ const openEditModal = async (productSku) => {
     const product = await productStore.getProductBySku(productSku)
 
     modalMode.value = 'edit'
+    editingSku.value = productSku
     form.value = { 
       base_sku: product.sku, 
       category_id: product.category_id || productStore.categories[0]?.id || '',
@@ -327,7 +329,7 @@ const submitForm = async () => {
       await productStore.createProduct(formData)
       toast.success('El producto ha sido registrado exitosamente.', '¡Producto registrado!')
     } else {
-      await productStore.updateProduct(form.value.base_sku, formData)
+      await productStore.updateProduct(editingSku.value, formData)
       toast.success('El producto ha sido actualizado exitosamente.', '¡Producto actualizado!')
     }
   } catch (err) {
