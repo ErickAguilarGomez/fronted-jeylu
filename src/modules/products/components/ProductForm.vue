@@ -217,8 +217,8 @@ const openEditModal = async (productSku) => {
   }
 }
 
-const close = () => {
-  if (saving.value) return
+const close = (force = false) => {
+  if (saving.value && !force) return
   showModal.value = false
   emit('closed')
 }
@@ -330,12 +330,14 @@ const submitForm = async () => {
       await productStore.updateProduct(form.value.base_sku, formData)
       toast.success('El producto ha sido actualizado exitosamente.', '¡Producto actualizado!')
     }
-    close()
   } catch (err) {
     toast.error(err, 'Error al guardar el producto')
+    return
   } finally {
     saving.value = false
   }
+
+  close(true)
 }
 
 const handlePurchaseOrderUpdate = (data) => {
