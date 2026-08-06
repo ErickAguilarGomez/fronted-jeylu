@@ -36,12 +36,24 @@ const onCameraError = (error) => {
 const onDecode = (decodedString) => {
   if (!decodedString) return
   
-  const sku = decodedString.trim()
+  const sku = (typeof decodedString === 'string' ? decodedString : (decodedString.rawValue || decodedString.content || '')).trim()
   if (!sku) return
   
   scanning.value = false
   emit('add-product', sku)
   setTimeout(() => { scanning.value = true }, 2000)
+}
+
+const onDetect = (detectedCodes) => {
+  if (!detectedCodes) return
+  const codes = Array.isArray(detectedCodes) ? detectedCodes : [detectedCodes]
+  for (const item of codes) {
+    const text = typeof item === 'string' ? item : (item.rawValue || item.content || '')
+    if (text && text.trim()) {
+      onDecode(text)
+      break
+    }
+  }
 }
 
 const handleSearchInput = () => {
@@ -104,6 +116,7 @@ const addManualSku = () => {
         <QrcodeStream 
           v-else-if="scanning" 
           :formats="['qr_code', 'ean_13', 'ean_8', 'code_128', 'code_39', 'upc_a', 'upc_e', 'codabar', 'itf']" 
+          @detect="onDetect"
           @decode="onDecode" 
           @error="onCameraError" 
         />
