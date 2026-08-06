@@ -69,13 +69,10 @@ const startScanner = async () => {
     })
 
     const config = {
-      fps: 15,
-      qrbox: (viewfinderWidth, viewfinderHeight) => {
-        const minEdge = Math.min(viewfinderWidth, viewfinderHeight)
-        return {
-          width: Math.floor(minEdge * 0.85),
-          height: Math.floor(minEdge * 0.6)
-        }
+      fps: 30,
+      aspectRatio: 1.0,
+      experimentalFeatures: {
+        useBarCodeDetectorIfSupported: true
       }
     }
 
@@ -197,11 +194,22 @@ const addManualSku = () => {
 #pos-barcode-reader {
   width: 100% !important;
   height: 100% !important;
+  border: none !important;
 }
 #pos-barcode-reader video {
   width: 100% !important;
   height: 100% !important;
   object-fit: cover !important;
+}
+:deep(#pos-barcode-reader__scan_region) {
+  width: 100% !important;
+  height: 100% !important;
+  background: transparent !important;
+}
+:deep(#pos-barcode-reader__scan_region img),
+:deep(#pos-barcode-reader__dashboard),
+:deep(#pos-barcode-reader__scan_region div[style*="border"]) {
+  display: none !important;
 }
 .cursor-pointer {
   cursor: pointer;
