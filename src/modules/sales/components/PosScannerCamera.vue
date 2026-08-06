@@ -1,6 +1,6 @@
 <script setup>
-import { ref, watch } from 'vue'
-import { QrcodeStream } from 'vue3-qrcode-reader'
+import { ref, onMounted, onUnmounted } from 'vue'
+import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode'
 import { posStore } from '../stores/posStore.js'
 
 const props = defineProps({
@@ -18,25 +18,26 @@ const showDropdown = ref(false)
 const searching = ref(false)
 const cameraError = ref('')
 let searchTimeout = null
+let html5QrcodeScanner = null
 
 const onCameraError = (error) => {
-  console.error('Error de cámara QR:', error)
+  console.error('Error de cámara:', error)
   if (error.name === 'NotAllowedError') {
     cameraError.value = 'Permiso denegado para acceder a la cámara.'
   } else if (error.name === 'NotFoundError') {
-    cameraError.value = 'No se encontró ningún dispositivo de cámara o lector conectado.'
+    cameraError.value = 'No se encontró ningún dispositivo de cámara conectado.'
   } else if (error.name === 'NotSupportedError') {
-    cameraError.value = 'La cámara no es soportada en este navegador (requiere HTTPS).'
+    cameraError.value = 'La cámara requiere un entorno seguro (HTTPS).'
   } else {
-    cameraError.value = `Error de cámara: ${error.message || error.name}`
+    cameraError.value = `Error de cámara: ${error.message || error.name || error}`
   }
   scanning.value = false
 }
 
 const onDecode = (decodedString) => {
-  if (!decodedString) return
+  if (!decodedString || !scanning.value) return
   
-  const sku = (typeof decodedString === 'string' ? decodedString : (decodedString.rawValue || decodedString.content || '')).trim()
+  const sku = decodedString.trim()
   if (!sku) return
   
   scanning.value = false
@@ -44,17 +45,62 @@ const onDecode = (decodedString) => {
   setTimeout(() => { scanning.value = true }, 2000)
 }
 
-const onDetect = (detectedCodes) => {
-  if (!detectedCodes) return
-  const codes = Array.isArray(detectedCodes) ? detectedCodes : [detectedCodes]
-  for (const item of codes) {
-    const text = typeof item === 'string' ? item : (item.rawValue || item.content || '')
-    if (text && text.trim()) {
-      onDecode(text)
-      break
+const startScanner = async () => {
+  try {
+    const devices = await Html5Qrcode.getCameras()
+    if (!devices || devices.length === 0) {
+      cameraError.value = 'No se detectaron cámaras conectadas.'
+      return
     }
+
+    html5QrcodeScanner = new Html5Qrcode("pos-barcode-reader", {
+      formatsToSupport: [
+        Html5QrcodeSupportedFormats.QR_CODE,
+        Html5QrcodeSupportedFormats.CODE_128,
+        Html5QrcodeSupportedFormats.CODE_39,
+        Html5QrcodeSupportedFormats.EAN_13,
+        Html5QrcodeSupportedFormats.EAN_8,
+        Html5QrcodeSupportedFormats.UPC_A,
+        Html5QrcodeSupportedFormats.UPC_E,
+        Html5QrcodeSupportedFormats.CODABAR,
+        Html5QrcodeSupportedFormats.ITF
+      ],
+      verbose: false
+    })
+
+    const config = {
+      fps: 15,
+      qrbox: (viewfinderWidth, viewfinderHeight) => {
+        const minEdge = Math.min(viewfinderWidth, viewfinderHeight)
+        return {
+          width: Math.floor(minEdge * 0.85),
+          height: Math.floor(minEdge * 0.6)
+        }
+      }
+    }
+
+    await html5QrcodeScanner.start(
+      { facingMode: "environment" },
+      config,
+      (decodedText) => {
+        onDecode(decodedText)
+      },
+      () => {}
+    )
+  } catch (err) {
+    onCameraError(err)
   }
 }
+
+onMounted(() => {
+  startScanner()
+})
+
+onUnmounted(() => {
+  if (html5QrcodeScanner && html5QrcodeScanner.isScanning) {
+    html5QrcodeScanner.stop().catch(console.error)
+  }
+})
 
 const handleSearchInput = () => {
   if (!searchQuery.value.trim()) {
@@ -107,23 +153,13 @@ const addManualSku = () => {
     
     <div class="card-body p-4 d-flex flex-column">
       
-      <div class="scanner-wrapper border border-black border-4 mb-4 position-relative bg-secondary flex-grow-1 shadow-sm d-flex justify-content-center align-items-center" style="min-height: 350px; overflow: hidden;">
-        <div v-if="cameraError" class="text-center p-4">
+      <div class="scanner-wrapper border border-black border-4 mb-4 position-relative bg-black flex-grow-1 shadow-sm d-flex justify-content-center align-items-center" style="min-height: 350px; overflow: hidden;">
+        <div v-if="cameraError" class="text-center p-4 text-white">
           <span class="fs-1">📷</span>
           <h4 class="fw-black text-uppercase text-danger mt-3">{{ cameraError }}</h4>
-          <p class="fw-bold text-muted mt-2">Puedes utilizar el buscador de productos o ingresar el SKU manualmente abajo.</p>
+          <p class="fw-bold text-white-50 mt-2">Puedes utilizar el buscador de productos o ingresar el SKU manualmente abajo.</p>
         </div>
-        <QrcodeStream 
-          v-else-if="scanning" 
-          :formats="['qr_code', 'ean_13', 'ean_8', 'code_128', 'code_39', 'upc_a', 'upc_e', 'codabar', 'itf']" 
-          @detect="onDetect"
-          @decode="onDecode" 
-          @error="onCameraError" 
-        />
-        <div v-else class="text-center p-4">
-          <div class="spinner-border text-black mb-3" style="width: 3rem; height: 3rem; border-width: 0.3em;" role="status"></div>
-          <h3 class="fw-black text-uppercase m-0">PROCESANDO CÓDIGO...</h3>
-        </div>
+        <div id="pos-barcode-reader" style="width: 100%; height: 100%;"></div>
       </div>
       
       <div class="position-relative w-100">
@@ -158,7 +194,11 @@ const addManualSku = () => {
 </template>
 
 <style scoped>
-.scanner-wrapper video {
+#pos-barcode-reader {
+  width: 100% !important;
+  height: 100% !important;
+}
+#pos-barcode-reader video {
   width: 100% !important;
   height: 100% !important;
   object-fit: cover !important;
