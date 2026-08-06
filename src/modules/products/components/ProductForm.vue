@@ -276,51 +276,53 @@ const submitForm = async () => {
   }
 
   saving.value = true
-  
-  formData.append('base_sku', form.value.base_sku ? form.value.base_sku.trim() : '')
-  formData.append('category_id', form.value.category_id)
-  formData.append('store_id', form.value.store_id)
-  formData.append('name', form.value.name)
-  formData.append('description', form.value.description || '')
-  formData.append('video_url', form.value.video_url || '')
-  formData.append('price', form.value.price)
-  formData.append('purchase_price', form.value.purchase_price ?? '')
-
-  form.value.variants.forEach((v, index) => {
-    if (v.id) formData.append(`variants[${index}][id]`, v.id)
-    formData.append(`variants[${index}][size]`, v.size)
-    for (const storeId in v.stocks) {
-      formData.append(`variants[${index}][stocks][${storeId}]`, v.stocks[storeId])
-    }
-  })
-
-  let imgCount = 0
-  for (const box of form.value.new_image_boxes) {
-    if (box.file) {
-      const compressed = await compressImage(box.file)
-      formData.append(`images[${imgCount}]`, compressed)
-      imgCount++
-    }
-  }
-
-  // Append Purchase Order fields
-  if (form.value.purchase_order_option) {
-    formData.append('purchase_order_option', form.value.purchase_order_option)
-    if (form.value.purchase_order_option === 'existing' && form.value.purchase_order_id) {
-      formData.append('purchase_order_id', form.value.purchase_order_id)
-    }
-    if (form.value.purchase_order_file) {
-      formData.append('purchase_order_file', form.value.purchase_order_file)
-    }
-    formData.append('purchase_order_number', form.value.purchase_order_number || '')
-    formData.append('purchase_order_provider', form.value.purchase_order_provider || '')
-    formData.append('purchase_order_date', form.value.purchase_order_date || '')
-    formData.append('purchase_order_total', form.value.purchase_order_total || '')
-    formData.append('purchase_order_status', form.value.purchase_order_status || 'COMPLETADA')
-    formData.append('purchase_order_observations', form.value.purchase_order_observations || '')
-  }
 
   try {
+    const formData = new FormData()
+
+    formData.append('base_sku', form.value.base_sku ? form.value.base_sku.trim() : '')
+    formData.append('category_id', form.value.category_id)
+    formData.append('store_id', form.value.store_id)
+    formData.append('name', form.value.name)
+    formData.append('description', form.value.description || '')
+    formData.append('video_url', form.value.video_url || '')
+    formData.append('price', form.value.price)
+    formData.append('purchase_price', form.value.purchase_price ?? '')
+
+    form.value.variants.forEach((v, index) => {
+      if (v.id) formData.append(`variants[${index}][id]`, v.id)
+      formData.append(`variants[${index}][size]`, v.size)
+      for (const storeId in v.stocks) {
+        formData.append(`variants[${index}][stocks][${storeId}]`, v.stocks[storeId])
+      }
+    })
+
+    let imgCount = 0
+    for (const box of form.value.new_image_boxes) {
+      if (box.file) {
+        const compressed = await compressImage(box.file)
+        formData.append(`images[${imgCount}]`, compressed)
+        imgCount++
+      }
+    }
+
+    // Append Purchase Order fields
+    if (form.value.purchase_order_option) {
+      formData.append('purchase_order_option', form.value.purchase_order_option)
+      if (form.value.purchase_order_option === 'existing' && form.value.purchase_order_id) {
+        formData.append('purchase_order_id', form.value.purchase_order_id)
+      }
+      if (form.value.purchase_order_file) {
+        formData.append('purchase_order_file', form.value.purchase_order_file)
+      }
+      formData.append('purchase_order_number', form.value.purchase_order_number || '')
+      formData.append('purchase_order_provider', form.value.purchase_order_provider || '')
+      formData.append('purchase_order_date', form.value.purchase_order_date || '')
+      formData.append('purchase_order_total', form.value.purchase_order_total || '')
+      formData.append('purchase_order_status', form.value.purchase_order_status || 'COMPLETADA')
+      formData.append('purchase_order_observations', form.value.purchase_order_observations || '')
+    }
+
     if (modalMode.value === 'create') {
       await productStore.createProduct(formData)
       toast.success('El producto ha sido registrado exitosamente.', '¡Producto registrado!')
@@ -359,16 +361,6 @@ defineExpose({
   <!-- Modal Form -->
   <div v-if="showModal" class="modal-backdrop" style="background: rgba(0,0,0,0.85); position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 1050; display: flex; align-items: center; justify-content: center; padding: 1rem;">
     <div class="card border-2 shadow w-100 position-relative" style="max-width: 900px; max-height: 92vh; overflow-y: auto;">
-      <!-- Full-screen Process Lock Overlay during saving -->
-      <div v-if="saving" class="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-black bg-opacity-75 text-white text-center p-4" style="z-index: 9999; backdrop-filter: blur(4px); pointer-events: all;">
-        <div class="spinner-border text-warning mb-4" style="width: 4.5rem; height: 4.5rem; border-width: 0.45em;" role="status"></div>
-        <h2 class="fw-black text-uppercase mb-2 text-warning fs-2">GUARDANDO PRODUCTO Y SUBIENDO IMÁGENES</h2>
-        <p class="fs-5 fw-bold mb-3 text-light">Por favor no cierre ni actualice la ventana mientras se completa la operación.</p>
-        <span class="badge bg-danger border border-white px-4 py-2 fs-6 fw-bold text-uppercase">
-          🔒 PROCESO PROTEGIDO CONTRA INTERRUPCIONES
-        </span>
-      </div>
-
       <div class="card-header bg-black text-white p-4 border-bottom border-black border-2 d-flex justify-content-between align-items-center position-sticky top-0" style="z-index: 100;">
         <h2 class="m-0 fw-black text-uppercase fs-3">{{ modalMode === 'create' ? 'NUEVO PRODUCTO EN INVENTARIO' : 'EDITAR PRODUCTO Y VARIANTES' }}</h2>
         <button type="button" @click="close" :disabled="saving" class="btn btn-danger py-2 px-3 fw-black border border-white text-white m-0 fs-5" :class="{ 'opacity-50': saving }">X</button>
