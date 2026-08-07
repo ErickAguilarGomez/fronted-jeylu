@@ -17,7 +17,7 @@ const removePendingRequest = (config) => {
 }
 
 const api = axios.create({
-  baseURL: 'https://apijeylu.dinho.lat/api',
+  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
   withCredentials: true,
   xsrfCookieName: 'XSRF-TOKEN',
   xsrfHeaderName: 'X-XSRF-TOKEN',
@@ -31,7 +31,7 @@ const api = axios.create({
 api.interceptors.request.use(
   config => {
     // Generar token de cancelación para la petición (excluyendo peticiones globales de autenticación y settings)
-    const isGlobalRequest = config.url && (config.url.includes('/auth/') || config.url.includes('/settings/'))
+    const isGlobalRequest = config.url && (config.url.includes('/auth/') || config.url.includes('/settings/') || config.url.includes('/low-stock'))
     if (!isGlobalRequest) {
       const source = axios.CancelToken.source()
       config.cancelToken = source.token
@@ -61,7 +61,7 @@ api.interceptors.response.use(
 
     // Silenciar errores de peticiones canceladas para evitar ruidos en la consola o toasts
     if (axios.isCancel(error)) {
-      return new Promise(() => {})
+      return new Promise(() => { })
     }
 
     if (error.response && error.response.status === 401) {
