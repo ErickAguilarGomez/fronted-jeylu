@@ -17,7 +17,7 @@ const error = ref(null)
 const productNotFound = ref(false)
 
 const activeImage = ref('')
-const selectedSize = ref(null)
+const selectedSizes = ref([])
 const quantity = ref(1)
 
 const sizeLabel = computed(() => {
@@ -30,6 +30,15 @@ const sizeLabel = computed(() => {
 const showSizeSelector = computed(() => {
   return sizes.value.length > 0
 })
+
+const toggleSize = (size) => {
+  const idx = selectedSizes.value.indexOf(size)
+  if (idx > -1) {
+    selectedSizes.value.splice(idx, 1)
+  } else {
+    selectedSizes.value.push(size)
+  }
+}
 
 const relatedProducts = ref([])
 const loadingRelated = ref(false)
@@ -49,17 +58,15 @@ const sizes = computed(() => {
   return [...new Set(product.value.variants.map(v => v.size).filter(Boolean))]
 })
 
-// Matching variant based on selected size
+// Matching variant based on first selected size
 const selectedVariant = computed(() => {
   if (!product.value || !product.value.variants) return null
-  
   const hasSizes = sizes.value.length > 0
-  
   if (!hasSizes) {
     return product.value.variants[0] || null
   }
-  
-  return product.value.variants.find(v => v.size === selectedSize.value) || null
+  if (selectedSizes.value.length === 0) return null
+  return product.value.variants.find(v => v.size === selectedSizes.value[0]) || null
 })
 
 // Dynamic stock calculation
@@ -74,7 +81,7 @@ const currentStock = computed(() => {
 })
 
 const openWhatsApp = () => {
-  if (currentStock.value === 0 || (showSizeSelector.value && !selectedSize.value)) return
+  if (currentStock.value === 0 || (showSizeSelector.value && selectedSizes.value.length === 0)) return
 
   const activeNumbers = whatsappStore.whatsappNumbers
   if (activeNumbers.length === 0) {
@@ -85,10 +92,10 @@ const openWhatsApp = () => {
   const name = product.value.name
   const activeSku = selectedVariant.value?.sku || product.value.sku
   const price = product.value.price
-  const sizeValue = selectedSize.value || null
-  const variantColor = selectedVariant.value?.color || null
   const qty = quantity.value || 1
-  const totalPrice = (Number(price || 0) * qty).toFixed(2)
+  const sizesText = selectedSizes.value.join(', ')
+  const totalUnits = selectedSizes.value.length > 0 ? (selectedSizes.value.length * qty) : qty
+  const totalPrice = (Number(price || 0) * totalUnits).toFixed(2)
   const unitPriceFormatted = Number(price || 0).toFixed(2)
 
   const productUrl = window.location.origin + '/catalog/detail/' + (product.value.sku || product.value.base_sku || route.params.slug)
@@ -96,17 +103,18 @@ const openWhatsApp = () => {
   let text = `¡Hola! Me interesa comprar el siguiente producto en JEILU Store:\n\n`
   text += `🛍️ *Producto:* ${name}\n`
   text += `🆔 *SKU:* ${activeSku}\n`
-  if (variantColor) {
-    text += `🎨 *Variante:* ${variantColor}\n`
+  if (selectedSizes.value.length > 0) {
+    text += `📏 *${sizeLabel.value}s seleccionados:* ${sizesText}\n`
+    if (selectedSizes.value.length > 1) {
+      text += `🔢 *Cantidad por ${sizeLabel.value}:* ${qty} (${totalUnits} unds en total)\n`
+    } else {
+      text += `🔢 *Cantidad:* ${qty}\n`
+    }
+  } else {
+    text += `🔢 *Cantidad:* ${qty}\n`
   }
-  if (sizeValue && sizeValue !== 'Único') {
-    text += `📏 *${sizeLabel.value}:* ${sizeValue}\n`
-  }
-  text += `🔢 *Cantidad:* ${qty}\n`
   text += `💰 *Precio Unitario:* S/ ${unitPriceFormatted}\n`
-  if (qty > 1) {
-    text += `💵 *Total:* S/ ${totalPrice}\n`
-  }
+  text += `💵 *Total Estimado:* S/ ${totalPrice}\n`
   if (productUrl) {
     text += `\n🔗 *Link del producto:* ${productUrl}\n`
   }
@@ -364,23 +372,26 @@ onMounted(async () => {
             <!-- Variant Selectors -->
             <!-- Size selector -->
             <div v-if="showSizeSelector" class="mb-4">
-              <label class="fw-black text-uppercase font-monospace mb-2 d-block fs-6">{{ sizeLabel }}s disponibles:</label>
+              <label class="fw-black text-uppercase font-monospace mb-2 d-block fs-6">
+                {{ sizeLabel }}s disponibles (Puedes seleccionar varios):
+              </label>
               <div class="d-flex flex-wrap gap-2">
                 <button 
                   v-for="size in sizes" 
                   :key="size"
-                  @click="selectedSize = size"
-                  :class="['btn btn-sm border-2 border-black font-monospace m-0 transition', selectedSize === size ? 'btn-dark text-white selected-btn' : 'btn-white bg-white text-black shadow-sm']"
+                  @click="toggleSize(size)"
+                  :class="['btn btn-sm border-2 border-black font-monospace m-0 transition', selectedSizes.includes(size) ? 'btn-dark text-white selected-btn' : 'btn-white bg-white text-black shadow-sm']"
                   style="min-width: 54px; height: 54px; font-size: 1.15rem !important; font-weight: 900; display: flex; align-items: center; justify-content: center;"
                 >
                   {{ size }}
+                  <span v-if="selectedSizes.includes(size)" class="ms-1 small">✓</span>
                 </button>
               </div>
             </div>
 
             <!-- Quantity Selector -->
             <div v-if="currentStock > 0" class="mb-4">
-              <label class="fw-black text-uppercase font-monospace mb-2 d-block fs-6">Cantidad:</label>
+              <label class="fw-black text-uppercase font-monospace mb-2 d-block fs-6">Cantidad por talle:</label>
               <div class="d-inline-flex align-items-center border border-black border-3 shadow-solid-sm bg-white">
                 <button 
                   type="button"
@@ -432,14 +443,15 @@ onMounted(async () => {
             <div class="mb-4 mt-auto">
               <button 
                 @click="openWhatsApp"
-                :class="['btn btn-lg w-100 py-3 fs-4 border-3 border-black d-flex justify-content-center align-items-center gap-3 transition shadow-solid', currentStock > 0 && (!showSizeSelector || selectedSize) ? 'whatsapp-btn text-white' : 'btn-secondary text-muted']"
-                :disabled="currentStock === 0 || (showSizeSelector && !selectedSize)"
+                :class="['btn btn-lg w-100 py-3 fs-4 border-3 border-black d-flex justify-content-center align-items-center gap-3 transition shadow-solid', currentStock > 0 && (!showSizeSelector || selectedSizes.length > 0) ? 'whatsapp-btn text-white' : 'btn-secondary text-muted']"
+                :disabled="currentStock === 0 || (showSizeSelector && selectedSizes.length === 0)"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-whatsapp" viewBox="0 0 16 16">
                   <path d="M13.601 2.326A7.85 7.85 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.9 7.9 0 0 0 13.6 2.326zM7.994 14.521a6.6 6.6 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.56 6.56 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592m3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.23.148-.427.05-.197-.099-.835-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.73.73 0 0 0-.529.247c-.182.198-.691.677-.691 1.654s.71 1.916.81 2.049c.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232"/>
                 </svg>
                 <span v-if="currentStock === 0">PRODUCTO AGOTADO</span>
-                <span v-else-if="showSizeSelector && !selectedSize">SELECCIONAR {{ sizeLabel.toUpperCase() }}</span>
+                <span v-else-if="showSizeSelector && selectedSizes.length === 0">SELECCIONAR {{ sizeLabel.toUpperCase() }}</span>
+                <span v-else-if="selectedSizes.length > 1">COMPRAR {{ selectedSizes.length }} TALLES POR WHATSAPP</span>
                 <span v-else>COMPRAR POR WHATSAPP</span>
               </button>
             </div>
