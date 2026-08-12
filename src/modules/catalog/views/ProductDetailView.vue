@@ -167,7 +167,7 @@ const loadProduct = async (slug) => {
   loading.value = true
   error.value = null
   productNotFound.value = false
-  selectedSize.value = null
+  selectedSizes.value = []
   quantity.value = 1
   
   try {
@@ -179,7 +179,9 @@ const loadProduct = async (slug) => {
       
       // Auto-select if single variant with no specifications
       if (sizes.value.length === 0 && product.value.variants?.length > 0) {
-        selectedSize.value = product.value.variants[0].size
+        if (product.value.variants[0].size) {
+          selectedSizes.value = [product.value.variants[0].size]
+        }
       }
       
       // Load related products
