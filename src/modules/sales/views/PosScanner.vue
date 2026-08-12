@@ -15,8 +15,7 @@ const selectedBaseProduct = ref(null)
 const showVariantModal = ref(false)
 
 const closeReceiptModal = () => {
-  posStore.showReceiptModal = false
-  posStore.saleSuccess = false
+  posStore.resetPosForm()
 }
 
 onMounted(() => {

@@ -92,6 +92,10 @@ const triggerPrint = () => {
           .store-address, .store-phone { margin: 0; font-size: 10px; text-align: center; }
           .divider-dashed { border-top: 1px dashed #000; margin: 6px 0; }
           .info-row { display: flex; justify-content: space-between; margin-bottom: 2px; }
+          .payment-breakdown-list { margin-top: 3px; }
+          .payment-item-row { display: flex; justify-content: space-between; align-items: flex-start; font-size: ${is80 ? '11px' : '10px'}; margin-bottom: 2px; gap: 6px; width: 100%; }
+          .payment-name { word-break: break-word; overflow-wrap: anywhere; flex: 1; text-align: left; }
+          .payment-price { font-weight: bold; white-space: nowrap; flex-shrink: 0; text-align: right; }
           .receipt-table { width: 100%; border-collapse: collapse; margin-top: 4px; }
           .receipt-table th { border-bottom: 1px solid #000; text-align: left; padding-bottom: 2px; }
           .receipt-table td { padding: 3px 0; vertical-align: top; }
@@ -103,7 +107,6 @@ const triggerPrint = () => {
           .receipt-totals .main-total { font-size: 15px; font-weight: 900; margin-top: 4px; }
           .receipt-footer .thanks-msg { font-weight: bold; margin: 4px 0 2px 0; text-align: center; }
           .receipt-footer .policy-msg { font-size: 9px; margin: 0 0 2px 0; text-align: center; }
-          .receipt-footer .sys-msg { font-size: 8px; margin: 0; color: #555; text-align: center; }
         </style>
       </head>
       <body>
@@ -210,16 +213,16 @@ const handleClose = () => {
               
               <!-- FORMA DE PAGO RESPONSIVE -->
               <div class="info-payment-section mt-1">
-                <div class="info-row border-0 mb-0">
+                <div class="info-row border-0 mb-1">
                   <span>Forma de Pago:</span>
-                  <strong v-if="!saleData?.paymentMethodsList || saleData.paymentMethodsList.length <= 1">
+                  <strong v-if="!saleData?.paymentMethodsList || saleData.paymentMethodsList.length <= 1" class="text-end">
                     {{ saleData?.paymentMethodName || 'Efectivo' }}
                   </strong>
                 </div>
-                <div v-if="saleData?.paymentMethodsList && saleData.paymentMethodsList.length > 1" class="payment-breakdown-list ms-2 mt-1">
-                  <div v-for="(pm, pIdx) in saleData.paymentMethodsList" :key="pIdx" class="info-row payment-item mb-1">
-                    <span>• {{ pm.name }}:</span>
-                    <strong>S/ {{ Number(pm.amount).toFixed(2) }}</strong>
+                <div v-if="saleData?.paymentMethodsList && saleData.paymentMethodsList.length > 1" class="payment-breakdown-list">
+                  <div v-for="(pm, pIdx) in saleData.paymentMethodsList" :key="pIdx" class="payment-item-row">
+                    <span class="payment-name">• {{ pm.name }}</span>
+                    <span class="payment-price">S/ {{ Number(pm.amount).toFixed(2) }}</span>
                   </div>
                 </div>
               </div>
@@ -263,7 +266,6 @@ const handleClose = () => {
             <div class="receipt-footer text-center">
               <p class="thanks-msg">¡GRACIAS POR TU COMPRA!</p>
               <p class="policy-msg">Conserve este ticket para cualquier cambio o reclamo.</p>
-              <p class="sys-msg">Powered by JEILU POS</p>
             </div>
           </div>
         </div>
@@ -402,6 +404,38 @@ const handleClose = () => {
   text-align: right;
   word-break: break-word;
   max-width: 100%;
+}
+
+.payment-breakdown-list {
+  margin-top: 3px;
+}
+
+.payment-item-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  font-size: 11px;
+  margin-bottom: 2px;
+  gap: 6px;
+  width: 100%;
+}
+
+.width-58mm .payment-item-row {
+  font-size: 10px;
+}
+
+.payment-name {
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  flex: 1;
+  text-align: left;
+}
+
+.payment-price {
+  font-weight: bold;
+  white-space: nowrap;
+  flex-shrink: 0;
+  text-align: right;
 }
 
 .receipt-table {

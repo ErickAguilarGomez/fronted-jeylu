@@ -315,5 +315,21 @@ export const posStore = reactive({
     if (toast) {
       toast.info('Se ha cambiado la sucursal. El carrito ha sido limpiado para evitar inconsistencias de stock.', 'Carrito Reiniciado')
     }
+  },
+
+  resetPosForm() {
+    this.cart = []
+    this.customerId = ''
+    this.customerName = ''
+    this.selectedStoreId = ''
+    this.isMultiPayment = false
+    this.payments = [{ payment_method_id: '', amount: 0 }]
+    if (this.paymentMethods.length > 0) {
+      this.paymentMethodId = this.paymentMethods[0].id
+    } else {
+      this.paymentMethodId = ''
+    }
+    this.saleSuccess = false
+    this.showReceiptModal = false
   }
 })
