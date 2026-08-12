@@ -113,43 +113,56 @@ watch(() => posStore.selectedStoreId, (newStore, oldStore) => {
                 </select>
               </div>
 
-              <!-- MODO PAGO MIXTO / MULTIPLE -->
+              <!-- MODO PAGO MIXTO / MULTIPLE (100% RESPONSIVE) -->
               <div v-else class="d-flex flex-column gap-2">
-                <div v-for="(pRow, idx) in posStore.payments" :key="idx" class="d-flex align-items-center gap-2">
-                  <select v-model="pRow.payment_method_id" class="form-select border-black border-2 fw-bold bg-white shadow-none flex-grow-1">
-                    <option value="" disabled>Forma de Pago #{{ idx + 1 }}...</option>
-                    <option v-for="pm in posStore.paymentMethods" :key="pm.id" :value="pm.id">
-                      {{ pm.name }}
-                    </option>
-                  </select>
+                <div v-for="(pRow, idx) in posStore.payments" :key="idx" class="p-2 bg-light border border-black border-2 shadow-sm">
+                  <div class="row g-2 align-items-center">
+                    <!-- Dropdown del Método de Pago -->
+                    <div class="col-12 col-sm-6">
+                      <select v-model="pRow.payment_method_id" class="form-select border-black border-2 fw-bold bg-white shadow-none">
+                        <option value="" disabled>Forma de Pago #{{ idx + 1 }}...</option>
+                        <option v-for="pm in posStore.paymentMethods" :key="pm.id" :value="pm.id">
+                          {{ pm.name }}
+                        </option>
+                      </select>
+                    </div>
 
-                  <div class="input-group border border-black border-2" style="width: 130px;">
-                    <span class="input-group-text bg-light border-0 fw-bold">$</span>
-                    <input 
-                      v-model.number="pRow.amount" 
-                      type="number" 
-                      step="0.01" 
-                      min="0" 
-                      class="form-control border-0 fw-black shadow-none text-end p-1"
-                      placeholder="0.00"
-                    >
+                    <!-- Input del Monto (Espacioso, numérico y responsive) -->
+                    <div class="col-8 col-sm-4">
+                      <div class="input-group border border-black border-2 bg-white" style="box-shadow: 2px 2px 0px #000;">
+                        <span class="input-group-text bg-light border-0 fw-black px-2 py-0 fs-6">$</span>
+                        <input 
+                          v-model.number="pRow.amount" 
+                          type="number" 
+                          step="0.01" 
+                          min="0" 
+                          class="form-control border-0 fw-black fs-5 shadow-none text-end py-1 px-2 text-black"
+                          placeholder="0.00"
+                        >
+                      </div>
+                    </div>
+
+                    <!-- Botón Eliminar Fila -->
+                    <div class="col-4 col-sm-2 text-end">
+                      <button 
+                        @click="posStore.removePaymentRow(idx)" 
+                        class="btn btn-danger w-100 border-black border-2 fw-black py-2 px-1 d-flex align-items-center justify-content-center gap-1 shadow-sm" 
+                        :disabled="posStore.payments.length <= 1"
+                        title="Eliminar forma de pago"
+                      >
+                        <span class="fs-6">✕</span>
+                        <span class="d-inline d-sm-none small fw-bold">QUITAR</span>
+                      </button>
+                    </div>
                   </div>
-
-                  <button 
-                    @click="posStore.removePaymentRow(idx)" 
-                    class="btn btn-outline-danger border-black border-2 fw-black py-1 px-2" 
-                    :disabled="posStore.payments.length <= 1"
-                  >
-                    ✕
-                  </button>
                 </div>
 
-                <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top border-black border-1">
-                  <button @click="posStore.addPaymentRow()" class="btn btn-dark btn-sm fw-black border border-black text-uppercase">
-                    + AGREGAR OTRA FORMA
+                <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2 mt-2 pt-2 border-top border-black border-2">
+                  <button @click="posStore.addPaymentRow()" class="btn btn-dark btn-sm fw-black border border-black border-2 text-uppercase py-2 px-3 w-100 w-sm-auto">
+                    + AGREGAR OTRA FORMA DE PAGO
                   </button>
                   
-                  <span class="fw-black fs-7" :class="posStore.remainingPaymentAmount === 0 ? 'text-success' : 'text-danger'">
+                  <span class="fw-black fs-6 py-1 px-3 border border-black border-2 bg-white text-uppercase" :class="posStore.remainingPaymentAmount === 0 ? 'text-success border-success' : 'text-danger border-danger'">
                     Restante: $ {{ posStore.remainingPaymentAmount.toFixed(2) }}
                   </span>
                 </div>
