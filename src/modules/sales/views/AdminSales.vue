@@ -11,10 +11,32 @@ import BasePagination from '@/shared/components/BasePagination.vue'
 import SaleStats from '../components/SaleStats.vue'
 import SaleFilters from '../components/SaleFilters.vue'
 import EditSaleModal from '../components/EditSaleModal.vue'
+import PosReceiptModal from '../components/PosReceiptModal.vue'
 import { useToast } from '@/composables/useToast.js'
 
 const toast = useToast()
 const searchQuery = ref('')
+
+const showReceiptModal = ref(false)
+const selectedReceiptSale = ref(null)
+
+const openReceiptModal = (sale) => {
+  selectedReceiptSale.value = {
+    id: sale.id,
+    total: Number(sale.total || sale.total_amount || 0),
+    items: (sale.items || []).map(i => ({
+      name: i.product_name || i.name || 'Producto',
+      quantity: i.quantity,
+      price: Number(i.price)
+    })),
+    customerName: sale.customer_name || sale.customer_account_name || 'Cliente General',
+    sellerName: sale.seller_name || 'Vendedor',
+    paymentMethodName: sale.payment_method_name || 'Efectivo',
+    storeName: sale.store_name || 'TIENDA PRINCIPAL',
+    date: new Date(sale.created_at).toLocaleString('es-PE', { dateStyle: 'medium', timeStyle: 'short' })
+  }
+  showReceiptModal.value = true
+}
 
 const filterSellerId = ref('')
 const filterStartDate = ref('')
@@ -202,9 +224,14 @@ onMounted(async () => {
         {{ new Date(item.created_at).toLocaleString() }}
       </template>
       <template #cell-actions="{ item }">
-        <button @click="openEditModal(item)" class="btn btn-dark btn-sm fw-black border border-black py-1 px-3 shadow-sm text-uppercase fs-7">
-          Editar
-        </button>
+        <div class="d-flex gap-2 justify-content-center">
+          <button @click="openReceiptModal(item)" class="btn btn-outline-dark btn-sm fw-black border border-black py-1 px-2 shadow-sm text-uppercase fs-7 d-flex align-items-center gap-1" title="Ver / Imprimir Ticket">
+            🖨️ Recibo
+          </button>
+          <button @click="openEditModal(item)" class="btn btn-dark btn-sm fw-black border border-black py-1 px-2 shadow-sm text-uppercase fs-7">
+            Editar
+          </button>
+        </div>
       </template>
     </BaseTable>
 
@@ -215,12 +242,19 @@ onMounted(async () => {
       @change="fetchSales"
     />
 
-    <!-- Modal de Edición de Ventas (Componentizado) -->
+    <!-- Modal de Edición de Ventas -->
     <EditSaleModal
       :show="showEditModal"
       :sale="editingSale"
       @close="showEditModal = false"
       @saved="handleSaved"
+    />
+
+    <!-- Modal de Ver / Imprimir Recibo Histórico -->
+    <PosReceiptModal
+      :show="showReceiptModal"
+      :saleData="selectedReceiptSale"
+      @close="showReceiptModal = false"
     />
   </div>
 </template>

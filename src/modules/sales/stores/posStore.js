@@ -14,12 +14,36 @@ export const posStore = reactive({
   showReceiptModal: false,
   selectedStoreId: '',
   customerId: '',
-  customerName: '',
   paymentMethodId: '',
   paymentMethods: [],
+  isMultiPayment: false,
+  payments: [
+    { payment_method_id: '', amount: 0 }
+  ],
 
   get cartTotal() {
     return this.cart.reduce((total, item) => total + (item.price * item.quantity), 0)
+  },
+
+  get paymentsSum() {
+    return this.payments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0)
+  },
+
+  get remainingPaymentAmount() {
+    return Math.max(0, this.cartTotal - this.paymentsSum)
+  },
+
+  addPaymentRow() {
+    this.payments.push({
+      payment_method_id: '',
+      amount: Number(this.remainingPaymentAmount.toFixed(2))
+    })
+  },
+
+  removePaymentRow(index) {
+    if (this.payments.length > 1) {
+      this.payments.splice(index, 1)
+    }
   },
 
   async fetchPaymentMethods() {
@@ -168,21 +192,42 @@ export const posStore = reactive({
       return false
     }
 
-    if (!this.paymentMethodId) {
-      toast.warning('Debe seleccionar una forma de pago antes de procesar la venta.', 'Forma de Pago Requerida')
-      return false
+    if (!this.isMultiPayment) {
+      if (!this.paymentMethodId) {
+        toast.warning('Debe seleccionar una forma de pago antes de procesar la venta.', 'Forma de Pago Requerida')
+        return false
+      }
+    } else {
+      const invalidRow = this.payments.find(p => !p.payment_method_id || Number(p.amount) <= 0)
+      if (invalidRow) {
+        toast.warning('Cada fila de pago mixto debe tener un método seleccionado y un monto mayor a 0.', 'Forma de Pago Incompleta')
+        return false
+      }
+      if (Math.abs(this.paymentsSum - this.cartTotal) > 0.01) {
+        toast.warning(`La suma de los pagos ($${this.paymentsSum.toFixed(2)}) no coincide con el total ($${this.cartTotal.toFixed(2)}).`, 'Monto Incorrecto')
+        return false
+      }
     }
 
     this.processingSale = true
 
     try {
       const payload = {
-        payment_method_id: this.paymentMethodId,
         items: this.cart.map(item => ({
           sku: item.sku,
           quantity: item.quantity,
           price: Number(item.price)
         }))
+      }
+
+      if (this.isMultiPayment) {
+        payload.payments = this.payments.map(p => ({
+          payment_method_id: p.payment_method_id,
+          amount: Number(p.amount)
+        }))
+        payload.payment_method_id = this.payments[0].payment_method_id
+      } else {
+        payload.payment_method_id = this.paymentMethodId
       }
 
       if (this.customerId) payload.customer_id = this.customerId
@@ -211,8 +256,17 @@ export const posStore = reactive({
         }
       }
 
-      const pmObj = this.paymentMethods.find(p => p.id == this.paymentMethodId)
-      const paymentMethodName = pmObj ? pmObj.name : 'Efectivo'
+      let paymentMethodName = 'Efectivo'
+      if (this.isMultiPayment) {
+        const parts = this.payments.map(p => {
+          const pm = this.paymentMethods.find(m => m.id == p.payment_method_id)
+          return `${pm ? pm.name : 'Pago'}: $${Number(p.amount).toFixed(2)}`
+        })
+        paymentMethodName = `PAGO MIXTO (${parts.join(' + ')})`
+      } else {
+        const pmObj = this.paymentMethods.find(p => p.id == this.paymentMethodId)
+        paymentMethodName = pmObj ? pmObj.name : 'Efectivo'
+      }
 
       this.lastCompletedSale = {
         id: res?.sale_id || Date.now(),

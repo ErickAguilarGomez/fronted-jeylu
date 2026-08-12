@@ -84,17 +84,76 @@ watch(() => posStore.selectedStoreId, (newStore, oldStore) => {
           <div class="card-footer bg-secondary p-4 border-top border-black border-2 mt-auto">
             <PosClientForm />
 
-            <!-- Selector de Forma de Pago -->
+            <!-- Selector de Forma de Pago (Único vs Mixto) -->
             <div class="mb-4 bg-white border border-black border-2 p-3 shadow-sm">
-              <label class="form-label fw-black text-uppercase fs-6 mb-2 text-primary d-block">
-                💳 Forma de Pago (Obligatorio)
-              </label>
-              <select v-model="posStore.paymentMethodId" class="form-select form-select-lg border-black border-2 fw-bold bg-white shadow-none" required>
-                <option value="" disabled>Seleccione una forma de pago...</option>
-                <option v-for="pm in posStore.paymentMethods" :key="pm.id" :value="pm.id">
-                  {{ pm.name }}
-                </option>
-              </select>
+              <div class="d-flex justify-content-between align-items-center mb-3 border-bottom border-black pb-2">
+                <label class="form-label fw-black text-uppercase fs-6 m-0 text-primary">
+                  💳 Forma de Pago
+                </label>
+                <div class="form-check form-switch m-0">
+                  <input 
+                    class="form-check-input border-black border-2 shadow-none cursor-pointer" 
+                    type="checkbox" 
+                    id="multiPaymentToggle"
+                    v-model="posStore.isMultiPayment"
+                  >
+                  <label class="form-check-label fw-black small text-uppercase cursor-pointer ms-1" for="multiPaymentToggle">
+                    {{ posStore.isMultiPayment ? '🔀 Pago Mixto' : '👤 Pago Único' }}
+                  </label>
+                </div>
+              </div>
+
+              <!-- MODO PAGO ÚNICO -->
+              <div v-if="!posStore.isMultiPayment">
+                <select v-model="posStore.paymentMethodId" class="form-select form-select-lg border-black border-2 fw-bold bg-white shadow-none" required>
+                  <option value="" disabled>Seleccione una forma de pago...</option>
+                  <option v-for="pm in posStore.paymentMethods" :key="pm.id" :value="pm.id">
+                    {{ pm.name }}
+                  </option>
+                </select>
+              </div>
+
+              <!-- MODO PAGO MIXTO / MULTIPLE -->
+              <div v-else class="d-flex flex-column gap-2">
+                <div v-for="(pRow, idx) in posStore.payments" :key="idx" class="d-flex align-items-center gap-2">
+                  <select v-model="pRow.payment_method_id" class="form-select border-black border-2 fw-bold bg-white shadow-none flex-grow-1">
+                    <option value="" disabled>Forma de Pago #{{ idx + 1 }}...</option>
+                    <option v-for="pm in posStore.paymentMethods" :key="pm.id" :value="pm.id">
+                      {{ pm.name }}
+                    </option>
+                  </select>
+
+                  <div class="input-group border border-black border-2" style="width: 130px;">
+                    <span class="input-group-text bg-light border-0 fw-bold">$</span>
+                    <input 
+                      v-model.number="pRow.amount" 
+                      type="number" 
+                      step="0.01" 
+                      min="0" 
+                      class="form-control border-0 fw-black shadow-none text-end p-1"
+                      placeholder="0.00"
+                    >
+                  </div>
+
+                  <button 
+                    @click="posStore.removePaymentRow(idx)" 
+                    class="btn btn-outline-danger border-black border-2 fw-black py-1 px-2" 
+                    :disabled="posStore.payments.length <= 1"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top border-black border-1">
+                  <button @click="posStore.addPaymentRow()" class="btn btn-dark btn-sm fw-black border border-black text-uppercase">
+                    + AGREGAR OTRA FORMA
+                  </button>
+                  
+                  <span class="fw-black fs-7" :class="posStore.remainingPaymentAmount === 0 ? 'text-success' : 'text-danger'">
+                    Restante: $ {{ posStore.remainingPaymentAmount.toFixed(2) }}
+                  </span>
+                </div>
+              </div>
             </div>
 
             <div class="d-flex justify-content-between align-items-end mb-4 bg-white border border-black border-2 p-3 shadow-sm">
