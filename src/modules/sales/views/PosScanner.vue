@@ -15,6 +15,7 @@ const selectedBaseProduct = ref(null)
 const showVariantModal = ref(false)
 
 const closeReceiptModal = () => {
+  posStore.showReceiptModal = false
   posStore.saleSuccess = false
 }
 
@@ -123,7 +124,7 @@ watch(() => posStore.selectedStoreId, (newStore, oldStore) => {
 
     <!-- Modal Comprobante y Ticket Térmico POS (58mm / 80mm) -->
     <PosReceiptModal
-      :show="posStore.saleSuccess"
+      :show="posStore.showReceiptModal"
       :saleData="posStore.lastCompletedSale"
       @close="closeReceiptModal"
     />

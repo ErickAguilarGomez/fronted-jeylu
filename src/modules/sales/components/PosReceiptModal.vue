@@ -27,7 +27,7 @@ const formattedDate = computed(() => {
 })
 
 const receiptCode = computed(() => {
-  if (!props.saleData?.id) return 'TICK-0000'
+  if (!props.saleData?.id) return 'TICK-000000'
   return `TICK-${String(props.saleData.id).padStart(6, '0')}`
 })
 
@@ -42,23 +42,23 @@ const handleClose = () => {
 
 <template>
   <Teleport to="body">
-    <div v-if="show" class="receipt-backdrop d-flex align-items-center justify-content-center p-3">
-      <div class="receipt-dialog-card card border-black border-4 shadow-solid p-4 bg-white position-relative">
+    <div v-if="show" class="receipt-backdrop">
+      <div class="receipt-dialog-card card p-4 bg-white position-relative">
         
         <!-- Header del Modal -->
-        <div class="d-flex align-items-center justify-content-between mb-3 border-bottom border-black border-2 pb-3">
+        <div class="modal-header-bar d-flex align-items-center justify-content-between mb-3 border-bottom border-black border-2 pb-3">
           <div class="d-flex align-items-center gap-2">
             <span class="fs-2">🎉</span>
             <div>
-              <h3 class="fw-black text-uppercase m-0">¡VENTA COMPLETADA!</h3>
+              <h3 class="fw-black text-uppercase m-0 fs-5">¡VENTA COMPLETADA!</h3>
               <p class="m-0 text-muted fw-bold small">Comprobante POS generado correctamente</p>
             </div>
           </div>
-          <button @click="handleClose" class="btn-close fs-4" aria-label="Cerrar"></button>
+          <button @click="handleClose" class="btn-close fs-5" aria-label="Cerrar"></button>
         </div>
 
         <!-- Selector de Ancho de Impresión (58mm vs 80mm) -->
-        <div class="d-flex align-items-center justify-content-between bg-light border border-black border-2 p-2 mb-3">
+        <div class="receipt-format-selector d-flex align-items-center justify-content-between bg-light border border-black border-2 p-2 mb-3">
           <span class="fw-bold small text-uppercase">Formato Térmico:</span>
           <div class="btn-group btn-group-sm" role="group">
             <button 
@@ -81,7 +81,7 @@ const handleClose = () => {
         </div>
 
         <!-- VISTA PREVIA DEL TICKET (Sección Imprimible) -->
-        <div class="receipt-preview-wrapper mb-4">
+        <div class="receipt-preview-wrapper mb-3">
           <div 
             id="printable-thermal-receipt" 
             class="thermal-receipt-container"
@@ -167,7 +167,7 @@ const handleClose = () => {
         </div>
 
         <!-- ACCIONES DEL MODAL -->
-        <div class="d-flex flex-column flex-sm-row gap-2 mt-auto">
+        <div class="receipt-actions d-flex flex-column flex-sm-row gap-2 mt-auto">
           <button 
             @click="triggerPrint" 
             class="btn btn-primary flex-grow-1 py-3 fw-black text-uppercase d-flex align-items-center justify-content-center gap-2"
@@ -189,57 +189,66 @@ const handleClose = () => {
 
 <style scoped>
 .receipt-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.85);
-  z-index: 2000;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(0, 0, 0, 0.85) !important;
+  z-index: 999999 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 1rem !important;
 }
 
 .receipt-dialog-card {
-  max-width: 520px;
-  width: 100%;
-  max-height: 90vh;
-  display: flex;
-  flex-direction: column;
-}
-
-.shadow-solid {
-  box-shadow: 8px 8px 0px #000 !important;
+  max-width: 480px !important;
+  width: 100% !important;
+  max-height: 90vh !important;
+  display: flex !important;
+  flex-direction: column !important;
+  background: #ffffff !important;
+  border: 4px solid #000000 !important;
+  box-shadow: 10px 10px 0px #000000 !important;
+  z-index: 1000000 !important;
 }
 
 .receipt-preview-wrapper {
-  overflow-y: auto;
-  background: #e9ecef;
-  padding: 15px;
-  border: 2px solid #000;
-  display: flex;
-  justify-content: center;
-  max-height: 50vh;
+  overflow-y: auto !important;
+  background: #f8f9fa !important;
+  padding: 15px !important;
+  border: 2px solid #000000 !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: flex-start !important;
+  flex-grow: 1 !important;
+  min-height: 220px !important;
+  max-height: 52vh !important;
 }
 
 /* FORMATO TÉRMICO VISUAL */
 .thermal-receipt-container {
-  background: #ffffff;
-  color: #000000;
-  font-family: 'Courier New', Courier, monospace;
-  font-size: 12px;
-  line-height: 1.3;
-  padding: 12px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-  border: 1px solid #ccc;
-  box-sizing: border-box;
+  background: #ffffff !important;
+  color: #000000 !important;
+  font-family: 'Courier New', Courier, monospace !important;
+  font-size: 12px !important;
+  line-height: 1.3 !important;
+  padding: 12px !important;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15) !important;
+  border: 1px solid #cccccc !important;
+  box-sizing: border-box !important;
 }
 
 .width-80mm {
-  width: 300px;
+  width: 280px !important;
 }
 
 .width-58mm {
-  width: 220px;
-  font-size: 10px;
+  width: 210px !important;
+  font-size: 10px !important;
 }
 
 .receipt-header .receipt-brand {
@@ -333,23 +342,35 @@ const handleClose = () => {
 
 /* REGLAS CSS PARA IMPRESIÓN DIRECTA CON window.print() */
 @media print {
-  /* Ocultar absolutamente todo en el DOM */
+  /* Ocultar absolutamente todo en la página web */
   body * {
     visibility: hidden !important;
   }
 
-  /* Desactivar fondos, bordes y sombras del modal */
+  /* Desactivar fondos y bordes del modal */
   .receipt-backdrop,
   .receipt-dialog-card,
-  .receipt-preview-wrapper,
-  .btn,
-  .btn-group,
-  .btn-close {
+  .receipt-preview-wrapper {
+    position: static !important;
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
     padding: 0 !important;
     margin: 0 !important;
+    width: auto !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .btn,
+  .btn-group,
+  .btn-close,
+  .modal-header-bar,
+  .receipt-format-selector,
+  .receipt-actions {
+    display: none !important;
+    visibility: hidden !important;
   }
 
   /* Mostrar ÚNICAMENTE la tirilla del ticket térmico */
@@ -363,10 +384,18 @@ const handleClose = () => {
     left: 0 !important;
     top: 0 !important;
     margin: 0 !important;
-    padding: 5px !important;
+    padding: 5mm !important;
     border: none !important;
     box-shadow: none !important;
     background: #ffffff !important;
+  }
+
+  #printable-thermal-receipt.width-80mm {
+    width: 80mm !important;
+  }
+
+  #printable-thermal-receipt.width-58mm {
+    width: 58mm !important;
   }
 
   @page {

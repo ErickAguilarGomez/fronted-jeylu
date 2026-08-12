@@ -11,6 +11,7 @@ export const posStore = reactive({
   loadingItem: false,
   processingSale: false,
   saleSuccess: false,
+  showReceiptModal: false,
   selectedStoreId: '',
   customerId: '',
   customerName: '',
@@ -231,6 +232,7 @@ export const posStore = reactive({
       this.customerId = ''
       this.customerName = ''
       this.saleSuccess = true
+      this.showReceiptModal = true
       return true
     } catch (error) {
       toast.error(error, 'Error al procesar la venta')
