@@ -7,11 +7,16 @@ import PosScannerCamera from '../components/PosScannerCamera.vue'
 import PosCart from '../components/PosCart.vue'
 import PosClientForm from '../components/PosClientForm.vue'
 import PosVariantModal from '../components/PosVariantModal.vue'
+import PosReceiptModal from '../components/PosReceiptModal.vue'
 
 const toast = useToast()
 
 const selectedBaseProduct = ref(null)
 const showVariantModal = ref(false)
+
+const closeReceiptModal = () => {
+  posStore.saleSuccess = false
+}
 
 onMounted(() => {
   posStore.fetchStores()
@@ -114,6 +119,13 @@ watch(() => posStore.selectedStoreId, (newStore, oldStore) => {
       :product="selectedBaseProduct" 
       @close="showVariantModal = false"
       @select="selectVariant"
+    />
+
+    <!-- Modal Comprobante y Ticket Térmico POS (58mm / 80mm) -->
+    <PosReceiptModal
+      :show="posStore.saleSuccess"
+      :saleData="posStore.lastCompletedSale"
+      @close="closeReceiptModal"
     />
   </div>
 </template>

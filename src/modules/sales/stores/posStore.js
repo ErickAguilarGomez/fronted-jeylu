@@ -190,15 +190,47 @@ export const posStore = reactive({
         payload.store_id = this.selectedStoreId
       }
 
-      await posService.processSale(payload)
+      const res = await posService.processSale(payload)
+
+      // Obtener información de la tienda
+      let storeName = 'TIENDA PRINCIPAL'
+      let storeAddress = ''
+      let storePhone = ''
+
+      if (authStore.user?.role_id === 2 && authStore.user?.primary_store) {
+        storeName = authStore.user.primary_store.name
+        storeAddress = authStore.user.primary_store.address || ''
+        storePhone = authStore.user.primary_store.phone || ''
+      } else if (this.selectedStoreId) {
+        const foundStore = this.stores.find(s => s.id == this.selectedStoreId)
+        if (foundStore) {
+          storeName = foundStore.name
+          storeAddress = foundStore.address || ''
+          storePhone = foundStore.phone || ''
+        }
+      }
+
+      const pmObj = this.paymentMethods.find(p => p.id == this.paymentMethodId)
+      const paymentMethodName = pmObj ? pmObj.name : 'Efectivo'
+
+      this.lastCompletedSale = {
+        id: res?.sale_id || Date.now(),
+        total: this.cartTotal,
+        items: [...this.cart],
+        customerName: this.customerName || 'Cliente General',
+        sellerName: authStore.user?.name || 'Vendedor',
+        paymentMethodName,
+        storeName,
+        storeAddress,
+        storePhone,
+        date: new Date().toLocaleString('es-PE', { dateStyle: 'medium', timeStyle: 'short' })
+      }
 
       toast.success('La venta fue registrada exitosamente. Comprobante generado.', '¡Venta completada!', 5000)
       this.cart = []
       this.customerId = ''
       this.customerName = ''
-      this.selectedStoreId = ''
       this.saleSuccess = true
-      setTimeout(() => { this.saleSuccess = false }, 3000)
       return true
     } catch (error) {
       toast.error(error, 'Error al procesar la venta')
