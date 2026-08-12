@@ -65,21 +65,10 @@ api.interceptors.response.use(
     }
 
     if (error.response && error.response.status === 401) {
-      // Limpiar sesión local porque el servidor dice que ya no estamos autenticados
       localStorage.removeItem('auth_user')
-
-      import('@/modules/auth/stores/authStore.js').then(module => {
-        module.authStore.user = null
-        module.authStore.isAuthenticated = false
-
-        // Redirigir a login SOLO DESPUÉS de haber actualizado el estado
-        import('@/router.js').then(routerModule => {
-          const router = routerModule.default
-          if (router.currentRoute.value.path !== '/login') {
-            router.push('/login')
-          }
-        })
-      })
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login'
+      }
     }
     return Promise.reject(error)
   }
