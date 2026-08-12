@@ -333,13 +333,28 @@ const handleClose = () => {
 
 /* REGLAS CSS PARA IMPRESIÓN DIRECTA CON window.print() */
 @media print {
-  /* Ocultar todo el cuerpo del documento */
+  /* Ocultar absolutamente todo en el DOM */
   body * {
     visibility: hidden !important;
   }
 
-  /* Mostrar únicamente el contenedor del ticket térmico */
-  #printable-thermal-receipt, #printable-thermal-receipt * {
+  /* Desactivar fondos, bordes y sombras del modal */
+  .receipt-backdrop,
+  .receipt-dialog-card,
+  .receipt-preview-wrapper,
+  .btn,
+  .btn-group,
+  .btn-close {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Mostrar ÚNICAMENTE la tirilla del ticket térmico */
+  #printable-thermal-receipt,
+  #printable-thermal-receipt * {
     visibility: visible !important;
   }
 
@@ -347,11 +362,11 @@ const handleClose = () => {
     position: absolute !important;
     left: 0 !important;
     top: 0 !important;
-    width: 100% !important;
     margin: 0 !important;
     padding: 5px !important;
     border: none !important;
     box-shadow: none !important;
+    background: #ffffff !important;
   }
 
   @page {

@@ -6,13 +6,13 @@ const toast = useToast()
 </script>
 
 <template>
-  <div class="card h-100 d-flex flex-column border-2">
+  <div class="w-100">
     <div class="card-header bg-secondary p-4 border-bottom border-black border-2 d-flex justify-content-between align-items-center">
       <h2 class="m-0 text-uppercase fw-black fs-3">CARRITO</h2>
       <span class="badge bg-black text-white fs-5 border border-black shadow-sm px-3 py-2">{{ posStore.cart.length }} ITEMS</span>
     </div>
     
-    <div class="card-body p-0 flex-grow-1 bg-white" style="overflow-y: auto; max-height: 45vh; min-height: 250px;">
+    <div class="card-body p-0 bg-white custom-cart-scroll" style="overflow-y: auto; height: 320px; max-height: 320px;">
       
       <div v-if="posStore.saleSuccess" class="alert bg-success border-bottom border-black border-2 p-5 text-center m-0 d-flex flex-column align-items-center justify-content-center h-100">
         <h1 class="fw-black m-0 text-black text-uppercase" style="font-size: 3rem;">¡VENTA ÉXITOSA!</h1>
@@ -67,3 +67,17 @@ const toast = useToast()
     </div>
   </div>
 </template>
+
+<style scoped>
+.custom-cart-scroll::-webkit-scrollbar {
+  width: 10px;
+}
+.custom-cart-scroll::-webkit-scrollbar-track {
+  background: #e9ecef;
+  border-left: 2px solid #000;
+}
+.custom-cart-scroll::-webkit-scrollbar-thumb {
+  background: #000;
+  border-radius: 0;
+}
+</style>
