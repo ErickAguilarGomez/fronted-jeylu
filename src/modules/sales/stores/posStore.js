@@ -71,7 +71,6 @@ export const posStore = reactive({
   },
 
   async fetchStores() {
-    if (authStore.user?.role_id !== 1) return
     try {
       const data = await posService.getStores()
       if (data && data.success) {
@@ -238,34 +237,48 @@ export const posStore = reactive({
 
       const res = await posService.processSale(payload)
 
-      // Obtener información de la tienda
+      // Obtener información exacta de la tienda desde el ID de la sucursal
       let storeName = 'TIENDA PRINCIPAL'
       let storeAddress = ''
       let storePhone = ''
 
-      if (authStore.user?.role_id === 2 && authStore.user?.primary_store) {
-        storeName = authStore.user.primary_store.name
-        storeAddress = authStore.user.primary_store.address || ''
-        storePhone = authStore.user.primary_store.phone || ''
-      } else if (this.selectedStoreId) {
-        const foundStore = this.stores.find(s => s.id == this.selectedStoreId)
+      const targetStoreId = (authStore.user?.role_id === 2 && authStore.user?.primary_store)
+        ? authStore.user.primary_store.id
+        : this.selectedStoreId
+
+      if (targetStoreId) {
+        const foundStore = this.stores.find(s => s.id == targetStoreId)
         if (foundStore) {
           storeName = foundStore.name
           storeAddress = foundStore.address || ''
           storePhone = foundStore.phone || ''
+        } else if (authStore.user?.primary_store) {
+          storeName = authStore.user.primary_store.name
+          storeAddress = authStore.user.primary_store.address || ''
+          storePhone = authStore.user.primary_store.phone || ''
         }
       }
 
       let paymentMethodName = 'Efectivo'
+      let paymentMethodsList = []
+
       if (this.isMultiPayment) {
-        const parts = this.payments.map(p => {
+        paymentMethodsList = this.payments.map(p => {
           const pm = this.paymentMethods.find(m => m.id == p.payment_method_id)
-          return `${pm ? pm.name : 'Pago'}: $${Number(p.amount).toFixed(2)}`
+          return {
+            name: pm ? pm.name : 'Forma de Pago',
+            amount: Number(p.amount)
+          }
         })
+        const parts = paymentMethodsList.map(p => `${p.name}: $${p.amount.toFixed(2)}`)
         paymentMethodName = `PAGO MIXTO (${parts.join(' + ')})`
       } else {
         const pmObj = this.paymentMethods.find(p => p.id == this.paymentMethodId)
         paymentMethodName = pmObj ? pmObj.name : 'Efectivo'
+        paymentMethodsList = [{
+          name: paymentMethodName,
+          amount: Number(this.cartTotal)
+        }]
       }
 
       this.lastCompletedSale = {
@@ -275,6 +288,7 @@ export const posStore = reactive({
         customerName: this.customerName || 'Cliente General',
         sellerName: authStore.user?.name || 'Vendedor',
         paymentMethodName,
+        paymentMethodsList,
         storeName,
         storeAddress,
         storePhone,

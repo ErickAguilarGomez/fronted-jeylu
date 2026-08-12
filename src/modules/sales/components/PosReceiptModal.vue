@@ -27,12 +27,102 @@ const formattedDate = computed(() => {
 })
 
 const receiptCode = computed(() => {
-  if (!props.saleData?.id) return 'TICK-000000'
-  return `TICK-${String(props.saleData.id).padStart(6, '0')}`
+  if (!props.saleData?.id) return 'TICK-0'
+  return `TICK-${props.saleData.id}`
 })
 
 const triggerPrint = () => {
-  window.print()
+  const receiptEl = document.getElementById('printable-thermal-receipt')
+  if (!receiptEl) {
+    window.print()
+    return
+  }
+
+  const is80 = paperWidth.value === '80mm'
+  const printWidth = is80 ? '76mm' : '54mm'
+
+  const printWin = window.open('', '_blank', 'width=450,height=650')
+  if (!printWin) {
+    window.print()
+    return
+  }
+
+  printWin.document.write(`
+    <!DOCTYPE html>
+    <html lang="es">
+      <head>
+        <meta charset="UTF-8">
+        <title>Ticket_${receiptCode.value}</title>
+        <style>
+          @page {
+            margin: 0;
+            size: auto;
+          }
+          * {
+            box-sizing: border-box;
+          }
+          body {
+            margin: 0;
+            padding: 8px;
+            background: #ffffff;
+            color: #000000;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: ${is80 ? '12px' : '10px'};
+            line-height: 1.3;
+          }
+          .thermal-receipt-container {
+            width: ${printWidth};
+            margin: 0 auto;
+            background: #ffffff;
+          }
+          .receipt-header .receipt-brand {
+            font-family: 'Arial Black', sans-serif;
+            font-size: 20px;
+            margin: 0;
+            text-align: center;
+          }
+          .receipt-header .receipt-subtitle {
+            font-size: 9px;
+            font-weight: bold;
+            margin: 0;
+            text-align: center;
+          }
+          .text-center { text-align: center; }
+          .store-name { font-weight: bold; margin: 4px 0 0 0; text-transform: uppercase; text-align: center; }
+          .store-address, .store-phone { margin: 0; font-size: 10px; text-align: center; }
+          .divider-dashed { border-top: 1px dashed #000; margin: 6px 0; }
+          .info-row { display: flex; justify-content: space-between; margin-bottom: 2px; }
+          .receipt-table { width: 100%; border-collapse: collapse; margin-top: 4px; }
+          .receipt-table th { border-bottom: 1px solid #000; text-align: left; padding-bottom: 2px; }
+          .receipt-table td { padding: 3px 0; vertical-align: top; }
+          .col-qty { width: 12%; text-align: left; }
+          .col-desc { width: 48%; text-align: left; word-break: break-word; }
+          .col-price { width: 20%; text-align: right; }
+          .col-total { width: 20%; text-align: right; }
+          .receipt-totals .total-row { display: flex; justify-content: space-between; margin-bottom: 2px; }
+          .receipt-totals .main-total { font-size: 15px; font-weight: 900; margin-top: 4px; }
+          .receipt-footer .thanks-msg { font-weight: bold; margin: 4px 0 2px 0; text-align: center; }
+          .receipt-footer .policy-msg { font-size: 9px; margin: 0 0 2px 0; text-align: center; }
+          .receipt-footer .sys-msg { font-size: 8px; margin: 0; color: #555; text-align: center; }
+        </style>
+      </head>
+      <body>
+        <div class="thermal-receipt-container">
+          ${receiptEl.innerHTML}
+        </div>
+        <script>
+          window.onload = function() {
+            setTimeout(function() {
+              window.focus();
+              window.print();
+              window.close();
+            }, 300);
+          }
+        <\/script>
+      </body>
+    </html>
+  `)
+  printWin.document.close()
 }
 
 const handleClose = () => {
@@ -117,9 +207,21 @@ const handleClose = () => {
                 <span>Cliente:</span>
                 <span>{{ saleData?.customerName || 'Cliente General' }}</span>
               </div>
-              <div class="info-row">
-                <span>Forma de Pago:</span>
-                <span>{{ saleData?.paymentMethodName || 'Efectivo' }}</span>
+              
+              <!-- FORMA DE PAGO RESPONSIVE -->
+              <div class="info-payment-section mt-1">
+                <div class="info-row border-0 mb-0">
+                  <span>Forma de Pago:</span>
+                  <strong v-if="!saleData?.paymentMethodsList || saleData.paymentMethodsList.length <= 1">
+                    {{ saleData?.paymentMethodName || 'Efectivo' }}
+                  </strong>
+                </div>
+                <div v-if="saleData?.paymentMethodsList && saleData.paymentMethodsList.length > 1" class="payment-breakdown-list ms-2 mt-1">
+                  <div v-for="(pm, pIdx) in saleData.paymentMethodsList" :key="pIdx" class="info-row payment-item mb-1">
+                    <span>• {{ pm.name }}:</span>
+                    <strong>S/ {{ Number(pm.amount).toFixed(2) }}</strong>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -283,8 +385,23 @@ const handleClose = () => {
 .info-row {
   display: flex;
   justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 4px;
   margin-bottom: 2px;
   font-size: 11px;
+  word-break: break-word;
+}
+
+.info-row span:first-child {
+  flex-shrink: 0;
+}
+
+.info-row span:last-child,
+.info-row strong:last-child {
+  text-align: right;
+  word-break: break-word;
+  max-width: 100%;
 }
 
 .receipt-table {
