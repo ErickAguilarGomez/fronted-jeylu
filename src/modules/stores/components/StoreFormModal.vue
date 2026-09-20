@@ -67,7 +67,7 @@ const initEditMap = () => {
       editMarker.value = null
     }
 
-    let center = [-12.046374, -77.042793] // Default to Lima, Peru
+    let center = [-34.6037, -58.3816] // Default to Buenos Aires, Argentina
     let zoomLevel = 14
     if (localForm.value.latitude && localForm.value.longitude) {
       center = [parseFloat(localForm.value.latitude), parseFloat(localForm.value.longitude)]
@@ -202,7 +202,7 @@ const handleSubmit = () => {
       </div>
       <div>
         <label class="form-label fw-black text-uppercase fs-5">Teléfono (Opcional)</label>
-        <input v-model="localForm.phone" type="text" class="form-control border-black border-3 p-3 fs-5 fw-bold" placeholder="+51 999 999 999" />
+        <input v-model="localForm.phone" type="text" class="form-control border-black border-3 p-3 fs-5 fw-bold" placeholder="+54 9 11 1234 5678" />
       </div>
       
       <div>
@@ -226,11 +226,11 @@ const handleSubmit = () => {
       <div class="row">
         <div class="col-md-6">
           <label class="form-label fw-black text-uppercase fs-5">Latitud</label>
-          <input v-model.number="localForm.latitude" type="number" step="0.00000001" min="-90" max="90" @input="updateMarkerFromInputs" class="form-control border-black border-3 p-3 fs-5 fw-bold" placeholder="-12.046374" />
+          <input v-model.number="localForm.latitude" type="number" step="0.00000001" min="-90" max="90" @input="updateMarkerFromInputs" class="form-control border-black border-3 p-3 fs-5 fw-bold" placeholder="-34.603722" />
         </div>
         <div class="col-md-6">
           <label class="form-label fw-black text-uppercase fs-5">Longitud</label>
-          <input v-model.number="localForm.longitude" type="number" step="0.00000001" min="-180" max="180" @input="updateMarkerFromInputs" class="form-control border-black border-3 p-3 fs-5 fw-bold" placeholder="-77.042793" />
+          <input v-model.number="localForm.longitude" type="number" step="0.00000001" min="-180" max="180" @input="updateMarkerFromInputs" class="form-control border-black border-3 p-3 fs-5 fw-bold" placeholder="-58.381592" />
         </div>
       </div>
       

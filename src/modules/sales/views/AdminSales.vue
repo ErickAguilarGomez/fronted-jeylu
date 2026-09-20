@@ -30,6 +30,9 @@ const openReceiptModal = (sale) => {
       price: Number(i.price)
     })),
     customerName: sale.customer_name || sale.customer_account_name || 'Cliente General',
+    customerPhone: sale.customer_phone || '',
+    deliveryType: sale.delivery_type || '',
+    deliveryAddress: sale.delivery_address || '',
     sellerName: sale.seller_name || 'Vendedor',
     paymentMethodName: sale.payment_method_name || 'Efectivo',
     storeName: sale.store_name || 'TIENDA PRINCIPAL',
@@ -199,7 +202,18 @@ onMounted(async () => {
         #{{ item.id }}
       </template>
       <template #cell-customer="{ item }">
-        {{ item.customer_name || item.customer_account_name || 'Anónimo' }}
+        <div>
+          <div class="fw-bold text-dark">{{ item.customer_name || item.customer_account_name || 'Anónimo' }}</div>
+          <div v-if="item.customer_phone" class="text-muted fs-8 font-monospace">📞 {{ item.customer_phone }}</div>
+          <div v-if="item.delivery_type" class="mt-1">
+            <span v-if="item.delivery_type === 'delivery'" class="badge bg-primary text-white fs-8" :title="item.delivery_address">
+              🚚 Envío a Domicilio
+            </span>
+            <span v-else-if="item.delivery_type === 'pickup'" class="badge bg-secondary text-white fs-8">
+              🏬 Retiro en Sucursal
+            </span>
+          </div>
+        </div>
       </template>
       <template #cell-payment_method_name="{ item }">
         <span class="badge bg-light text-black border border-black fw-bold font-monospace fs-7">

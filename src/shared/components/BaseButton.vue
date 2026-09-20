@@ -24,9 +24,9 @@ defineProps({
     v-if="to"
     :to="to"
     :class="[
-      'btn fw-black text-uppercase text-decoration-none text-center',
-      variant === 'primary' ? 'btn-primary' : '',
-      variant === 'secondary' ? 'btn-secondary' : '',
+      'btn fw-semibold text-decoration-none text-center',
+      variant === 'primary' ? 'btn-amazon-primary' : '',
+      variant === 'secondary' ? 'btn-amazon-secondary' : '',
       variant === 'danger' ? 'btn-danger' : '',
       variant === 'outline-dark' ? 'btn-outline-dark bg-white' : '',
       variant === 'icon' ? 'btn-icon' : ''
@@ -39,9 +39,9 @@ defineProps({
     :type="type"
     :disabled="disabled"
     :class="[
-      'btn fw-black text-uppercase',
-      variant === 'primary' ? 'btn-primary' : '',
-      variant === 'secondary' ? 'btn-secondary' : '',
+      'btn fw-semibold',
+      variant === 'primary' ? 'btn-amazon-primary' : '',
+      variant === 'secondary' ? 'btn-amazon-secondary' : '',
       variant === 'danger' ? 'btn-danger' : '',
       variant === 'outline-dark' ? 'btn-outline-dark bg-white' : '',
       variant === 'icon' ? 'btn-icon' : ''

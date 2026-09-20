@@ -54,14 +54,14 @@ const getStockBadge = (stock) => {
           <!-- Header -->
           <div class="low-stock-header">
             <div class="d-flex align-items-center gap-3">
-              <div class="header-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 16 16">
+              <div class="header-icon text-warning">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
                   <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
                 </svg>
               </div>
               <div>
-                <h3 class="m-0 fw-black text-uppercase">Alerta de Stock</h3>
-                <small class="text-white-50">Productos con bajo inventario</small>
+                <h4 class="m-0 fw-bold text-white">Alerta de Inventario</h4>
+                <small class="text-white-50">Productos con stock bajo en tiendas</small>
               </div>
             </div>
             <button @click="closeAlert" class="close-btn" aria-label="Cerrar">&times;</button>
@@ -69,16 +69,17 @@ const getStockBadge = (stock) => {
 
           <!-- Body -->
           <div class="low-stock-body">
-            <p class="description-text">
-              Los siguientes productos tienen <strong>5 unidades o menos</strong> en alguna de tus tiendas:
-            </p>
+            <div class="alert alert-warning mb-3 py-2 px-3 d-flex align-items-center gap-2 small">
+              <i class="bi bi-exclamation-triangle-fill fs-6 text-warning"></i>
+              <span>Los siguientes artículos registran <strong>5 unidades o menos</strong> en inventario:</span>
+            </div>
 
             <div class="stock-list">
               <div v-for="(item, idx) in lowStockItems" :key="idx" class="stock-item">
                 <div class="stock-item-info">
                   <span class="product-name">{{ item.product_name }}</span>
                   <div class="product-meta">
-                    <span class="meta-tag talla-tag" v-if="item.size">Talla {{ item.size }}</span>
+                    <span class="meta-tag talla-tag" v-if="item.size">Talle {{ item.size }}</span>
                     <span class="meta-tag store-tag">{{ item.store_name }}</span>
                   </div>
                 </div>
@@ -92,7 +93,10 @@ const getStockBadge = (stock) => {
 
           <!-- Footer -->
           <div class="low-stock-footer">
-            <button @click="closeAlert" class="btn-understood">ENTENDIDO</button>
+            <span class="text-muted small">Notificación automática para administradores</span>
+            <button @click="closeAlert" class="btn btn-amazon-primary px-4 py-2 fw-semibold rounded-pill">
+              Entendido
+            </button>
           </div>
         </div>
       </div>
@@ -107,29 +111,30 @@ const getStockBadge = (stock) => {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.75);
+  background: rgba(15, 17, 17, 0.65);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 9999;
   padding: 1rem;
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(2px);
 }
 
 .low-stock-card {
-  background: #fff;
+  background: #ffffff;
   width: 100%;
-  max-width: 600px;
-  border: 3px solid #000;
-  box-shadow: 12px 12px 0px #000;
+  max-width: 580px;
+  border: 1px solid #d5d9d9;
+  border-radius: 8px;
+  box-shadow: 0 4px 24px rgba(15, 17, 17, 0.25);
   overflow: hidden;
-  animation: slideUp 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes slideUp {
   from {
     opacity: 0;
-    transform: translateY(30px) scale(0.96);
+    transform: translateY(20px) scale(0.97);
   }
   to {
     opacity: 1;
@@ -139,19 +144,20 @@ const getStockBadge = (stock) => {
 
 /* Header */
 .low-stock-header {
-  background: #dc3545;
-  color: #fff;
-  padding: 1.25rem 1.5rem;
+  background: var(--amazon-navy-light, #232f3e);
+  color: #ffffff;
+  padding: 1rem 1.25rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  border-bottom: 3px solid #febd69;
 }
 
 .header-icon {
-  background: rgba(255,255,255,0.2);
+  background: rgba(254, 189, 105, 0.15);
   border-radius: 50%;
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -159,47 +165,44 @@ const getStockBadge = (stock) => {
 }
 
 .close-btn {
-  background: rgba(255,255,255,0.2);
-  border: 2px solid rgba(255,255,255,0.4);
-  color: #fff;
+  background: none;
+  border: none;
+  color: #cccccc;
   font-size: 1.5rem;
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.15s;
   line-height: 1;
 }
 
 .close-btn:hover {
-  background: rgba(255,255,255,0.35);
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
 }
 
 /* Body */
 .low-stock-body {
-  padding: 1.5rem;
-}
-
-.description-text {
-  font-size: 0.95rem;
-  color: #555;
-  margin-bottom: 1rem;
+  padding: 1.25rem;
 }
 
 .stock-list {
   max-height: 280px;
   overflow-y: auto;
-  border: 2px solid #000;
+  border: 1px solid #e7e7e7;
+  border-radius: 6px;
 }
 
 .stock-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.85rem 1rem;
-  border-bottom: 1px solid #e0e0e0;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #f0f0f0;
   transition: background 0.15s;
 }
 
@@ -208,7 +211,7 @@ const getStockBadge = (stock) => {
 }
 
 .stock-item:hover {
-  background: #f8f9fa;
+  background: #f7fafa;
 }
 
 .stock-item-info {
@@ -217,11 +220,11 @@ const getStockBadge = (stock) => {
 }
 
 .product-name {
-  font-weight: 800;
-  text-transform: uppercase;
+  font-weight: 600;
+  color: #0f1111;
   font-size: 0.9rem;
   display: block;
-  margin-bottom: 4px;
+  margin-bottom: 3px;
 }
 
 .product-meta {
@@ -232,95 +235,68 @@ const getStockBadge = (stock) => {
 
 .meta-tag {
   font-size: 0.72rem;
-  font-weight: 700;
-  padding: 2px 8px;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
 }
 
 .talla-tag {
-  background: #000;
-  color: #fff;
+  background: #f0f2f2;
+  color: #0f1111;
+  border: 1px solid #d5d9d9;
 }
 
 .store-tag {
-  background: #e9ecef;
-  color: #333;
-  border: 1px solid #ccc;
+  background: #e7f4f5;
+  color: #007185;
 }
 
 /* Badges */
 .stock-item-badge {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  font-weight: 800;
-  font-size: 0.85rem;
+  gap: 4px;
+  padding: 4px 8px;
+  font-weight: 600;
+  font-size: 0.8rem;
   flex-shrink: 0;
   margin-left: 12px;
-  border: 2px solid #000;
+  border-radius: 4px;
 }
 
 .stock-badge-critical {
-  background: #dc3545;
-  color: #fff;
+  background: #cc0c39;
+  color: #ffffff;
 }
 
 .stock-badge-danger {
-  background: #fd7e14;
-  color: #000;
+  background: #ffa41c;
+  color: #0f1111;
 }
 
 .stock-badge-warning {
-  background: #ffc107;
-  color: #000;
+  background: #fff8e1;
+  color: #b78103;
 }
 
 .badge-icon {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
 }
 
 /* Footer */
 .low-stock-footer {
-  padding: 1rem 1.5rem;
+  padding: 0.85rem 1.25rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-top: 2px solid #000;
-  background: #f8f9fa;
-}
-
-.alert-count {
-  font-weight: 700;
-  color: #666;
-  font-size: 0.85rem;
-  text-transform: uppercase;
-}
-
-.btn-understood {
-  background: #000;
-  color: #fff;
-  border: 2px solid #000;
-  padding: 0.6rem 2rem;
-  font-weight: 900;
-  text-transform: uppercase;
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: all 0.2s;
-  letter-spacing: 0.5px;
-}
-
-.btn-understood:hover {
-  background: #333;
-  box-shadow: 4px 4px 0px #000;
-  transform: translate(-2px, -2px);
+  border-top: 1px solid #e7e7e7;
+  background: #f7fafa;
 }
 
 /* Transition */
 .fade-alert-enter-active,
 .fade-alert-leave-active {
-  transition: opacity 0.3s ease;
+  transition: opacity 0.25s ease;
 }
 
 .fade-alert-enter-from,

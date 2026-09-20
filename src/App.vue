@@ -13,6 +13,10 @@ const showWhatsappButton = computed(() => {
   return ['Home', 'Catalog', 'ProductDetail'].includes(route.name)
 })
 
+const showFooter = computed(() => {
+  return route.name !== 'PosScanner'
+})
+
 onMounted(() => {
   if (authStore.isAuthenticated) {
     authStore.fetchUser()
@@ -21,14 +25,14 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="app-wrapper min-vh-100 d-flex flex-column bg-white text-black font-sans-serif">
+  <div class="app-wrapper min-vh-100 d-flex flex-column" style="background-color: var(--amazon-bg); color: var(--amazon-text);">
     <NavBar />
     
     <main class="flex-grow-1 d-flex flex-column">
       <router-view></router-view>
     </main>
 
-    <AppFooter />
+    <AppFooter v-if="showFooter" />
 
     <LowStockAlert />
     <WhatsappFloatButton v-if="showWhatsappButton" />

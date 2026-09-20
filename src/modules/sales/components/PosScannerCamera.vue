@@ -13,6 +13,7 @@ const props = defineProps({
 const emit = defineEmits(['add-product'])
 
 const scanning = ref(true)
+const showCamera = ref(true)
 const searchQuery = ref('')
 const showDropdown = ref(false)
 const searching = ref(false)
@@ -23,13 +24,13 @@ let html5QrcodeScanner = null
 const onCameraError = (error) => {
   console.error('Error de cámara:', error)
   if (error.name === 'NotAllowedError') {
-    cameraError.value = 'Permiso denegado para acceder a la cámara.'
+    cameraError.value = 'Permiso denegado para la cámara. Usa el buscador o lector USB.'
   } else if (error.name === 'NotFoundError') {
-    cameraError.value = 'No se encontró ningún dispositivo de cámara conectado.'
+    cameraError.value = 'No se detectó cámara conectada.'
   } else if (error.name === 'NotSupportedError') {
-    cameraError.value = 'La cámara requiere un entorno seguro (HTTPS).'
+    cameraError.value = 'La cámara requiere entorno HTTPS seguro.'
   } else {
-    cameraError.value = `Error de cámara: ${error.message || error.name || error}`
+    cameraError.value = `Cámara: ${error.message || error.name || 'No disponible'}`
   }
   scanning.value = false
 }
@@ -42,7 +43,7 @@ const onDecode = (decodedString) => {
   
   scanning.value = false
   emit('add-product', sku)
-  setTimeout(() => { scanning.value = true }, 2000)
+  setTimeout(() => { scanning.value = true }, 1800)
 }
 
 const startScanner = async () => {
@@ -69,8 +70,8 @@ const startScanner = async () => {
     })
 
     const config = {
-      fps: 30,
-      aspectRatio: 1.0,
+      fps: 25,
+      aspectRatio: 1.6,
       experimentalFeatures: {
         useBarCodeDetectorIfSupported: true
       }
@@ -84,8 +85,18 @@ const startScanner = async () => {
       },
       () => {}
     )
+    cameraError.value = ''
   } catch (err) {
     onCameraError(err)
+  }
+}
+
+const toggleCamera = () => {
+  showCamera.value = !showCamera.value
+  if (showCamera.value && (!html5QrcodeScanner || !html5QrcodeScanner.isScanning)) {
+    startScanner()
+  } else if (!showCamera.value && html5QrcodeScanner && html5QrcodeScanner.isScanning) {
+    html5QrcodeScanner.stop().catch(console.error)
   }
 }
 
@@ -117,7 +128,7 @@ const handleSearchInput = () => {
     } finally {
       searching.value = false
     }
-  }, 300)
+  }, 250)
 }
 
 const clearSearch = () => {
@@ -141,86 +152,192 @@ const addManualSku = () => {
 </script>
 
 <template>
-  <div class="card h-100 flex-grow-1 border-2">
-    <div class="card-header bg-black text-white p-4 border-bottom border-black border-2 d-flex justify-content-between align-items-center">
-      <h2 class="m-0 text-uppercase fw-black fs-3">ESCANER POS</h2>
-      <span v-if="!scanning" class="badge bg-warning text-black fs-6 border border-black shadow-sm">PAUSADO</span>
-      <span v-else class="badge bg-success text-black fs-6 border border-black shadow-sm">ACTIVO</span>
+  <div class="card bg-white border shadow-sm rounded-3 h-100 d-flex flex-column">
+    
+    <!-- Top Header: Title & Camera Toggle -->
+    <div class="card-header bg-white border-bottom p-3 d-flex justify-content-between align-items-center">
+      <div class="d-flex align-items-center gap-2">
+        <i class="bi bi-upc-scan fs-5 text-dark"></i>
+        <h6 class="fw-bold m-0 text-dark">Búsqueda y Escáner POS</h6>
+      </div>
+
+      <div class="d-flex align-items-center gap-2">
+        <!-- Toggle Camera Button -->
+        <button 
+          @click="toggleCamera" 
+          type="button" 
+          class="btn btn-sm btn-outline-secondary py-1 px-2 d-flex align-items-center gap-1 fs-8"
+        >
+          <i :class="showCamera ? 'bi bi-camera-video-off' : 'bi bi-camera-video'"></i>
+          <span>{{ showCamera ? 'Ocultar cámara' : 'Usar cámara' }}</span>
+        </button>
+
+        <span v-if="scanning && showCamera" class="badge bg-success text-white fs-8">
+          <i class="bi bi-dot"></i> Activo
+        </span>
+      </div>
     </div>
     
-    <div class="card-body p-4 d-flex flex-column">
+    <div class="card-body p-3 d-flex flex-column gap-3">
       
-      <div class="scanner-wrapper border border-black border-4 mb-4 position-relative bg-black flex-grow-1 shadow-sm d-flex justify-content-center align-items-center" style="min-height: 350px; overflow: hidden;">
-        <div v-if="cameraError" class="text-center p-4 text-white">
-          <span class="fs-1">📷</span>
-          <h4 class="fw-black text-uppercase text-danger mt-3">{{ cameraError }}</h4>
-          <p class="fw-bold text-white-50 mt-2">Puedes utilizar el buscador de productos o ingresar el SKU manualmente abajo.</p>
-        </div>
-        <div id="pos-barcode-reader" style="width: 100%; height: 100%;"></div>
-      </div>
-      
+      <!-- 1. Búsqueda Rápida de Productos (Top priority for cashiers) -->
       <div class="position-relative w-100">
-        <div class="input-group input-group-lg border border-black border-2 shadow-sm" style="box-shadow: 4px 4px 0px #000 !important;">
-          <span class="input-group-text bg-secondary border-0 fw-black text-uppercase fs-6">BUSCAR PRODUCTO</span>
-          <input v-model="searchQuery" @input="handleSearchInput" @keyup.enter="addManualSku" type="text" class="form-control border-0 fw-bold shadow-none fs-5 p-3" placeholder="Escribe nombre de producto o SKU...">
-          <button v-if="searchQuery" @click="clearSearch" class="btn btn-dark border-0 fw-black px-4 m-0 shadow-none fs-5">X</button>
-          <button v-else @click="addManualSku" class="btn btn-primary border-0 fw-black px-4 m-0 shadow-none fs-5" :disabled="loadingItem">AÑADIR</button>
+        <div class="input-group shadow-sm border rounded-2 overflow-hidden">
+          <span class="input-group-text bg-light border-0 text-muted px-3">
+            <i class="bi bi-search"></i>
+          </span>
+          <input 
+            v-model="searchQuery" 
+            @input="handleSearchInput" 
+            @keyup.enter="addManualSku" 
+            type="text" 
+            class="form-control border-0 py-2 fs-6 shadow-none" 
+            placeholder="Escanear código de barra, SKU o buscar por nombre..."
+            autofocus
+          />
+          <button 
+            v-if="searchQuery" 
+            @click="clearSearch" 
+            class="btn btn-light border-0 text-muted px-3" 
+            type="button"
+          >
+            ✕
+          </button>
+          <button 
+            v-else 
+            @click="addManualSku" 
+            class="btn btn-amazon-primary border-0 px-3 fw-semibold fs-7" 
+            type="button"
+            :disabled="loadingItem"
+          >
+            Añadir
+          </button>
         </div>
 
-        <!-- Lista Desplegable de Resultados -->
-        <div v-if="showDropdown" class="dropdown-menu show w-100 p-0 border border-black border-3 shadow-solid mt-2 bg-white position-absolute z-3" style="max-height: 350px; overflow-y: auto;">
-          <div v-if="searching" class="p-4 text-center fw-bold fs-5 bg-light">BUSCANDO INVENTARIO...</div>
-          <div v-else-if="posStore.searchResults.length === 0" class="p-4 text-center fw-bold fs-5 text-muted bg-light">NO SE ENCONTRARON COINCIDENCIAS</div>
-          <div v-for="item in posStore.searchResults" :key="item.sku" @click="selectProductFromSearch(item)" class="dropdown-item p-3 border-bottom border-black d-flex align-items-center gap-3 cursor-pointer transition-bg">
-            <img v-if="item.image_url" :src="item.image_url" class="border border-black border-2 object-fit-cover shadow-sm" style="width: 60px; height: 60px;">
+        <!-- Dropdown de Resultados de Búsqueda -->
+        <div 
+          v-if="showDropdown" 
+          class="dropdown-menu show w-100 p-0 border shadow-lg mt-1 bg-white position-absolute z-3 rounded-2" 
+          style="max-height: 280px; overflow-y: auto;"
+        >
+          <div v-if="searching" class="p-3 text-center text-muted small">
+            <div class="spinner-border spinner-border-sm text-warning me-1" role="status"></div>
+            Buscando en inventario...
+          </div>
+          <div v-else-if="posStore.searchResults.length === 0" class="p-3 text-center text-muted small">
+            No se encontraron productos con ese SKU o nombre.
+          </div>
+          <div 
+            v-for="item in posStore.searchResults" 
+            :key="item.sku" 
+            @click="selectProductFromSearch(item)" 
+            class="dropdown-item p-2 border-bottom d-flex align-items-center gap-2 cursor-pointer search-item-row"
+          >
+            <img 
+              v-if="item.image_url" 
+              :src="item.image_url" 
+              class="rounded border object-fit-cover flex-shrink-0" 
+              style="width: 44px; height: 44px;"
+            />
             <div class="flex-grow-1 overflow-hidden">
-              <div class="fw-black text-uppercase fs-5 text-truncate">{{ item.name }}</div>
-              <div class="text-muted fs-6 font-monospace">SKU: {{ item.sku }}</div>
+              <div class="fw-semibold text-dark text-truncate fs-7">{{ item.name }}</div>
+              <div class="text-muted fs-8 font-monospace">SKU: {{ item.sku }}</div>
             </div>
-            <div class="text-end ms-3">
-              <div class="fw-black fs-4">$ {{ Number(item.price).toFixed(2) }}</div>
-              <span :class="['badge border border-black fs-7 fw-bold', item.total_stock > 0 ? 'bg-warning text-black' : 'bg-danger text-white']">
-                STOCK: {{ item.total_stock }}
+            <div class="text-end ms-2 flex-shrink-0">
+              <div class="fw-bold text-dark fs-7">$ {{ Number(item.price).toFixed(2) }}</div>
+              <span :class="['badge fs-8 py-0 px-1', item.total_stock > 0 ? 'bg-success text-white' : 'bg-danger text-white']">
+                Stock: {{ item.total_stock }}
               </span>
             </div>
           </div>
         </div>
       </div>
+
+      <!-- 2. Cámara Escáner Compacta (Reducida en tamaño) -->
+      <div v-show="showCamera" class="camera-container rounded border bg-dark overflow-hidden position-relative mx-auto w-100">
+        <!-- Error / No camera message -->
+        <div v-if="cameraError" class="d-flex flex-column align-items-center justify-content-center h-100 p-3 text-center text-light">
+          <i class="bi bi-camera-video-off fs-4 text-warning mb-1"></i>
+          <span class="fs-8 text-white-50">{{ cameraError }}</span>
+          <span class="fs-8 text-warning mt-1">Puedes escanear con pistola lectora USB o escribir arriba.</span>
+        </div>
+
+        <!-- Video Reader Element (Compact 160px height) -->
+        <div id="pos-barcode-reader" class="compact-barcode-reader"></div>
+
+        <!-- Laser Scan Overlay Target Line -->
+        <div v-if="!cameraError" class="laser-scanner-line"></div>
+      </div>
+
+      <!-- 3. Instrucción o Atajo Rápido -->
+      <div class="d-flex align-items-center justify-content-between p-2 rounded bg-light border text-muted fs-8">
+        <span class="d-flex align-items-center gap-1">
+          <i class="bi bi-keyboard text-secondary"></i>
+          <span>Lector de código de barras USB listo</span>
+        </span>
+        <span class="text-dark fw-semibold">Presiona Enter tras el SKU</span>
+      </div>
+
     </div>
   </div>
 </template>
 
 <style scoped>
-#pos-barcode-reader {
-  width: 100% !important;
-  height: 100% !important;
-  border: none !important;
+.camera-container {
+  height: 160px;
+  max-height: 160px;
+  background-color: #111111;
+  position: relative;
 }
-#pos-barcode-reader video {
+
+.compact-barcode-reader {
   width: 100% !important;
   height: 100% !important;
+}
+
+:deep(#pos-barcode-reader video) {
+  width: 100% !important;
+  height: 160px !important;
   object-fit: cover !important;
 }
+
 :deep(#pos-barcode-reader__scan_region) {
   width: 100% !important;
-  height: 100% !important;
+  height: 160px !important;
   background: transparent !important;
 }
+
 :deep(#pos-barcode-reader__scan_region img),
 :deep(#pos-barcode-reader__dashboard),
 :deep(#pos-barcode-reader__scan_region div[style*="border"]) {
   display: none !important;
 }
+
+.laser-scanner-line {
+  position: absolute;
+  top: 50%;
+  left: 10%;
+  right: 10%;
+  height: 2px;
+  background: #ff3b30;
+  box-shadow: 0 0 6px 1px #ff3b30;
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+.search-item-row:hover {
+  background-color: #f0f7ff !important;
+}
+
+.fs-7 {
+  font-size: 0.88rem;
+}
+
+.fs-8 {
+  font-size: 0.76rem;
+}
+
 .cursor-pointer {
   cursor: pointer;
-}
-.transition-bg {
-  transition: background-color 0.15s ease;
-}
-.transition-bg:hover {
-  background-color: #f8f9fa !important;
-}
-.shadow-solid {
-  box-shadow: 8px 8px 0px #000 !important;
 }
 </style>

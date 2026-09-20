@@ -1,29 +1,57 @@
 /* 
 ==========================================================================
-   DISEÑO BRUTALISTA ESTILO ADIDAS — OVERRIDES BOOTSTRAP
+   AMAZON.COM ECOMMERCE DESIGN SYSTEM — OVERRIDES BOOTSTRAP
 ========================================================================== 
 */
 
 :root {
-  --bs-body-bg: #FFFFFF;
-  --bs-body-color: #000000;
-  --bs-primary: #000000;
-  --bs-secondary: #EBEBEB;
-  --bs-border-radius: 0px;
-  --bs-border-radius-sm: 0px;
-  --bs-border-radius-lg: 0px;
-  --bs-border-radius-xl: 0px;
-  --bs-border-radius-2xl: 0px;
-  --bs-border-radius-pill: 0px;
-  --bs-border-width: 2px;
-  --bs-border-color: #000000;
-  --bs-font-sans-serif: 'Inter', 'Helvetica Neue', Arial, sans-serif;
-  --bs-heading-font-family: 'Archivo Black', 'Impact', 'Arial Black', sans-serif;
+  /* Paleta Oficial Amazon */
+  --amazon-navy-dark: #131921;
+  --amazon-navy-light: #232f3e;
+  --amazon-navy-subtle: #37475a;
+  --amazon-bg: #eaeded;
+  --amazon-card-bg: #ffffff;
+  --amazon-border: #d5d9d9;
+  --amazon-border-subtle: #e7e7e7;
+  --amazon-text: #0f1111;
+  --amazon-text-muted: #565959;
+  
+  /* Botones y Acentos */
+  --amazon-yellow: #ffd814;
+  --amazon-yellow-border: #fcd200;
+  --amazon-yellow-hover: #f7ca00;
+  --amazon-orange: #ffa41c;
+  --amazon-orange-border: #ff8f00;
+  --amazon-orange-hover: #fa8900;
+  --amazon-search-btn: #febd69;
+  --amazon-search-btn-hover: #f3a847;
+  
+  /* Enlaces y Estados */
+  --amazon-link: #007185;
+  --amazon-link-hover: #c7511f;
+  --amazon-star: #de7921;
+  --amazon-stock-green: #007600;
+  --amazon-deal-red: #cc0c39;
+  --amazon-deal-text: #b12704;
+
+  /* Overrides Bootstrap */
+  --bs-body-bg: var(--amazon-bg);
+  --bs-body-color: var(--amazon-text);
+  --bs-primary: #ffd814;
+  --bs-secondary: #f0f2f2;
+  --bs-border-radius: 8px;
+  --bs-border-radius-sm: 4px;
+  --bs-border-radius-lg: 12px;
+  --bs-border-radius-pill: 50rem;
+  --bs-border-width: 1px;
+  --bs-border-color: var(--amazon-border);
+  --bs-font-sans-serif: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --bs-heading-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 body {
-  background-color: #FFFFFF !important;
-  color: #000000 !important;
+  background-color: var(--amazon-bg) !important;
+  color: var(--amazon-text) !important;
   font-family: var(--bs-font-sans-serif);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -31,161 +59,258 @@ body {
   padding: 0;
 }
 
-/* Forzar Border Radius 0 en TODOS los elementos */
-* {
-  border-radius: 0px !important;
+/* Enlaces estilo Amazon */
+a {
+  color: var(--amazon-link);
+  text-decoration: none;
+  transition: color 0.15s ease-in-out;
 }
 
-/* Títulos y Encabezados */
-h1, h2, h3, h4, h5, h6, .display-1, .display-2, .display-3, .display-4 {
+a:hover {
+  color: var(--amazon-link-hover);
+  text-decoration: underline;
+}
+
+/* Títulos y Encabezados Limpios */
+h1, h2, h3, h4, h5, h6, .display-1, .display-2, .display-3, .display-4, .display-5 {
   font-family: var(--bs-heading-font-family) !important;
-  font-weight: 900 !important;
-  text-transform: uppercase !important;
-  letter-spacing: -0.05em;
-  color: #000000 !important;
-}
-
-/* Botones estilo Adidas Brutalista */
-.btn, button {
-  font-family: var(--bs-heading-font-family) !important;
-  font-weight: 900 !important;
-  text-transform: uppercase !important;
-  padding: 14px 28px !important;
-  letter-spacing: 1px !important;
-  border: 2px solid #000000 !important;
-  transition: all 0.2s ease-in-out !important;
-  box-shadow: 4px 4px 0px #000000 !important;
-  cursor: pointer;
-}
-
-.btn:hover, button:hover {
-  transform: translate(-2px, -2px) !important;
-  box-shadow: 6px 6px 0px #000000 !important;
-}
-
-.btn:active, button:active {
-  transform: translate(2px, 2px) !important;
-  box-shadow: 2px 2px 0px #000000 !important;
-}
-
-/* Botón Primario (Negro con texto blanco) */
-.btn-primary {
-  background-color: #000000 !important;
-  color: #FFFFFF !important;
-}
-
-.btn-primary:hover {
-  background-color: #222222 !important;
-  color: #FFFFFF !important;
-}
-
-/* Botón Secundario / Acento */
-.btn-secondary {
-  background-color: #EBEBEB !important;
-  color: #000000 !important;
-  border-color: #000000 !important;
-}
-
-.btn-secondary:hover {
-  background-color: #D8D8D8 !important;
-  color: #000000 !important;
-}
-
-/* Botón de Peligro / Eliminar */
-.btn-danger {
-  background-color: #FF0000 !important;
-  color: #FFFFFF !important;
-  border-color: #000000 !important;
-}
-
-/* Tarjetas y Contenedores Brutalistas */
-.card, .modal-content, .dropdown-menu, .form-control, .input-group-text, .alert {
-  border: 2px solid #000000 !important;
-  box-shadow: 4px 4px 0px #000000 !important;
-  background-color: #FFFFFF !important;
-  color: #000000 !important;
-}
-
-/* Inputs de Formulario */
-.form-control, .form-select {
   font-weight: 700 !important;
-  padding: 12px 16px !important;
-  border: 2px solid #000000 !important;
-  background-color: #FFFFFF !important;
-  color: #000000 !important;
+  letter-spacing: -0.01em;
+  color: inherit;
+  text-transform: none !important;
+}
+
+/* Botones estilo Amazon */
+.btn, button {
+  font-family: var(--bs-font-sans-serif) !important;
+  font-weight: 500 !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  border-radius: 8px !important;
+  transition: all 0.15s ease-in-out !important;
+  cursor: pointer;
+  box-shadow: none !important;
+}
+
+/* Botón Amarillo Clásico Amazon (Agregar / Comprar) */
+.btn-amazon-primary, .btn-primary {
+  background-color: var(--amazon-yellow) !important;
+  color: #0f1111 !important;
+  border: 1px solid var(--amazon-yellow-border) !important;
+  box-shadow: 0 2px 5px 0 rgba(213,217,217,.5) !important;
+  font-weight: 600 !important;
+  border-radius: 20px !important;
+}
+
+.btn-amazon-primary:hover, .btn-primary:hover {
+  background-color: var(--amazon-yellow-hover) !important;
+  border-color: #f2c200 !important;
+  color: #0f1111 !important;
+  transform: none !important;
+  box-shadow: 0 2px 5px 0 rgba(213,217,217,.8) !important;
+}
+
+/* Botón Naranja Clásico Amazon */
+.btn-amazon-secondary, .btn-warning {
+  background-color: var(--amazon-orange) !important;
+  color: #0f1111 !important;
+  border: 1px solid var(--amazon-orange-border) !important;
+  box-shadow: 0 2px 5px 0 rgba(213,217,217,.5) !important;
+  font-weight: 600 !important;
+  border-radius: 20px !important;
+}
+
+.btn-amazon-secondary:hover, .btn-warning:hover {
+  background-color: var(--amazon-orange-hover) !important;
+  border-color: #e57d00 !important;
+  color: #0f1111 !important;
+  transform: none !important;
+}
+
+/* Botón Neutro / Contorno Amazon */
+.btn-outline-dark, .btn-secondary, .btn-light {
+  background-color: #ffffff !important;
+  color: #0f1111 !important;
+  border: 1px solid var(--amazon-border) !important;
+  box-shadow: 0 2px 5px 0 rgba(213,217,217,.5) !important;
+  border-radius: 8px !important;
+}
+
+.btn-outline-dark:hover, .btn-secondary:hover, .btn-light:hover {
+  background-color: #f7fafa !important;
+  border-color: #d5d9d9 !important;
+  color: #0f1111 !important;
+  transform: none !important;
+}
+
+/* Botón Peligro / Cancelar */
+.btn-danger {
+  background-color: #d9534f !important;
+  border-color: #d43f3a !important;
+  color: #ffffff !important;
+  border-radius: 8px !important;
+}
+
+/* Tarjetas estilo Amazon (Limpias, blancas, bordes tenues) */
+.card {
+  background-color: #ffffff !important;
+  border: 1px solid var(--amazon-border-subtle) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+  transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+  color: var(--amazon-text) !important;
+}
+
+.card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Inputs y Selects Amazon con Focus Glow Naranja */
+.form-control, .form-select {
+  font-weight: 400 !important;
+  padding: 8px 12px !important;
+  border: 1px solid #888c8c !important;
+  border-radius: 4px !important;
+  background-color: #ffffff !important;
+  color: var(--amazon-text) !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
 }
 
 .form-control:focus, .form-select:focus {
   outline: none !important;
-  box-shadow: 4px 4px 0px #000000 !important;
-  border-color: #000000 !important;
-  background-color: #FAFFA0 !important; /* Acento amarillo neón brutalista en foco */
+  border-color: #e77600 !important;
+  box-shadow: 0 0 3px 2px rgba(228, 121, 17, 0.5) !important;
+  background-color: #ffffff !important;
 }
 
-/* Tablas estilo Brutalista */
+/* Tablas Modernas estilo Amazon Business */
 .table {
-  border: 2px solid #000000 !important;
+  background-color: #ffffff !important;
+  border-radius: 8px !important;
+  overflow: hidden;
+  border: 1px solid var(--amazon-border-subtle) !important;
   margin-bottom: 0 !important;
 }
 
 .table th {
-  font-family: var(--bs-heading-font-family) !important;
-  text-transform: uppercase !important;
-  background-color: #EBEBEB !important;
-  color: #000000 !important;
-  border-bottom: 2px solid #000000 !important;
-  border-right: 2px solid #000000 !important;
-  padding: 14px !important;
+  background-color: #f0f2f2 !important;
+  color: var(--amazon-text) !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+  border-bottom: 1px solid var(--amazon-border) !important;
+  padding: 12px 16px !important;
+  font-size: 0.9rem;
 }
 
 .table td {
-  border-bottom: 2px solid #000000 !important;
-  border-right: 2px solid #000000 !important;
-  padding: 14px !important;
+  border-bottom: 1px solid var(--amazon-border-subtle) !important;
+  padding: 12px 16px !important;
   vertical-align: middle !important;
+  color: var(--amazon-text) !important;
+  font-size: 0.9rem;
 }
 
-/* Navbar Brutalista */
-.navbar {
-  border-bottom: 2px solid #000000 !important;
-  background-color: #FFFFFF !important;
-  padding: 16px 32px !important;
+.table tbody tr:hover {
+  background-color: #f7fafa !important;
 }
 
-.navbar-brand {
-  font-family: var(--bs-heading-font-family) !important;
-  font-size: 2rem !important;
-  font-weight: 900 !important;
-  letter-spacing: -2px !important;
-  text-transform: uppercase !important;
-}
-
-/* Badges */
+/* Badges estilo Amazon */
 .badge {
-  font-family: var(--bs-heading-font-family) !important;
-  padding: 8px 12px !important;
-  border: 2px solid #000000 !important;
-  text-transform: uppercase !important;
-  font-size: 0.85rem !important;
+  font-weight: 600 !important;
+  padding: 4px 8px !important;
+  border-radius: 4px !important;
+  text-transform: none !important;
+  font-size: 0.8rem !important;
+  border: none !important;
 }
 
-.badge.bg-primary { background-color: #000000 !important; color: #FFFFFF !important; }
-.badge.bg-success { background-color: #00FF88 !important; color: #000000 !important; } /* Verde neón brutalista */
-.badge.bg-warning { background-color: #FAFFA0 !important; color: #000000 !important; } /* Amarillo neón */
+.badge.bg-primary, .badge-amazon-seller {
+  background-color: #e67a00 !important;
+  color: #ffffff !important;
+}
 
-/* Modales */
+.badge.bg-success, .badge-amazon-stock {
+  background-color: #e6f4ea !important;
+  color: var(--amazon-stock-green) !important;
+}
+
+.badge.bg-danger, .badge-amazon-deal {
+  background-color: var(--amazon-deal-red) !important;
+  color: #ffffff !important;
+}
+
+.badge.bg-warning {
+  background-color: #fff8e1 !important;
+  color: #b78103 !important;
+}
+
+/* Modales estilo Amazon */
+.modal-content {
+  border: 1px solid var(--amazon-border) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
+  background-color: #ffffff !important;
+}
+
 .modal-header {
-  border-bottom: 2px solid #000000 !important;
-  background-color: #EBEBEB !important;
+  border-bottom: 1px solid var(--amazon-border-subtle) !important;
+  background-color: #f0f2f2 !important;
+  padding: 14px 20px !important;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
 }
 
 .modal-footer {
-  border-top: 2px solid #000000 !important;
+  border-top: 1px solid var(--amazon-border-subtle) !important;
+  padding: 14px 20px !important;
 }
 
-/* Clases Utilitarias Reutilizables (Extraídas de vistas duplicadas) */
-.shadow-solid {
-  box-shadow: 8px 8px 0px 0px #000000 !important;
+/* Neutralizar clases antiguas brutalistas para compatibilidad global */
+.shadow-solid, .shadow-solid-sm, .shadow-solid-active {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+}
+
+.border-black {
+  border-color: var(--amazon-border) !important;
+}
+
+.border-2, .border-3, .border-4 {
+  border-width: 1px !important;
+}
+
+/* Modales y encabezados oscuros brutalistas convertidos a Amazon Dark Navy */
+.card-header.bg-black {
+  background-color: var(--amazon-navy-light, #232f3e) !important;
+  color: #ffffff !important;
+  border-color: var(--amazon-navy-dark, #131921) !important;
+}
+
+.btn-black, .btn-dark {
+  background-color: var(--amazon-navy-dark, #131921) !important;
+  color: #ffffff !important;
+  border: 1px solid var(--amazon-navy-dark, #131921) !important;
+  border-radius: 8px !important;
+}
+
+.btn-black:hover, .btn-dark:hover {
+  background-color: var(--amazon-navy-light, #232f3e) !important;
+  color: #ffffff !important;
+}
+
+/* Normalizar inputs que tenían padding o fuentes excesivas del brutalismo */
+.form-control.fs-5, .form-select.fs-5 {
+  font-size: 0.92rem !important;
+  padding: 8px 12px !important;
+}
+
+.form-control.p-3, .form-select.p-3 {
+  padding: 8px 12px !important;
+}
+
+/* Bordes punteados de carga */
+.border-dashed {
+  border-style: dashed !important;
+  border-color: var(--amazon-border) !important;
 }
 
 .modal-backdrop {
@@ -194,7 +319,7 @@ h1, h2, h3, h4, h5, h6, .display-1, .display-2, .display-3, .display-4 {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: rgba(0, 0, 0, 0.7);
+  background-color: rgba(15, 17, 17, 0.6);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -207,4 +332,161 @@ h1, h2, h3, h4, h5, h6, .display-1, .display-2, .display-3, .display-4 {
   max-width: 650px;
   max-height: 90vh;
   overflow-y: auto;
+  border-radius: 8px !important;
 }
+
+/* Formato de Precios Amazon */
+.amazon-price-currency {
+  font-size: 0.75em;
+  vertical-align: super;
+  font-weight: 500;
+  margin-right: 2px;
+}
+
+.amazon-price-whole {
+  font-size: 1.6em;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.amazon-price-fraction {
+  font-size: 0.75em;
+  vertical-align: super;
+  font-weight: 500;
+}
+
+/* Estrellas de Amazon */
+.amazon-stars {
+  color: var(--amazon-star);
+  font-size: 0.9rem;
+  letter-spacing: 1px;
+}
+
+.amazon-rating-count {
+  color: var(--amazon-link);
+  font-size: 0.85rem;
+  margin-left: 6px;
+}
+
+/* Insignia Prime / Entrega Rápida */
+.amazon-prime-badge {
+  color: #00a8e1;
+  font-weight: 800;
+  font-style: italic;
+  font-size: 0.85rem;
+}
+
+/* Scrollbar sutil moderna */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* 
+==========================================================================
+   AMAZON ALERTS & NOTIFICATIONS DESIGN SYSTEM (a-box / a-alert)
+========================================================================== 
+*/
+.alert {
+  background-color: #ffffff !important;
+  color: #0f1111 !important;
+  border: 1px solid #d5d9d9 !important;
+  border-left-width: 5px !important;
+  border-radius: 8px !important;
+  box-shadow: 0 1px 4px rgba(15, 17, 17, 0.08) !important;
+  padding: 14px 18px !important;
+  font-size: 0.92rem !important;
+  line-height: 1.45;
+}
+
+.alert-success {
+  border-left-color: #067d62 !important;
+  background: #ffffff !important;
+  color: #0f1111 !important;
+}
+.alert-success i, .alert-success .bi, .alert-success svg {
+  color: #067d62 !important;
+}
+
+.alert-danger {
+  border-left-color: #ba0933 !important;
+  background: #ffffff !important;
+  color: #0f1111 !important;
+}
+.alert-danger i, .alert-danger .bi, .alert-danger svg {
+  color: #ba0933 !important;
+}
+
+.alert-warning {
+  border-left-color: #c45500 !important;
+  background: #ffffff !important;
+  color: #0f1111 !important;
+}
+.alert-warning i, .alert-warning .bi, .alert-warning svg {
+  color: #c45500 !important;
+}
+
+.alert-info {
+  border-left-color: #007185 !important;
+  background: #ffffff !important;
+  color: #0f1111 !important;
+}
+.alert-info i, .alert-info .bi, .alert-info svg {
+  color: #007185 !important;
+}
+
+/* 
+==========================================================================
+   AMAZON LOADERS & SPINNERS DESIGN SYSTEM
+========================================================================== 
+*/
+.spinner-border {
+  border: 3px solid #e7e7e7 !important;
+  border-top-color: #e77600 !important;
+  border-radius: 50% !important;
+  animation: amazon-spin 0.75s linear infinite !important;
+}
+
+.spinner-border-sm {
+  border-width: 2px !important;
+}
+
+.spinner-border.text-warning,
+.spinner-border.text-primary,
+.spinner-border.text-black,
+.spinner-border.text-secondary {
+  border-color: #e7e7e7 !important;
+  border-top-color: #e77600 !important;
+}
+
+@keyframes amazon-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Amazon Shimmer / Skeleton Animation */
+.amazon-skeleton {
+  background: linear-gradient(90deg, #f0f2f2 25%, #e3e6e6 50%, #f0f2f2 75%);
+  background-size: 200% 100%;
+  animation: amazon-shimmer 1.5s infinite;
+  border-radius: 6px;
+}
+
+@keyframes amazon-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+

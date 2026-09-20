@@ -3,13 +3,13 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import catalogService from '../services/catalogService.js'
 import { socialMediaStore } from '@/modules/settings/stores/socialMediaStore.js'
-import { whatsappStore } from '@/modules/settings/stores/whatsappStore.js'
-import WhatsappSelector from '@/shared/components/WhatsappSelector.vue'
+import { cartStore } from '../stores/cartStore.js'
+import { useToast } from '@/composables/useToast.js'
 import ProductCard from '../components/ProductCard.vue'
 
 const route = useRoute()
 const router = useRouter()
-const whatsappSelectorRef = ref(null)
+const toast = useToast()
 
 const product = ref(null)
 const loading = ref(true)
@@ -17,7 +17,7 @@ const error = ref(null)
 const productNotFound = ref(false)
 
 const activeImage = ref('')
-const selectedSizes = ref([])
+const selectedSize = ref(null)
 const quantity = ref(1)
 
 const sizeLabel = computed(() => {
@@ -31,12 +31,11 @@ const showSizeSelector = computed(() => {
   return sizes.value.length > 0
 })
 
-const toggleSize = (size) => {
-  const idx = selectedSizes.value.indexOf(size)
-  if (idx > -1) {
-    selectedSizes.value.splice(idx, 1)
+const selectSize = (size) => {
+  if (selectedSize.value === size) {
+    selectedSize.value = null
   } else {
-    selectedSizes.value.push(size)
+    selectedSize.value = size
   }
 }
 
@@ -58,15 +57,15 @@ const sizes = computed(() => {
   return [...new Set(product.value.variants.map(v => v.size).filter(Boolean))]
 })
 
-// Matching variant based on first selected size
+// Matching variant based on selected size
 const selectedVariant = computed(() => {
   if (!product.value || !product.value.variants) return null
   const hasSizes = sizes.value.length > 0
   if (!hasSizes) {
     return product.value.variants[0] || null
   }
-  if (selectedSizes.value.length === 0) return null
-  return product.value.variants.find(v => v.size === selectedSizes.value[0]) || null
+  if (!selectedSize.value) return null
+  return product.value.variants.find(v => v.size === selectedSize.value) || null
 })
 
 // Dynamic stock calculation
@@ -77,57 +76,36 @@ const currentStock = computed(() => {
   if (product.value && product.value.variants) {
     return product.value.variants.reduce((acc, v) => acc + Number(v.stock), 0)
   }
-  return 0
+  return Number(product.value?.stock || 0)
 })
 
-const openWhatsApp = () => {
-  if (currentStock.value === 0 || (showSizeSelector.value && selectedSizes.value.length === 0)) return
+// Split price for Amazon format
+const priceParts = computed(() => {
+  if (!product.value) return { whole: '0', fraction: '00' }
+  const num = Number(product.value.price || 0)
+  const [whole, fraction] = num.toFixed(2).split('.')
+  return { whole, fraction }
+})
 
-  const activeNumbers = whatsappStore.whatsappNumbers
-  if (activeNumbers.length === 0) {
-    toast.error('No hay números de WhatsApp configurados para la tienda.', 'Error')
+const addToCart = (redirectToCheckout = false) => {
+  if (currentStock.value === 0) return
+  if (showSizeSelector.value && !selectedSize.value) {
+    toast.warning(`Por favor selecciona un ${sizeLabel.value.toLowerCase()} antes de continuar.`)
     return
   }
 
-  const name = product.value.name
-  const activeSku = selectedVariant.value?.sku || product.value.sku
-  const price = product.value.price
-  const qty = quantity.value || 1
-  const sizesText = selectedSizes.value.join(', ')
-  const totalUnits = selectedSizes.value.length > 0 ? (selectedSizes.value.length * qty) : qty
-  const totalPrice = (Number(price || 0) * totalUnits).toFixed(2)
-  const unitPriceFormatted = Number(price || 0).toFixed(2)
+  cartStore.addItem({
+    product: product.value,
+    variant: selectedVariant.value,
+    size: selectedSize.value,
+    quantity: quantity.value
+  })
 
-  const productUrl = window.location.origin + '/catalog/detail/' + (product.value.sku || product.value.base_sku || route.params.slug)
-
-  let text = `¡Hola! Me interesa comprar el siguiente producto en JEILU Store:\n\n`
-  text += `🛍️ *Producto:* ${name}\n`
-  text += `🆔 *SKU:* ${activeSku}\n`
-  if (selectedSizes.value.length > 0) {
-    text += `📏 *${sizeLabel.value}s seleccionados:* ${sizesText}\n`
-    if (selectedSizes.value.length > 1) {
-      text += `🔢 *Cantidad por ${sizeLabel.value}:* ${qty} (${totalUnits} unds en total)\n`
-    } else {
-      text += `🔢 *Cantidad:* ${qty}\n`
-    }
+  if (redirectToCheckout) {
+    router.push('/checkout')
   } else {
-    text += `🔢 *Cantidad:* ${qty}\n`
-  }
-  text += `💰 *Precio Unitario:* S/ ${unitPriceFormatted}\n`
-  text += `💵 *Total Estimado:* S/ ${totalPrice}\n`
-  if (productUrl) {
-    text += `\n🔗 *Link del producto:* ${productUrl}\n`
-  }
-  text += `\n¿Tienen disponibilidad para envío inmediato?`
-
-  if (activeNumbers.length === 1) {
-    const num = activeNumbers[0]
-    const cleanPhone = num.phone.replace(/[^0-9+]/g, '')
-    window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`, '_blank')
-  } else if (activeNumbers.length >= 2) {
-    if (whatsappSelectorRef.value) {
-      whatsappSelectorRef.value.open(null, text)
-    }
+    const sizeInfo = selectedSize.value ? ` (${sizeLabel.value} ${selectedSize.value})` : ''
+    toast.success(`"${product.value.name}"${sizeInfo} x ${quantity.value} se agregó al carrito.`, '¡Agregado al carrito!')
   }
 }
 
@@ -137,12 +115,10 @@ const fetchRelatedProducts = async (categoryId) => {
   try {
     const data = await catalogService.getProducts({ per_page: 20 })
     if (data && data.data) {
-      // Filter products from same category, exclude current, slice to 4
       relatedProducts.value = data.data
         .filter(p => p.category_id === categoryId && p.sku !== product.value.sku)
         .slice(0, 4)
         
-      // If we don't have enough, fill with other available products
       if (relatedProducts.value.length < 4) {
         const remaining = data.data
           .filter(p => p.sku !== product.value.sku && !relatedProducts.value.some(r => r.sku === p.sku))
@@ -157,17 +133,12 @@ const fetchRelatedProducts = async (categoryId) => {
   }
 }
 
-const extractColorName = (name) => {
-  const parts = name.split(' ')
-  return parts[parts.length - 1] || 'Color'
-}
-
 // Load product details
 const loadProduct = async (slug) => {
   loading.value = true
   error.value = null
   productNotFound.value = false
-  selectedSizes.value = []
+  selectedSize.value = null
   quantity.value = 1
   
   try {
@@ -177,14 +148,10 @@ const loadProduct = async (slug) => {
       activeImage.value = allImages.value[0] || ''
       document.title = `${product.value.name} - JEILU Store`
       
-      // Auto-select if single variant with no specifications
-      if (sizes.value.length === 0 && product.value.variants?.length > 0) {
-        if (product.value.variants[0].size) {
-          selectedSizes.value = [product.value.variants[0].size]
-        }
+      if (sizes.value.length === 1) {
+        selectedSize.value = sizes.value[0]
       }
       
-      // Load related products
       await fetchRelatedProducts(product.value.category_id)
     } else {
       productNotFound.value = true
@@ -200,7 +167,6 @@ const loadProduct = async (slug) => {
   }
 }
 
-// Watch for route slug changes to support in-page navigation (clicking related products)
 watch(
   () => route.params.slug,
   async (newSlug) => {
@@ -214,14 +180,12 @@ const embedUrl = computed(() => {
   if (!product.value || !product.value.video_url) return null
   const url = product.value.video_url
   
-  // YouTube
   let regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/
   let match = url.match(regExp)
   if (match && match[2].length === 11) {
     return `https://www.youtube.com/embed/${match[2]}`
   }
   
-  // Vimeo
   regExp = /vimeo\.com\/([0-9]+)/
   match = url.match(regExp)
   if (match) {
@@ -238,7 +202,6 @@ const isDirectVideo = computed(() => {
 
 onMounted(async () => {
   socialMediaStore.fetchActiveSocialMedia()
-  whatsappStore.fetchActiveNumbers()
   if (route.params.slug) {
     await loadProduct(route.params.slug)
   }
@@ -246,358 +209,424 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="container py-4">
-    <!-- Back button -->
-    <div class="mb-4">
-      <router-link to="/catalog" class="btn btn-secondary py-2 px-3 fs-6 d-inline-flex align-items-center gap-2 border-2 border-black">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-          <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
-        </svg>
-        VOLVER AL CATÁLOGO
-      </router-link>
-    </div>
+  <div class="amazon-product-detail py-3">
+    <div class="container-fluid px-3 px-lg-4">
+      
+      <!-- Amazon Breadcrumbs Bar -->
+      <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb mb-0 small">
+          <li class="breadcrumb-item"><router-link to="/" class="text-muted text-decoration-none">Inicio</router-link></li>
+          <li class="breadcrumb-item"><router-link to="/catalog" class="text-muted text-decoration-none">Catálogo</router-link></li>
+          <li v-if="product?.category_name" class="breadcrumb-item text-muted">{{ product.category_name }}</li>
+          <li v-if="product?.name" class="breadcrumb-item active text-truncate" style="max-width: 300px;" aria-current="page">{{ product.name }}</li>
+        </ol>
+      </nav>
 
-    <!-- Loading Screen -->
-    <div v-if="loading" class="text-center py-5">
-      <div class="spinner-border text-black" style="width: 4rem; height: 4rem; border-width: 0.35em;" role="status">
-        <span class="visually-hidden">Cargando...</span>
-      </div>
-      <h3 class="mt-4 fw-black text-uppercase">Cargando producto...</h3>
-    </div>
-
-    <!-- Error Screen -->
-    <div v-else-if="error" class="alert bg-danger text-white border-black border-2 p-5 text-center my-4 shadow-solid">
-      <h2 class="fw-black text-uppercase mb-3">ERROR DE CARGA</h2>
-      <p class="fs-5 fw-bold mb-4">{{ error }}</p>
-      <button @click="loadProduct(route.params.slug)" class="btn btn-dark border-2 border-black">REINTENTAR</button>
-    </div>
-
-    <!-- Friendly 404 Not Found Screen -->
-    <div v-else-if="productNotFound" class="product-not-found border border-black border-3 p-5 text-center my-4 bg-light shadow-solid">
-      <div class="py-4">
-        <div class="display-1 fw-black text-danger mb-3" style="font-family: 'Archivo Black', sans-serif;">404</div>
-        <h2 class="fw-black text-uppercase mb-3 fs-1">PRODUCTO NO ENCONTRADO</h2>
-        <p class="fs-5 text-muted mb-5 font-monospace">EL SKU "{{ route.params.slug }}" NO EXISTE O SE ENCUENTRA INACTIVO EN NUESTRO SISTEMA.</p>
-        <router-link to="/catalog" class="btn btn-primary btn-lg px-5 py-3 fs-4 border-2 border-black shadow-solid">
-          VER NUESTRO CATÁLOGO
-        </router-link>
-      </div>
-    </div>
-
-    <!-- Main Content -->
-    <div v-else-if="product" class="product-detail-container">
-      <div class="row g-5">
-        <!-- Gallery Column -->
-        <div class="col-lg-6 col-md-12">
-          <div class="gallery-wrapper d-flex flex-column gap-3">
-            <!-- Main Featured Image -->
-            <div class="main-image-container border border-black border-3 shadow-solid bg-white position-relative">
-              <img 
-                v-if="activeImage"
-                :src="activeImage" 
-                :alt="product.name" 
-                class="main-featured-image w-100"
-              />
-              <div v-else class="main-featured-image w-100 d-flex justify-content-center align-items-center bg-light text-muted fw-black fs-4 text-uppercase">
-                Sin Imagen
-              </div>
-              <span class="badge bg-black text-white position-absolute top-0 start-0 m-3 fs-5 border border-black shadow-sm fw-black">
-                $ {{ Number(product.price).toFixed(2) }}
-              </span>
-            </div>
-
-            <!-- Gallery Thumbnails (Only if more than 1 image) -->
-            <div v-if="allImages.length > 1" class="thumbnails-container d-flex flex-wrap gap-2">
-              <div 
-                v-for="(img, idx) in allImages" 
-                :key="idx"
-                @click="activeImage = img"
-                @mouseenter="activeImage = img"
-                class="thumbnail-card border border-2 border-black bg-secondary cursor-pointer transition"
-                :class="{ 'active-thumbnail': activeImage === img }"
-                style="width: 80px; height: 80px; overflow: hidden;"
-              >
-                <img 
-                  :src="img" 
-                  :alt="'Miniatura ' + (idx + 1)" 
-                  class="w-100 h-100 object-fit-cover"
-                  loading="lazy"
-                />
-              </div>
-            </div>
-          </div>
+      <!-- Loading Screen -->
+      <div v-if="loading" class="card p-5 text-center bg-white border-0 shadow-sm my-4">
+        <div class="spinner-border text-warning mx-auto" style="width: 3.5rem; height: 3.5rem;" role="status">
+          <span class="visually-hidden">Cargando producto...</span>
         </div>
+        <h5 class="mt-3 text-muted">Cargando detalles del producto en JEILU...</h5>
+      </div>
 
-        <!-- Info/Purchase Column -->
-        <div class="col-lg-6 col-md-12">
-          <div class="product-info-wrapper d-flex flex-column h-100">
-            <!-- Breadcrumbs / Tag -->
-            <div class="mb-2">
-              <span class="badge bg-black text-white border-2 border-black fs-7 fw-bold font-monospace">
-                CATEGORÍA: {{ product.category_name || 'Sin categoría' }}
-              </span>
-            </div>
+      <!-- Error Screen -->
+      <div v-else-if="error" class="alert alert-danger shadow-sm my-4 p-4 text-center">
+        <h4 class="fw-bold mb-2">Error al cargar producto</h4>
+        <p class="mb-3">{{ error }}</p>
+        <button @click="loadProduct(route.params.slug)" class="btn btn-amazon-primary px-4">Reintentar</button>
+      </div>
 
-            <!-- Product Name -->
-            <h1 class="display-5 fw-black text-uppercase mb-2 font-monospace tracking-tight">
-              {{ product.name }}
-            </h1>
+      <!-- 404 Not Found Screen -->
+      <div v-else-if="productNotFound" class="card bg-white p-5 text-center my-4 border-0 shadow-sm">
+        <div class="display-3 text-warning fw-bold mb-2">404</div>
+        <h3 class="fw-bold text-dark mb-2">Producto no encontrado</h3>
+        <p class="text-muted mb-4">El SKU "{{ route.params.slug }}" no se encuentra disponible en nuestro catálogo actual.</p>
+        <div>
+          <router-link to="/catalog" class="btn btn-amazon-primary px-4 py-2">
+            Explorar otros productos del catálogo
+          </router-link>
+        </div>
+      </div>
 
-            <!-- Price -->
-            <div class="mb-4">
-              <div class="price-display border border-black border-2 p-3 bg-black d-inline-block shadow-solid">
-                <span class="fs-2 fw-black text-white">$ {{ Number(product.price).toFixed(2) }}</span>
-              </div>
-            </div>
-
-            <!-- SKU & Availability Display -->
-            <div class="d-flex flex-wrap align-items-center gap-3 mb-3 font-monospace">
-              <div>
-                <span class="text-muted fw-bold">SKU DETALLE:</span> 
-                <span class="text-black fw-black bg-light border border-black p-1 px-2 ms-2">
-                  {{ selectedVariant?.sku || product.sku }}
-                </span>
-              </div>
-              <div class="d-flex align-items-center gap-2 border border-black p-1 px-2 bg-light">
-                <span 
-                  :class="['d-inline-block rounded-circle border border-black', currentStock > 0 ? 'bg-success' : 'bg-danger']"
-                  style="width: 10px; height: 10px;"
-                ></span>
-                <span class="fw-black fs-7" :class="currentStock > 0 ? 'text-success' : 'text-danger'">
-                  {{ currentStock > 0 ? `DISPONIBLE (${currentStock} UNDS)` : 'AGOTADO' }}
-                </span>
-              </div>
-            </div>
-
-            <hr class="border-black border-1 mb-4" />
-
-            <!-- Variant Selectors -->
-            <!-- Size selector -->
-            <div v-if="showSizeSelector" class="mb-4">
-              <label class="fw-black text-uppercase font-monospace mb-2 d-block fs-6">
-                {{ sizeLabel }}s disponibles (Puedes seleccionar varios):
-              </label>
-              <div class="d-flex flex-wrap gap-2">
-                <button 
-                  v-for="size in sizes" 
-                  :key="size"
-                  @click="toggleSize(size)"
-                  :class="['btn btn-sm border-2 border-black font-monospace m-0 transition', selectedSizes.includes(size) ? 'btn-dark text-white selected-btn' : 'btn-white bg-white text-black shadow-sm']"
-                  style="min-width: 54px; height: 54px; font-size: 1.15rem !important; font-weight: 900; display: flex; align-items: center; justify-content: center;"
-                >
-                  {{ size }}
-                  <span v-if="selectedSizes.includes(size)" class="ms-1 small">✓</span>
-                </button>
-              </div>
-            </div>
-
-            <!-- Quantity Selector -->
-            <div v-if="currentStock > 0" class="mb-4">
-              <label class="fw-black text-uppercase font-monospace mb-2 d-block fs-6">Cantidad por talle:</label>
-              <div class="d-inline-flex align-items-center border border-black border-3 shadow-solid-sm bg-white">
-                <button 
-                  type="button"
-                  @click="quantity = quantity > 1 ? quantity - 1 : 1"
-                  class="btn btn-white border-0 rounded-0 fw-black fs-4 m-0 d-flex align-items-center justify-content-center" 
-                  style="width: 44px; height: 44px; transition: background-color 0.15s;"
-                >
-                  -
-                </button>
-                <input 
-                  type="text" 
-                  v-model.number="quantity" 
-                  class="form-control border-0 rounded-0 text-center fw-black font-monospace fs-5 bg-white p-0 m-0" 
-                  style="width: 60px; height: 44px;" 
-                  readonly 
+      <!-- Main Amazon 3-Column Layout -->
+      <div v-else-if="product" class="card bg-white p-3 p-lg-4 border-0 shadow-sm">
+        <div class="row g-4 align-items-start">
+          
+          <!-- COLUMN 1: Visual Gallery (Left) -->
+          <div class="col-lg-4 col-md-5">
+            <div class="d-flex flex-column gap-3 sticky-top" style="top: 85px;">
+              <!-- Main Image Box -->
+              <div class="amazon-gallery-main rounded border p-2 bg-white d-flex align-items-center justify-content-center position-relative">
+                <img 
+                  v-if="activeImage"
+                  :src="activeImage" 
+                  :alt="product.name" 
+                  class="amazon-main-img img-fluid"
                 />
-                <button 
-                  type="button"
-                  @click="quantity = quantity < currentStock ? quantity + 1 : currentStock"
-                  class="btn btn-white border-0 rounded-0 fw-black fs-4 m-0 d-flex align-items-center justify-content-center" 
-                  style="width: 44px; height: 44px; transition: background-color 0.15s;"
-                >
-                  +
-                </button>
-              </div>
-            </div>
+                <div v-else class="text-muted small p-5">Sin imagen disponible</div>
 
-            <!-- Store Details Card -->
-            <div class="mb-4">
-              <div class="border border-black border-2 p-3 bg-light font-monospace">
-                <h5 class="fw-black text-uppercase fs-6 mb-3 border-bottom border-black pb-2">Distribuidor Oficial</h5>
-                <div class="d-flex flex-column gap-2 small">
-                  <div>
-                    <span class="text-muted fw-bold">TIENDA:</span>
-                    <span class="text-black fw-black ms-2">{{ product.store_name || 'Tienda Principal' }}</span>
-                  </div>
-                  <div>
-                    <span class="text-muted fw-bold">DIRECCIÓN:</span>
-                    <span class="text-black fw-bold ms-2">{{ product.store_address || 'Av. Principal' }}</span>
-                  </div>
-                  <div v-if="product.store_phone">
-                    <span class="text-muted fw-bold">CONTACTO:</span>
-                    <span class="text-black fw-bold ms-2">{{ product.store_phone }}</span>
-                  </div>
+                <!-- Out of Stock Badge -->
+                <span v-if="currentStock === 0" class="badge bg-secondary text-white position-absolute top-0 start-0 m-2 fw-bold">
+                  Agotado
+                </span>
+              </div>
+
+              <!-- Thumbnails Row -->
+              <div v-if="allImages.length > 1" class="d-flex gap-2 overflow-x-auto pb-1">
+                <div 
+                  v-for="(img, idx) in allImages" 
+                  :key="idx"
+                  @click="activeImage = img"
+                  @mouseenter="activeImage = img"
+                  class="amazon-thumbnail rounded p-1 border cursor-pointer"
+                  :class="{ 'active-thumb': activeImage === img }"
+                >
+                  <img :src="img" :alt="'Vista ' + (idx + 1)" class="w-100 h-100 object-fit-contain" />
                 </div>
               </div>
             </div>
-            <!-- WhatsApp Primary CTA -->
-            <div class="mb-4 mt-auto">
-              <button 
-                @click="openWhatsApp"
-                :class="['btn btn-lg w-100 py-3 fs-4 border-3 border-black d-flex justify-content-center align-items-center gap-3 transition shadow-solid', currentStock > 0 && (!showSizeSelector || selectedSizes.length > 0) ? 'whatsapp-btn text-white' : 'btn-secondary text-muted']"
-                :disabled="currentStock === 0 || (showSizeSelector && selectedSizes.length === 0)"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-whatsapp" viewBox="0 0 16 16">
-                  <path d="M13.601 2.326A7.85 7.85 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.9 7.9 0 0 0 13.6 2.326zM7.994 14.521a6.6 6.6 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.56 6.56 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592m3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.23.148-.427.05-.197-.099-.835-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.73.73 0 0 0-.529.247c-.182.198-.691.677-.691 1.654s.71 1.916.81 2.049c.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232"/>
-                </svg>
-                <span v-if="currentStock === 0">PRODUCTO AGOTADO</span>
-                <span v-else-if="showSizeSelector && selectedSizes.length === 0">SELECCIONAR {{ sizeLabel.toUpperCase() }}</span>
-                <span v-else-if="selectedSizes.length > 1">COMPRAR {{ selectedSizes.length }} TALLES POR WHATSAPP</span>
-                <span v-else>COMPRAR POR WHATSAPP</span>
-              </button>
-            </div>
           </div>
-        </div>
-      </div>
 
-      <!-- Description Section -->
-      <div v-if="product.description" class="row mt-5">
-        <div class="col-12">
-          <div class="border border-black border-3 p-4 shadow-solid bg-white">
-            <h3 class="fw-black text-uppercase mb-3 font-monospace">Descripción del Producto</h3>
-            <p class="fs-6 m-0 font-monospace text-wrap" style="white-space: pre-wrap; line-height: 1.6;">
-              {{ product.description }}
-            </p>
-          </div>
-        </div>
-      </div>
+          <!-- COLUMN 2: Product Specifications & Center Details -->
+          <div class="col-lg-5 col-md-7">
+            <div class="pe-lg-3">
+              
+              <!-- Brand / Store link -->
+              <div class="mb-1">
+                <a href="#tiendas" class="small fw-semibold amazon-brand-link">
+                  Visita la tienda oficial de JEILU ({{ product.store_name || 'Sucursal Principal' }})
+                </a>
+              </div>
 
-      <!-- Video Section -->
-      <div v-if="product.video_url" class="row mt-5">
-        <div class="col-12">
-          <div class="border border-black border-3 p-4 shadow-solid bg-white">
-            <h3 class="fw-black text-uppercase mb-3 font-monospace">Video del Producto 🎥</h3>
-            
-            <div v-if="embedUrl" class="ratio ratio-16x9 border border-black border-2 bg-black">
-              <iframe :src="embedUrl" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen class="w-100 h-100"></iframe>
-            </div>
-            
-            <div v-else-if="isDirectVideo" class="ratio ratio-16x9 border border-black border-2 bg-black">
-              <video controls class="w-100 h-100 object-fit-contain">
-                <source :src="product.video_url">
-                Tu navegador no soporta reproducción de video.
-              </video>
-            </div>
-            
-            <div v-else class="text-center py-4 bg-light border border-black">
-              <p class="fw-bold mb-3">Hay un video de demostración disponible para este producto:</p>
-              <a :href="product.video_url" target="_blank" class="btn btn-dark py-3 px-5 border-2 border-black font-monospace fw-black fs-5 shadow-solid">
-                VER VIDEO EN PLATAFORMA EXTERNA
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
+              <!-- Title -->
+              <h1 class="amazon-detail-title mb-2 text-dark">
+                {{ product.name }}
+              </h1>
 
-      <!-- Related Products Section -->
-      <div class="row mt-5 pt-4">
-        <div class="col-12">
-          <div class="border-bottom border-black pb-3 mb-4">
-            <h2 class="display-6 m-0 fw-black text-uppercase font-monospace">Te puede interesar</h2>
+              <!-- Category & SKU Subtitle -->
+              <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
+                <span class="badge bg-light text-dark border">{{ product.category_name || 'Calzado' }}</span>
+                <span class="text-muted small font-monospace">SKU: {{ selectedVariant?.sku || product.sku }}</span>
+              </div>
+
+              <!-- Price Box -->
+              <div class="mb-3">
+                <div class="d-flex align-items-baseline gap-2 mb-1">
+                  <div class="amazon-price-row d-inline-flex align-items-baseline">
+                    <span class="amazon-price-currency fs-6">$</span>
+                    <span class="amazon-price-whole fs-2 fw-bold text-dark">{{ priceParts.whole }}</span>
+                    <span class="amazon-price-fraction fs-6">{{ priceParts.fraction }}</span>
+                  </div>
+                </div>
+                <div class="fs-8 text-secondary mt-1">
+                  Precios en moneda nacional. Retiro disponible en tiendas o pedidos vía WhatsApp.
+                </div>
+              </div>
+
+              <hr class="my-3 border-light" />
+
+              <!-- Variant Selector (Talles / Medidas) -->
+              <div v-if="showSizeSelector" class="mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <label class="fw-bold small text-dark">
+                    Seleccionar {{ sizeLabel }}:
+                    <span v-if="selectedSize" class="text-primary ms-1 fw-bold">{{ selectedSize }}</span>
+                  </label>
+                  <span class="fs-8 text-muted">Selecciona una opción</span>
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                  <button 
+                    v-for="size in sizes" 
+                    :key="size"
+                    type="button"
+                    @click="selectSize(size)"
+                    :class="['btn btn-sm amazon-size-tile', selectedSize === size ? 'active-size' : 'inactive-size']"
+                  >
+                    {{ size }}
+                    <i v-if="selectedSize === size" class="bi bi-check-lg ms-1"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Quantity Selector -->
+              <div v-if="currentStock > 0" class="mb-4 d-flex align-items-center gap-3">
+                <label class="fw-bold small text-dark m-0">Cantidad:</label>
+                <div class="d-inline-flex align-items-center border rounded bg-white">
+                  <button 
+                    type="button"
+                    @click="quantity = quantity > 1 ? quantity - 1 : 1"
+                    class="btn btn-sm btn-light border-0 py-1 px-3 fw-bold"
+                  >
+                    -
+                  </button>
+                  <input 
+                    type="text" 
+                    v-model.number="quantity" 
+                    class="form-control border-0 text-center fw-bold p-0" 
+                    style="width: 44px; height: 32px;" 
+                    readonly 
+                  />
+                  <button 
+                    type="button"
+                    @click="quantity = quantity < currentStock ? quantity + 1 : currentStock"
+                    class="btn btn-sm btn-light border-0 py-1 px-3 fw-bold"
+                  >
+                    +
+                  </button>
+                </div>
+                <span class="small text-muted">({{ currentStock }} disponibles)</span>
+              </div>
+
+              <hr class="my-3 border-light" />
+
+              <!-- Bullet Points "Acerca de este artículo" -->
+              <div class="mb-4">
+                <h6 class="fw-bold text-dark mb-2">Acerca de este artículo</h6>
+                <ul class="small text-dark ps-3 mb-0 d-flex flex-column gap-1">
+                  <li><strong>Código de Artículo (SKU):</strong> {{ selectedVariant?.sku || product.sku }}</li>
+                  <li><strong>Categoría:</strong> {{ product.category_name || 'General' }}</li>
+                  <li><strong>Garantía:</strong> Compra garantizada en tiendas físicas JEILU.</li>
+                  <li><strong>Atención:</strong> Asesoramiento y confirmación de talles vía WhatsApp.</li>
+                  <li v-if="product.store_address"><strong>Disponibilidad física:</strong> {{ product.store_address }}</li>
+                </ul>
+              </div>
+
+              <!-- Product Description -->
+              <div v-if="product.description" class="mb-4">
+                <h6 class="fw-bold text-dark mb-2">Descripción del producto</h6>
+                <p class="small text-muted m-0" style="white-space: pre-wrap; line-height: 1.6;">
+                  {{ product.description }}
+                </p>
+              </div>
+
+              <!-- Video Section if available -->
+              <div v-if="product.video_url" class="mb-4">
+                <h6 class="fw-bold text-dark mb-2">Video de Demostración</h6>
+                <div v-if="embedUrl" class="ratio ratio-16x9 rounded overflow-hidden shadow-sm border">
+                  <iframe :src="embedUrl" frameborder="0" allowfullscreen class="w-100 h-100"></iframe>
+                </div>
+                <div v-else-if="isDirectVideo" class="ratio ratio-16x9 rounded overflow-hidden shadow-sm border bg-black">
+                  <video controls class="w-100 h-100 object-fit-contain">
+                    <source :src="product.video_url">
+                  </video>
+                </div>
+                <div v-else class="p-3 bg-light rounded border text-center">
+                  <a :href="product.video_url" target="_blank" class="btn btn-sm btn-outline-dark">
+                    <i class="bi bi-play-circle me-1"></i> Ver video en plataforma externa
+                  </a>
+                </div>
+              </div>
+
+            </div>
           </div>
-          
+
+          <!-- COLUMN 3: Amazon Buy Box (Right) -->
+          <div class="col-lg-3 col-12">
+            <div class="amazon-buy-box card p-3 bg-white sticky-top" style="top: 85px;">
+              
+              <!-- Buy Box Price -->
+              <div class="d-flex align-items-baseline gap-1 mb-2">
+                <span class="fs-6 text-muted">$</span>
+                <span class="fs-3 fw-bold text-dark">{{ Number(product.price).toFixed(2) }}</span>
+              </div>
+
+              <!-- Shipping & Pickup Notice -->
+              <div class="small mb-3">
+                <span class="text-primary fw-semibold">Retiro y Envío Disponible</span>
+                <div class="text-muted fs-8 mt-1">
+                  Coordinación directa de entrega o retiro por WhatsApp.
+                </div>
+              </div>
+
+              <!-- Stock Availability Status -->
+              <div class="mb-3">
+                <div v-if="currentStock > 0" class="text-success fw-bold">
+                  <i class="bi bi-check-circle-fill me-1"></i> En Stock
+                </div>
+                <div v-else class="text-danger fw-bold">
+                  <i class="bi bi-x-circle-fill me-1"></i> Agotado temporalmente
+                </div>
+                <div v-if="currentStock > 0 && currentStock <= 5" class="text-danger small mt-1">
+                  ¡Solo quedan {{ currentStock }} unidades disponibles!
+                </div>
+              </div>
+
+              <!-- Store & Dispatcher Info -->
+              <div class="small text-muted mb-3 border-top border-bottom py-2">
+                <div class="d-flex justify-content-between mb-1">
+                  <span>Envía</span>
+                  <span class="fw-semibold text-dark">JEILU Oficial</span>
+                </div>
+                <div class="d-flex justify-content-between mb-1">
+                  <span>Vende</span>
+                  <span class="fw-semibold text-dark text-truncate ms-2" style="max-width: 140px;">
+                    {{ product.store_name || 'Tienda Principal' }}
+                  </span>
+                </div>
+                <div class="d-flex justify-content-between">
+                  <span>Devoluciones</span>
+                  <span class="text-primary">Elegible en tienda</span>
+                </div>
+              </div>
+
+              <!-- Amazon Yellow Primary CTA: Agregar al Carrito -->
+              <div class="mb-2">
+                <button 
+                  type="button"
+                  @click="addToCart(false)"
+                  :disabled="currentStock === 0"
+                  :class="['btn w-100 py-2 fw-semibold d-flex justify-content-center align-items-center gap-2 rounded-pill', currentStock > 0 ? 'btn-amazon-primary' : 'btn-secondary disabled opacity-75']"
+                >
+                  <i class="bi bi-cart-plus fs-5"></i>
+                  <span v-if="currentStock === 0">Producto Agotado</span>
+                  <span v-else-if="showSizeSelector && !selectedSize">Seleccionar {{ sizeLabel }}</span>
+                  <span v-else>Agregar al Carrito</span>
+                </button>
+              </div>
+
+              <!-- Amazon Orange Secondary CTA: Comprar Ahora -->
+              <div class="mb-3">
+                <button 
+                  type="button"
+                  @click="addToCart(true)"
+                  :disabled="currentStock === 0"
+                  :class="['btn w-100 py-2 fw-semibold d-flex justify-content-center align-items-center gap-2 rounded-pill', currentStock > 0 ? 'btn-amazon-secondary' : 'btn-secondary disabled opacity-75']"
+                >
+                  <i class="bi bi-bag-check fs-5"></i>
+                  <span>Comprar Ahora</span>
+                </button>
+              </div>
+
+              <!-- Secure Transaction Guarantee -->
+              <div class="d-flex align-items-center gap-2 text-muted fs-8 mt-2 justify-content-center">
+                <i class="bi bi-shield-lock-fill text-secondary"></i>
+                <span>Transacción segura y garantizada</span>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Related Products Shelf Section -->
+        <div class="mt-5 pt-4 border-top">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="fw-bold text-dark m-0">Productos relacionados con este artículo</h4>
+            <router-link to="/catalog" class="small text-primary text-decoration-none fw-semibold">
+              Ver más en el catálogo &raquo;
+            </router-link>
+          </div>
+
           <div v-if="loadingRelated" class="text-center py-4">
-            <div class="spinner-border text-black" role="status">
+            <div class="spinner-border text-warning" role="status">
               <span class="visually-hidden">Cargando sugerencias...</span>
             </div>
           </div>
-          
-          <div v-else-if="relatedProducts.length === 0" class="text-muted italic py-3 font-monospace">
-            No hay otros productos recomendados en este momento.
+
+          <div v-else-if="relatedProducts.length === 0" class="text-muted small py-2">
+            No hay otros productos sugeridos en este momento.
           </div>
-          
-          <div v-else class="row row-cols-1 row-cols-sm-2 row-cols-md-4 g-4">
+
+          <div v-else class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-xl-4 g-3">
             <div class="col" v-for="relProd in relatedProducts" :key="relProd.sku">
               <ProductCard :product="relProd" />
             </div>
           </div>
         </div>
+
       </div>
+
     </div>
-    
-    <!-- Selector de WhatsApp reusable -->
-    <WhatsappSelector ref="whatsappSelectorRef" />
+
   </div>
 </template>
 
 <style scoped>
-.main-image-container {
-  width: 100%;
-  aspect-ratio: 4 / 5;
-  overflow: hidden;
-  position: relative;
-  background-color: #000;
-  border-width: 3px !important;
+.amazon-product-detail {
+  background-color: var(--amazon-bg, #eaeded);
 }
-.main-featured-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-  display: block;
-  transition: transform 0.3s ease;
+
+.amazon-gallery-main {
+  height: 380px;
+  background-color: #ffffff;
+  border-color: #e7e7e7 !important;
 }
-.main-image-container:hover .main-featured-image {
-  transform: scale(1.03);
+
+.amazon-main-img {
+  max-height: 100%;
+  max-width: 100%;
+  object-fit: contain;
 }
-@media (max-width: 767.98px) {
-  .main-image-container {
-    aspect-ratio: 1 / 1;
-  }
+
+.amazon-thumbnail {
+  width: 60px;
+  height: 60px;
+  border-color: #d5d9d9 !important;
+  background-color: #ffffff;
+  transition: border-color 0.15s;
 }
-.thumbnail-card {
-  transition: all 0.15s ease-in-out;
-  opacity: 0.7;
+
+.amazon-thumbnail:hover, .active-thumb {
+  border-color: #e77600 !important;
+  box-shadow: 0 0 3px 2px rgba(228, 121, 17, 0.4);
 }
-.thumbnail-card:hover, .active-thumbnail {
-  opacity: 1;
-  transform: translateY(-2px);
-  box-shadow: 2px 2px 0px #000000;
-  border-color: #000000 !important;
+
+.amazon-brand-link {
+  color: #007185;
 }
-.active-thumbnail {
-  border-width: 3px !important;
+
+.amazon-brand-link:hover {
+  color: #c7511f;
+  text-decoration: underline;
 }
-.price-display {
-  transform: rotate(-1deg);
-  border-width: 3px !important;
+
+.amazon-detail-title {
+  font-size: 1.45rem !important;
+  font-weight: 600 !important;
+  line-height: 1.3;
 }
-.tracking-tight {
-  letter-spacing: -1px;
+
+.amazon-reviews-link {
+  color: #007185;
 }
-.product-not-found {
-  border-width: 3px !important;
+
+.amazon-reviews-link:hover {
+  color: #c7511f;
+  text-decoration: underline;
 }
-.btn-white:hover {
-  background-color: #FAFFA0 !important;
-  transform: translate(-2px, -2px);
-  box-shadow: 4px 4px 0px #000000 !important;
+
+.amazon-size-tile {
+  min-width: 48px;
+  height: 40px;
+  border: 1px solid #d5d9d9 !important;
+  border-radius: 6px !important;
+  font-weight: 600;
+  font-size: 0.9rem !important;
+  background-color: #ffffff;
+  color: #0f1111;
+  transition: all 0.15s;
 }
-.selected-btn {
-  background-color: #000000 !important;
-  color: #FFFFFF !important;
-  transform: translate(2px, 2px) !important;
-  box-shadow: none !important;
+
+.amazon-size-tile:hover {
+  border-color: #888c8c !important;
+  background-color: #f7fafa;
 }
-.whatsapp-btn {
-  background-color: #25D366 !important;
-  color: #FFFFFF !important;
-  border-color: #000000 !important;
+
+.active-size {
+  border-color: #e77600 !important;
+  background-color: #fdf5ea !important;
+  box-shadow: 0 0 3px 2px rgba(228, 121, 17, 0.3) !important;
+  color: #0f1111 !important;
 }
-.whatsapp-btn:hover {
-  background-color: #20BA5A !important;
-  transform: translate(-3px, -3px) !important;
-  box-shadow: 6px 6px 0px #000000 !important;
+
+.amazon-buy-box {
+  border: 1px solid #d5d9d9 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06) !important;
+}
+
+.fs-8 {
+  font-size: 0.75rem;
 }
 </style>

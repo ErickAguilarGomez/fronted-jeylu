@@ -210,6 +210,14 @@ const handleClose = () => {
                 <span>Cliente:</span>
                 <span>{{ saleData?.customerName || 'Cliente General' }}</span>
               </div>
+              <div class="info-row" v-if="saleData?.customerPhone">
+                <span>Teléfono:</span>
+                <span>{{ saleData.customerPhone }}</span>
+              </div>
+              <div class="info-row" v-if="saleData?.deliveryAddress">
+                <span>Despacho:</span>
+                <span class="text-end">{{ saleData.deliveryAddress }}</span>
+              </div>
               
               <!-- FORMA DE PAGO RESPONSIVE -->
               <div class="info-payment-section mt-1">

@@ -1,166 +1,98 @@
 <script setup>
 import { authStore } from '@/modules/auth/stores/authStore.js'
 import PageHeader from '@/shared/components/PageHeader.vue'
+
+const modules = [
+  {
+    title: 'Productos',
+    description: 'Gestiona el inventario, actualiza precios y genera códigos QR.',
+    icon: 'bi-box-seam',
+    link: '/admin/products',
+    btnText: 'Administrar'
+  },
+  {
+    title: 'Categorías',
+    description: 'Organiza los productos y subcategorías de tu inventario.',
+    icon: 'bi-tags',
+    link: '/admin/categories',
+    btnText: 'Administrar'
+  },
+  {
+    title: 'Tiendas',
+    description: 'Gestión de sucursales físicas y asignación de personal.',
+    icon: 'bi-shop',
+    link: '/admin/stores',
+    btnText: 'Administrar'
+  },
+  {
+    title: 'Usuarios',
+    description: 'Gestión de vendedores, roles, ayudantes y credenciales.',
+    icon: 'bi-people',
+    link: '/admin/users',
+    btnText: 'Administrar'
+  },
+  {
+    title: 'Ventas',
+    description: 'Revisa el historial de ventas, comprobantes y reportes.',
+    icon: 'bi-receipt',
+    link: '/admin/sales',
+    btnText: 'Historial'
+  },
+  {
+    title: 'Banners',
+    description: 'Gestiona las promociones del carrusel principal de la tienda.',
+    icon: 'bi-images',
+    link: '/admin/banners',
+    btnText: 'Administrar'
+  },
+  {
+    title: 'Redes Sociales & WhatsApp',
+    description: 'Configura canales de atención y números de WhatsApp.',
+    icon: 'bi-share',
+    link: '/admin/social-media',
+    btnText: 'Configurar'
+  },
+  {
+    title: 'Comisiones',
+    description: 'Configura las tasas de comisión para los vendedores.',
+    icon: 'bi-wallet2',
+    link: '/admin/commissions',
+    btnText: 'Configurar'
+  },
+  {
+    title: 'Formas de Pago',
+    description: 'Administra métodos de pago aceptados en POS y tienda.',
+    icon: 'bi-credit-card-2-front',
+    link: '/admin/payment-methods',
+    btnText: 'Administrar'
+  },
+  {
+    title: 'Aumentos Masivos',
+    description: 'Ajuste general de precios por categoría o marca.',
+    icon: 'bi-percent',
+    link: '/admin/price-increases',
+    btnText: 'Administrar'
+  }
+]
 </script>
 
 <template>
-  <div class="container py-5">
-    <PageHeader title="Panel de Administración">
+  <div class="container py-4">
+    <PageHeader title="Panel de Control y Administración">
     </PageHeader>
 
-    <div class="row g-4 mb-5">
-      <div class="col-md-4">
-        <div class="card h-100 border-2 shadow-sm transition-hover">
-          <div class="card-body p-5 d-flex flex-column align-items-center text-center">
-            <div class="bg-black text-white rounded-circle d-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
-              <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor" class="bi bi-box-seam" viewBox="0 0 16 16">
-                <path d="M8.186 1.113a.5.5 0 0 0-.372 0L1.846 3.5l2.404.961L10.404 2l-2.218-.887zm3.564 1.426L5.596 5 8 5.961 14.154 3.5l-2.404-.961zm3.25 1.7-6.5 2.6v7.922l6.5-2.6V4.24zM7.5 14.762V6.84l-6.5-2.6v7.922l6.5 2.6zM5.22 4.254 1.846 2.904 8 1.442l3.15 1.26-5.93 2.373z"/>
-              </svg>
+    <div class="row g-3 g-lg-4 mb-5">
+      <div class="col-md-6 col-lg-4 col-xl-3" v-for="mod in modules" :key="mod.title">
+        <div class="card h-100 border bg-white shadow-sm transition-hover rounded-3">
+          <div class="card-body p-4 d-flex flex-column align-items-center text-center">
+            <div class="admin-icon-circle rounded-circle d-flex align-items-center justify-content-center mb-3">
+              <i :class="['bi', mod.icon, 'fs-3 text-dark']"></i>
             </div>
-            <h2 class="fw-black text-uppercase mb-3 fs-3">Productos</h2>
-            <p class="fw-bold mb-4 text-muted">Gestiona el inventario, actualiza precios y genera códigos QR.</p>
-            <router-link to="/admin/products" class="btn btn-outline-dark border-2 w-100 py-3 fw-black mt-auto fs-5">ADMINISTRAR</router-link>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-md-4">
-        <div class="card h-100 border-2 shadow-sm transition-hover">
-          <div class="card-body p-5 d-flex flex-column align-items-center text-center">
-            <div class="bg-black text-white rounded-circle d-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
-              <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor" class="bi bi-tags" viewBox="0 0 16 16">
-                <path d="M3 2v4.586l7 7L14.586 9l-7-7H3zM2 2a1 1 0 0 1 1-1h4.586a1 1 0 0 1 .707.293l7 7a1 1 0 0 1 0 1.414l-4.586 4.586a1 1 0 0 1-1.414 0l-7-7A1 1 0 0 1 2 6.586V2z"/>
-                <path d="M5.5 5a.5.5 0 1 1 0-1 .5.5 0 0 1 0 1zm0 1a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zM1 7.086a1 1 0 0 0 .293.707L8.75 15.25l-.043.043a1 1 0 0 1-1.414 0l-7-7A1 1 0 0 1 0 7.586V3a1 1 0 0 1 1-1v5.086z"/>
-              </svg>
-            </div>
-            <h2 class="fw-black text-uppercase mb-3 fs-3">Categorías</h2>
-            <p class="fw-bold mb-4 text-muted">Organiza los productos de tu inventario.</p>
-            <router-link to="/admin/categories" class="btn btn-outline-dark border-2 w-100 py-3 fw-black mt-auto fs-5">ADMINISTRAR</router-link>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-md-4">
-        <div class="card h-100 border-2 shadow-sm transition-hover">
-          <div class="card-body p-5 d-flex flex-column align-items-center text-center">
-            <div class="bg-black text-white rounded-circle d-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
-              <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor" class="bi bi-shop" viewBox="0 0 16 16">
-                <path d="M2.97 1.35A1 1 0 0 1 3.73 1h8.54a1 1 0 0 1 .76.35l2.609 3.044A1.5 1.5 0 0 1 16 5.37v.255a2.375 2.375 0 0 1-4.25 1.458A2.37 2.37 0 0 1 9.875 8 2.37 2.37 0 0 1 8 7.083 2.37 2.37 0 0 1 6.125 8a2.37 2.37 0 0 1-1.875-.917A2.375 2.375 0 0 1 0 5.625V5.37a1.5 1.5 0 0 1 .364-.976l2.605-3.045zm1.78 4.275a1.375 1.375 0 0 0 2.75 0 .5.5 0 0 1 1 0 1.375 1.375 0 0 0 2.75 0 .5.5 0 0 1 1 0 1.375 1.375 0 1 0 2.75 0V5.37a.5.5 0 0 0-.12-.325L12.27 2H3.73L1.12 5.045A.5.5 0 0 0 1 5.37v.255a1.375 1.375 0 0 0 2.75 0 .5.5 0 0 1 1 0zM1.5 8.5A.5.5 0 0 1 2 9v6h1v-5a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v5h6V9a.5.5 0 0 1 1 0v6h.5a.5.5 0 0 1 0 1H.5a.5.5 0 0 1 0-1H1V9a.5.5 0 0 1 .5-.5zM4 15h3v-5H4v5zm5-5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-3zm3 0h-2v3h2v-3z"/>
-              </svg>
-            </div>
-            <h2 class="fw-black text-uppercase mb-3 fs-3">Tiendas</h2>
-            <p class="fw-bold mb-4 text-muted">Gestión de sucursales.</p>
-            <router-link to="/admin/stores" class="btn btn-outline-dark border-2 w-100 py-3 fw-black mt-auto fs-5">ADMINISTRAR</router-link>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-md-4">
-        <div class="card h-100 border-2 shadow-sm transition-hover">
-          <div class="card-body p-5 d-flex flex-column align-items-center text-center">
-            <div class="bg-black text-white rounded-circle d-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
-              <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor" class="bi bi-people" viewBox="0 0 16 16">
-                <path d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1h8Zm-7.978-1A.261.261 0 0 1 7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002a.274.274 0 0 1-.014.002H7.022ZM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM6.936 9.28a5.88 5.88 0 0 0-1.23-.247A7.35 7.35 0 0 0 5 9c-4 0-5 3-5 4 0 .667.333 1 1 1h4.216A2.238 2.238 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816ZM4.92 10A5.493 5.493 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275ZM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0Zm3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z"/>
-              </svg>
-            </div>
-            <h2 class="fw-black text-uppercase mb-3 fs-3">Usuarios</h2>
-            <p class="fw-bold mb-4 text-muted">Gestión de roles y accesos.</p>
-            <router-link to="/admin/users" class="btn btn-outline-dark border-2 w-100 py-3 fw-black mt-auto fs-5">ADMINISTRAR</router-link>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-md-4">
-        <div class="card h-100 border-2 shadow-sm transition-hover">
-          <div class="card-body p-5 d-flex flex-column align-items-center text-center">
-            <div class="bg-black text-white rounded-circle d-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
-              <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor" class="bi bi-receipt" viewBox="0 0 16 16">
-                <path d="M1.92.506a.5.5 0 0 1 .434.14L3 1.293l.646-.647a.5.5 0 0 1 .708 0L5 1.293l.646-.647a.5.5 0 0 1 .708 0L7 1.293l.646-.647a.5.5 0 0 1 .708 0L9 1.293l.646-.647a.5.5 0 0 1 .708 0l.646.647.646-.647a.5.5 0 0 1 .708 0l.646.647.646-.647a.5.5 0 0 1 .801.13l.5 1A.5.5 0 0 1 15 2v12a.5.5 0 0 1-.053.224l-.5 1a.5.5 0 0 1-.8.13L13 14.707l-.646.647a.5.5 0 0 1-.708 0L11 14.707l-.646.647a.5.5 0 0 1-.708 0L9 14.707l-.646.647a.5.5 0 0 1-.708 0L7 14.707l-.646.647a.5.5 0 0 1-.708 0L5 14.707l-.646.647a.5.5 0 0 1-.708 0L3 14.707l-.646.647a.5.5 0 0 1-.801-.13l-.5-1A.5.5 0 0 1 1 14V2a.5.5 0 0 1 .053-.224l.5-1a.5.5 0 0 1 .367-.27zm.217 1.338L2 2.118v11.764l.137.274.51-.51a.5.5 0 0 1 .707 0l.646.647.646-.646a.5.5 0 0 1 .708 0l.646.646.646-.646a.5.5 0 0 1 .708 0l.646.646.646-.646a.5.5 0 0 1 .708 0l.646.646.646-.646a.5.5 0 0 1 .708 0l.646.646.646-.646a.5.5 0 0 1 .708 0l.509.509.137-.274V2.118l-.137-.274-.51.51a.5.5 0 0 1-.707 0L12 1.707l-.646.647a.5.5 0 0 1-.708 0L10 1.707l-.646.647a.5.5 0 0 1-.708 0L8 1.707l-.646.647a.5.5 0 0 1-.708 0L6 1.707l-.646.647a.5.5 0 0 1-.708 0L4 1.707l-.646.647a.5.5 0 0 1-.708 0l-.509-.51z"/>
-                <path d="M3 4.5a.5.5 0 0 1 .5-.5h6a.5.5 0 1 1 0 1h-6a.5.5 0 0 1-.5-.5zm0 2a.5.5 0 0 1 .5-.5h6a.5.5 0 1 1 0 1h-6a.5.5 0 0 1-.5-.5zm0 2a.5.5 0 0 1 .5-.5h6a.5.5 0 1 1 0 1h-6a.5.5 0 0 1-.5-.5zm0 2a.5.5 0 0 1 .5-.5h6a.5.5 0 0 1 0 1h-6a.5.5 0 0 1-.5-.5zm8-6a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 0 1h-1a.5.5 0 0 1-.5-.5zm0 2a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 0 1h-1a.5.5 0 0 1-.5-.5zm0 2a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 0 1h-1a.5.5 0 0 1-.5-.5zm0 2a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 0 1h-1a.5.5 0 0 1-.5-.5z"/>
-              </svg>
-            </div>
-            <h2 class="fw-black text-uppercase mb-3 fs-3">Ventas</h2>
-            <p class="fw-bold mb-4 text-muted">Revisa el historial de ventas.</p>
-            <router-link to="/admin/sales" class="btn btn-outline-dark border-2 w-100 py-3 fw-black mt-auto fs-5">HISTORIAL</router-link>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-md-4">
-        <div class="card h-100 border-2 shadow-sm transition-hover">
-          <div class="card-body p-5 d-flex flex-column align-items-center text-center">
-            <div class="bg-black text-white rounded-circle d-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
-              <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor" class="bi bi-images" viewBox="0 0 16 16">
-                <path d="M4.502 9a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/>
-                <path d="M14.002 13a2 2 0 0 1-2 2h-10a2 2 0 0 1-2-2V5A2 2 0 0 1 2 3a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2zM14 3a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V3z"/>
-              </svg>
-            </div>
-            <h2 class="fw-black text-uppercase mb-3 fs-3">Banners</h2>
-            <p class="fw-bold mb-4 text-muted">Gestiona las imágenes del carrusel del inicio.</p>
-            <router-link to="/admin/banners" class="btn btn-outline-dark border-2 w-100 py-3 fw-black mt-auto fs-5">ADMINISTRAR</router-link>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-md-4">
-        <div class="card h-100 border-2 shadow-sm transition-hover">
-          <div class="card-body p-5 d-flex flex-column align-items-center text-center">
-            <div class="bg-black text-white rounded-circle d-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
-              <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor" class="bi bi-share" viewBox="0 0 16 16">
-                <path d="M13.5 1a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM11 2.5a2.5 2.5 0 1 1 .603 1.628l-6.718 3.12a2.499 2.499 0 0 1 0 1.504l6.718 3.12a2.5 2.5 0 1 1-.488.876l-6.718-3.12a2.5 2.5 0 1 1 0-3.256l6.718-3.12A2.5 2.5 0 0 1 11 2.5zm-8.5 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm11 5.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z"/>
-              </svg>
-            </div>
-            <h2 class="fw-black text-uppercase mb-3 fs-3">Redes Sociales</h2>
-            <p class="fw-bold mb-4 text-muted">Configura enlaces de contacto y redes de la tienda.</p>
-            <router-link to="/admin/social-media" class="btn btn-outline-dark border-2 w-100 py-3 fw-black mt-auto fs-5">CONFIGURAR</router-link>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-md-4">
-        <div class="card h-100 border-2 shadow-sm transition-hover">
-          <div class="card-body p-5 d-flex flex-column align-items-center text-center">
-            <div class="bg-black text-white rounded-circle d-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
-              <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor" class="bi bi-wallet2" viewBox="0 0 16 16">
-                <path d="M12.146.146a.5.5 0 0 1 .708 0L14 1.293l1.146-1.147a.5.5 0 1 1 .708.708L14.707 2l1.147 1.146a.5.5 0 0 1-.708.708L14 2.707l-1.146 1.147a.5.5 0 0 1-.708-.708L13.293 2l-1.147-1.146a.5.5 0 0 1 0-.708z"/>
-                <path d="M3.5 11.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5zm0-3a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5z"/>
-                <path d="M1.5 2A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5V3.5A1.5 1.5 0 0 0 14.5 2h-13zM1 3.5a.5.5 0 0 1 .5-.5h13a.5.5 0 0 1 .5.5v9a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5v-9z"/>
-              </svg>
-            </div>
-            <h2 class="fw-black text-uppercase mb-3 fs-3">Comisiones</h2>
-            <p class="fw-bold mb-4 text-muted">Configura las comisiones para vendedores cajeros.</p>
-            <router-link to="/admin/commissions" class="btn btn-outline-dark border-2 w-100 py-3 fw-black mt-auto fs-5">CONFIGURAR</router-link>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-md-4">
-        <div class="card h-100 border-2 shadow-sm transition-hover">
-          <div class="card-body p-5 d-flex flex-column align-items-center text-center">
-            <div class="bg-black text-white rounded-circle d-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
-              <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor" class="bi bi-credit-card-2-front" viewBox="0 0 16 16">
-                <path d="M2 2a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H2zm13 2v5H1V4a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1zm-1 7H2a1 1 0 0 1-1-1v-1h14v1a1 1 0 0 1-1 1z"/>
-                <path d="M2 5.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1-.5-.5v-1z"/>
-              </svg>
-            </div>
-            <h2 class="fw-black text-uppercase mb-3 fs-3">Formas de Pago</h2>
-            <p class="fw-bold mb-4 text-muted">Administra los métodos de pago aceptados en caja.</p>
-            <router-link to="/admin/payment-methods" class="btn btn-outline-dark border-2 w-100 py-3 fw-black mt-auto fs-5">ADMINISTRAR</router-link>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-md-4">
-        <div class="card h-100 border-2 shadow-sm transition-hover">
-          <div class="card-body p-5 d-flex flex-column align-items-center text-center">
-            <div class="bg-black text-white rounded-circle d-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
-              <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor" class="bi bi-percent" viewBox="0 0 16 16">
-                <path d="M13.442 2.558a.625.625 0 0 1 0 .884l-10 10a.625.625 0 1 1-.884-.884l10-10a.625.625 0 0 1 .884 0zM4.5 6a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zm0 1a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5zm7 6a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zm0 1a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/>
-              </svg>
-            </div>
-            <h2 class="fw-black text-uppercase mb-3 fs-3">Aumentos</h2>
-            <p class="fw-bold mb-4 text-muted">Configura el aumento general de precios para la tienda.</p>
-            <router-link to="/admin/price-increases" class="btn btn-outline-dark border-2 w-100 py-3 fw-black mt-auto fs-5">ADMINISTRAR</router-link>
+            <h5 class="fw-bold text-dark mb-2">{{ mod.title }}</h5>
+            <p class="small text-muted mb-4 flex-grow-1">{{ mod.description }}</p>
+            <router-link :to="mod.link" class="btn btn-amazon-primary w-100 py-2 fw-semibold mt-auto small">
+              {{ mod.btnText }}
+            </router-link>
           </div>
         </div>
       </div>
@@ -169,14 +101,21 @@ import PageHeader from '@/shared/components/PageHeader.vue'
 </template>
 
 <style scoped>
-.border-dashed {
-  border-style: dashed !important;
+.admin-icon-circle {
+  width: 64px;
+  height: 64px;
+  background-color: #f0f2f2;
+  border: 1px solid #d5d9d9;
 }
+
 .transition-hover {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  border-color: #d5d9d9 !important;
 }
+
 .transition-hover:hover {
-  transform: translate(-4px, -4px);
-  box-shadow: 8px 8px 0px 0px #000000 !important;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08) !important;
+  border-color: #e77600 !important;
 }
 </style>

@@ -51,7 +51,7 @@ const clear = () => {
         v-model="query" 
         @input="onInput"
         type="text" 
-        class="form-control form-control-lg border-black border-2 shadow-none fw-bold ps-5 pe-5 search-input" 
+        class="form-control form-control-lg border shadow-sm ps-5 pe-5 search-input" 
         :placeholder="placeholder"
       />
       <button 

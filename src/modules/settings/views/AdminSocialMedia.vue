@@ -430,14 +430,14 @@ onMounted(async () => {
         <div class="card-body p-4 bg-white">
           <form @submit.prevent="handleWhatsappSubmit">
             <div class="mb-3">
-              <label class="form-label fw-black text-uppercase fs-6">Alias / Nombre (Ejem: Soporte, Ventas, Sucursal Lima)</label>
+              <label class="form-label fw-black text-uppercase fs-6">Alias / Nombre (Ejem: Soporte, Ventas, Sucursal Centro)</label>
               <input v-model="whatsappForm.alias" type="text" class="form-control border-black border-2 fw-bold shadow-none" placeholder="Ejem: Ventas y Pedidos">
             </div>
             
             <div class="mb-3">
               <label class="form-label fw-black text-uppercase fs-6">Número de Teléfono (Con código de país, sin espacios)</label>
-              <input v-model="whatsappForm.phone" type="text" class="form-control border-black border-2 fw-bold shadow-none" placeholder="Ejem: +51999888777" required>
-              <small class="text-muted font-monospace d-block mt-1">Ejem: +51999888777 (Soportado también sin el signo +)</small>
+              <input v-model="whatsappForm.phone" type="text" class="form-control border-black border-2 fw-bold shadow-none" placeholder="Ejem: +5491112345678" required>
+              <small class="text-muted font-monospace d-block mt-1">Ejem: +5491112345678 (Soportado también sin el signo +)</small>
             </div>
 
             <div class="row g-3 mb-4 align-items-center">

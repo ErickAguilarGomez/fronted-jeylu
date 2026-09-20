@@ -40,16 +40,16 @@ const openWhatsapp = () => {
 }
 
 .wa-float-btn {
-  all: unset; /* reset all browser/Bootstrap styles */
+  all: unset;
   box-sizing: border-box;
   cursor: pointer;
   position: relative;
-  width: 62px;
-  height: 62px;
+  width: 58px;
+  height: 58px;
   border-radius: 50% !important;
   background-color: #25D366;
-  border: 3px solid #000 !important;
-  box-shadow: 4px 4px 0px 0px #000;
+  border: 2px solid #ffffff !important;
+  box-shadow: 0 4px 16px rgba(37, 211, 102, 0.45) !important;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -59,14 +59,13 @@ const openWhatsapp = () => {
 }
 
 .wa-float-btn:hover {
-  transform: translate(-2px, -2px);
-  box-shadow: 6px 6px 0px 0px #000;
-  background-color: #1ebe5d;
+  transform: scale(1.08);
+  box-shadow: 0 6px 20px rgba(37, 211, 102, 0.6) !important;
+  background-color: #20BA5A;
 }
 
 .wa-float-btn:active {
-  transform: translate(1px, 1px);
-  box-shadow: 2px 2px 0px 0px #000;
+  transform: scale(0.96);
 }
 
 .wa-float-btn svg {
@@ -80,9 +79,9 @@ const openWhatsapp = () => {
 /* Pulsing ring animation */
 .wa-pulse {
   position: absolute;
-  inset: -6px;
+  inset: -4px;
   border-radius: 50%;
-  border: 3px solid #25D366;
+  border: 2px solid #25D366;
   opacity: 0.8;
   animation: wa-ring 2s ease-out infinite;
   pointer-events: none;
@@ -91,22 +90,20 @@ const openWhatsapp = () => {
 
 @keyframes wa-ring {
   0%   { opacity: 0.8; transform: scale(1); }
-  70%  { opacity: 0;   transform: scale(1.45); }
-  100% { opacity: 0;   transform: scale(1.45); }
+  70%  { opacity: 0;   transform: scale(1.35); }
+  100% { opacity: 0;   transform: scale(1.35); }
 }
 
 /* Tooltip label */
 .wa-tooltip {
-  background: #000;
+  background: var(--amazon-navy-dark, #131921);
   color: #fff;
-  font-weight: 900;
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  font-weight: 600;
+  font-size: 0.8rem;
+  letter-spacing: normal;
   padding: 6px 12px;
-  border-radius: 4px;
-  border: 2px solid #000;
-  box-shadow: 2px 2px 0px 0px #25D366;
+  border-radius: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
   white-space: nowrap;
   opacity: 0;
   transform: translateX(8px);

@@ -14,11 +14,11 @@ defineProps({
   },
   loadingText: {
     type: String,
-    default: 'CARGANDO...'
+    default: 'Cargando datos...'
   },
   emptyText: {
     type: String,
-    default: 'NO HAY DATOS REGISTRADOS'
+    default: 'No hay datos registrados'
   },
   itemKey: {
     type: String,
@@ -28,16 +28,16 @@ defineProps({
 </script>
 
 <template>
-  <div class="card border-black border-3 shadow-solid bg-white mb-4">
+  <div class="card border bg-white mb-4 shadow-sm rounded-3 overflow-hidden">
     <div class="card-body p-0 table-responsive">
-      <table class="table table-hover align-middle m-0 fs-5">
-        <thead class="table-dark text-uppercase border-bottom border-black border-3">
+      <table class="table table-hover align-middle m-0">
+        <thead class="amazon-thead">
           <tr>
             <th 
               v-for="col in columns" 
               :key="col.key" 
               scope="col" 
-              class="py-3 px-4"
+              class="py-3 px-3 text-dark fw-semibold"
               :class="col.headerClass || ''"
             >
               {{ col.label }}
@@ -47,18 +47,23 @@ defineProps({
         <tbody>
           <!-- Loading State -->
           <tr v-if="loading && items.length === 0">
-            <td :colspan="columns.length" class="text-center py-5 fw-bold">{{ loadingText }}</td>
+            <td :colspan="columns.length" class="text-center py-5 text-muted">
+              <div class="spinner-border spinner-border-sm text-warning me-2" role="status"></div>
+              {{ loadingText }}
+            </td>
           </tr>
           <!-- Empty State -->
           <tr v-else-if="items.length === 0">
-            <td :colspan="columns.length" class="text-center py-5 fw-bold text-muted">{{ emptyText }}</td>
+            <td :colspan="columns.length" class="text-center py-5 text-muted small">
+              {{ emptyText }}
+            </td>
           </tr>
           <!-- Data Rows -->
-          <tr v-else v-for="item in items" :key="item[itemKey]" class="border-bottom border-black">
+          <tr v-else v-for="item in items" :key="item[itemKey]" class="border-bottom border-light">
             <td 
               v-for="col in columns" 
               :key="col.key" 
-              class="py-4 px-4"
+              class="py-3 px-3 text-dark"
               :class="col.class || ''"
             >
               <slot :name="`cell-${col.key}`" :item="item">
@@ -73,7 +78,13 @@ defineProps({
 </template>
 
 <style scoped>
-.shadow-solid {
-  box-shadow: 8px 8px 0px 0px #000000 !important;
+.amazon-thead {
+  background-color: #f0f2f2;
+  border-bottom: 1px solid #d5d9d9;
+}
+.amazon-thead th {
+  font-size: 0.88rem;
+  background-color: #f0f2f2 !important;
+  color: #0f1111 !important;
 }
 </style>
