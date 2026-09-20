@@ -83,7 +83,9 @@ const saveSaleEdit = async () => {
         <label class="form-label fw-bold text-uppercase fs-6">Estado de la Venta</label>
         <select v-model="editForm.status" class="form-select border-black border-2 rounded-0 shadow-sm px-3 py-2 fw-bold">
           <option value="COMPLETED">Completada</option>
+          <option value="EXCHANGED">Con Cambios</option>
           <option value="REFUNDED">Reembolsada</option>
+          <option value="CANCELLED">Cancelada</option>
         </select>
       </div>
     </div>

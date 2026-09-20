@@ -14,6 +14,7 @@ export const posStore = reactive({
   showReceiptModal: false,
   selectedStoreId: '',
   customerId: '',
+  customerName: '',
   paymentMethodId: '',
   paymentMethods: [],
   isMultiPayment: false,
