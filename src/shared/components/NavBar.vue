@@ -90,7 +90,7 @@ const toggleUserDropdown = () => {
         </div>
 
         <!-- Right Side Nav Actions -->
-        <div class="d-flex align-items-center gap-1 gap-lg-3">
+        <div class="amazon-nav-actions d-flex align-items-center gap-1 gap-lg-3">
           
           <!-- User / Account Menu -->
           <template v-if="authStore.isAuthenticated">
@@ -187,7 +187,7 @@ const toggleUserDropdown = () => {
     <!-- SUB TIER: Secondary Navigation Bar (Amazon Slate Blue #232F3E) -->
     <div class="amazon-nav-sub py-1 px-3 px-lg-4">
       <div class="container-fluid p-0 d-flex align-items-center justify-content-between overflow-x-auto text-nowrap">
-        <div class="d-flex align-items-center gap-1 gap-lg-2">
+        <div class="amazon-nav-links d-flex align-items-center gap-1 gap-lg-2">
           
           <!-- "Todo" Menu button -->
           <a 
@@ -409,5 +409,116 @@ const toggleUserDropdown = () => {
 
 .fs-8 {
   font-size: 0.72rem;
+}
+
+@media (max-width: 767.98px) {
+  .amazon-nav-top {
+    padding: 0.5rem 0.75rem !important;
+  }
+
+  .amazon-nav-top > .container-fluid {
+    flex-wrap: wrap;
+    column-gap: 0.5rem !important;
+    row-gap: 0.5rem !important;
+  }
+
+  .amazon-brand {
+    order: 1;
+    margin-right: 0 !important;
+    padding: 2px 4px;
+  }
+
+  .brand-text {
+    font-size: 1.45rem;
+  }
+
+  .amazon-nav-actions {
+    order: 2;
+    margin-left: auto;
+    flex: 0 0 auto;
+    gap: 0.25rem !important;
+    min-width: 0;
+  }
+
+  .amazon-nav-actions .amazon-nav-box {
+    padding: 0.25rem 0.35rem;
+  }
+
+  .amazon-nav-actions .nav-small-text {
+    font-size: 0.65rem;
+    white-space: nowrap;
+  }
+
+  .amazon-nav-actions .nav-bold-text {
+    font-size: 0.78rem;
+    white-space: nowrap;
+  }
+
+  .amazon-nav-actions .bi-cart3 {
+    font-size: 1.4rem !important;
+  }
+
+  .amazon-search-bar {
+    order: 3;
+    flex: 0 0 100%;
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+    margin: 0 !important;
+  }
+
+  .amazon-search-bar form {
+    height: 48px;
+    min-width: 0;
+  }
+
+  .amazon-search-input {
+    flex: 1 1 auto;
+    width: 0;
+    min-width: 0;
+    padding-inline: 0.75rem !important;
+    font-size: 16px !important;
+    color: #0f1111 !important;
+    -webkit-text-fill-color: #0f1111;
+    opacity: 1;
+  }
+
+  .amazon-search-input::placeholder {
+    color: #565959;
+    opacity: 1;
+  }
+
+  .amazon-search-btn {
+    flex: 0 0 48px;
+    padding: 0 !important;
+  }
+
+  .amazon-nav-sub {
+    padding-inline: 0.5rem !important;
+  }
+
+  .amazon-nav-sub > .container-fluid {
+    justify-content: flex-start !important;
+    max-width: 100%;
+    min-width: 0;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+
+  .amazon-nav-sub > .container-fluid::-webkit-scrollbar {
+    display: none;
+  }
+
+  .amazon-nav-links {
+    flex: 0 0 auto;
+    width: max-content;
+    gap: 0.15rem !important;
+  }
+
+  .subnav-link {
+    padding: 0.35rem 0.5rem !important;
+    font-size: 0.84rem;
+    white-space: nowrap;
+  }
 }
 </style>

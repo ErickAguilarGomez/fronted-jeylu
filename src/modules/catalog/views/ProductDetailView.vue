@@ -250,7 +250,7 @@ onMounted(async () => {
       </div>
 
       <!-- Main Amazon 3-Column Layout -->
-      <div v-else-if="product" class="card bg-white p-3 p-lg-4 border-0 shadow-sm">
+      <div v-else-if="product" class="amazon-product-card card bg-white p-3 p-lg-4 border-0 shadow-sm">
         <div class="row g-4 align-items-start">
           
           <!-- COLUMN 1: Visual Gallery (Left) -->
@@ -628,5 +628,61 @@ onMounted(async () => {
 
 .fs-8 {
   font-size: 0.75rem;
+}
+
+@media (max-width: 767.98px) {
+  .amazon-product-detail {
+    padding-top: 0.75rem !important;
+  }
+
+  .amazon-product-detail > .container-fluid {
+    padding-inline: 0.75rem !important;
+  }
+
+  .amazon-product-detail .breadcrumb {
+    flex-wrap: nowrap;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  .amazon-product-detail .breadcrumb-item {
+    min-width: 0;
+  }
+
+  .amazon-product-detail .breadcrumb-item.active {
+    max-width: min(48vw, 220px) !important;
+  }
+
+  .amazon-product-card {
+    padding: 0.75rem !important;
+  }
+
+  .amazon-product-detail .row {
+    --bs-gutter-x: 0.75rem;
+    --bs-gutter-y: 1rem;
+  }
+
+  .amazon-gallery-main {
+    height: auto;
+    min-height: 280px;
+    max-height: 440px;
+    aspect-ratio: 1 / 1;
+  }
+
+  .amazon-main-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  .amazon-thumbnail {
+    flex: 0 0 76px;
+    width: 76px;
+    height: 76px;
+  }
+
+  .amazon-detail-title {
+    font-size: 1.25rem !important;
+  }
 }
 </style>
