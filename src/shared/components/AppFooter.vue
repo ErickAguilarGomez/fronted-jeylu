@@ -40,7 +40,7 @@ const scrollToTop = () => {
             <ul class="list-unstyled footer-list mb-0 d-flex flex-column gap-2">
               <li><router-link to="/">Inicio</router-link></li>
               <li><router-link to="/catalog">Catálogo Completo</router-link></li>
-              <li><a href="/#tiendas">Nuestras Sucursales</a></li>
+              <li><router-link to="/tiendas">Nuestras Sucursales</router-link></li>
             </ul>
           </div>
 

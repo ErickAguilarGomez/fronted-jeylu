@@ -171,6 +171,12 @@ onMounted(async () => {
   if (stores.value.length > 0) {
     nextTick(() => {
       initMap()
+      if (window.location.hash === '#tiendas') {
+        setTimeout(() => {
+          const el = document.getElementById('tiendas')
+          if (el) el.scrollIntoView({ behavior: 'smooth' })
+        }, 150)
+      }
     })
   }
 })
@@ -249,9 +255,9 @@ onUnmounted(() => {
           <router-link to="/catalog" class="btn btn-amazon-primary px-4 py-2 fs-6">
             Explorar Catálogo Completo
           </router-link>
-          <a href="#tiendas" class="btn btn-outline-light px-4 py-2 fs-6">
+          <router-link to="/tiendas" class="btn btn-outline-light px-4 py-2 fs-6">
             Nuestras Sucursales
-          </a>
+          </router-link>
         </div>
       </div>
     </div>
@@ -341,9 +347,9 @@ onUnmounted(() => {
                 </div>
               </div>
             </div>
-            <a href="#tiendas" class="small fw-semibold text-primary text-decoration-none mt-auto">
+            <router-link to="/tiendas" class="small fw-semibold text-primary text-decoration-none mt-auto">
               Ver direcciones y mapa &raquo;
-            </a>
+            </router-link>
           </div>
         </div>
 
@@ -394,11 +400,14 @@ onUnmounted(() => {
     <div id="tiendas" class="container-fluid px-3 px-lg-4 mb-5">
       <div class="card bg-white p-4 border-0 shadow-sm">
         
-        <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center mb-3 border-bottom pb-2 gap-2">
           <div>
             <h4 class="fw-bold m-0 text-dark">Visita Nuestras Sucursales Físicas</h4>
             <p class="text-muted small m-0">Encuentra la tienda JEILU más cercana para retirar tus productos o solicitar atención personalizada.</p>
           </div>
+          <router-link to="/tiendas" class="small fw-semibold text-primary text-decoration-none text-nowrap">
+            Ver página de tiendas &raquo;
+          </router-link>
         </div>
 
         <div v-if="loadingStores" class="text-center py-5">

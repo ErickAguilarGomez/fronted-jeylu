@@ -294,9 +294,9 @@ onMounted(async () => {
               
               <!-- Brand / Store link -->
               <div class="mb-1">
-                <a href="#tiendas" class="small fw-semibold amazon-brand-link">
+                <router-link to="/tiendas" class="small fw-semibold amazon-brand-link">
                   Visita la tienda oficial de JEILU ({{ product.store_name || 'Sucursal Principal' }})
-                </a>
+                </router-link>
               </div>
 
               <!-- Title -->

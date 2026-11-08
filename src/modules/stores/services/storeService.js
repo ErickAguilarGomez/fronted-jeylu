@@ -35,6 +35,11 @@ class StoreService {
     const res = await api.delete(`/stores/${storeId}/employees/${userId}`)
     return res.data
   }
+
+  async getPublicStores() {
+    const res = await api.get('/stores/public')
+    return res.data
+  }
 }
 
 export default new StoreService()

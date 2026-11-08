@@ -214,9 +214,12 @@ const toggleUserDropdown = () => {
             {{ cat.name }}
           </a>
 
-          <a href="/#tiendas" class="subnav-link text-white text-decoration-none px-2 py-1 rounded">
+          <router-link 
+            to="/tiendas" 
+            class="subnav-link text-white text-decoration-none px-2 py-1 rounded"
+          >
             Nuestras Tiendas
-          </a>
+          </router-link>
 
         </div>
 
