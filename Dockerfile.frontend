@@ -23,6 +23,7 @@ RUN touch /var/run/nginx.pid && \
 RUN printf 'server {\n\
     listen 8080;\n\
     server_name _;\n\
+    client_max_body_size 64m;\n\
     root /usr/share/nginx/html;\n\
     index index.html;\n\
     location /api {\n\
