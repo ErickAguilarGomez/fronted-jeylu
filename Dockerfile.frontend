@@ -10,6 +10,8 @@ COPY --chown=node:node package*.json ./
 RUN npm ci
 
 COPY --chown=node:node . .
+# Vite embeds this value in the production bundle; .env.production is excluded from Docker builds.
+ENV VITE_API_BASE_URL=/api
 RUN npm run build
 
 FROM nginx:alpine AS runner

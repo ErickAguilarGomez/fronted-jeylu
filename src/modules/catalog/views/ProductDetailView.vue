@@ -279,10 +279,10 @@ onMounted(async () => {
                   :key="idx"
                   @click="activeImage = img"
                   @mouseenter="activeImage = img"
-                  class="amazon-thumbnail rounded p-1 border cursor-pointer"
+                  class="amazon-thumbnail rounded border cursor-pointer"
                   :class="{ 'active-thumb': activeImage === img }"
                 >
-                  <img :src="img" :alt="'Vista ' + (idx + 1)" class="w-100 h-100 object-fit-contain" />
+                  <img :src="img" :alt="'Vista ' + (idx + 1)" class="amazon-thumbnail-img" />
                 </div>
               </div>
             </div>
@@ -562,9 +562,21 @@ onMounted(async () => {
 .amazon-thumbnail {
   width: 60px;
   height: 60px;
+  flex: 0 0 60px;
+  display: block;
+  overflow: hidden;
+  padding: 0 !important;
   border-color: #d5d9d9 !important;
   background-color: #ffffff;
   transition: border-color 0.15s;
+}
+
+.amazon-thumbnail-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
 }
 
 .amazon-thumbnail:hover, .active-thumb {
