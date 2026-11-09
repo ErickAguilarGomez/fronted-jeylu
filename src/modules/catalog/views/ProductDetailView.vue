@@ -215,10 +215,14 @@ onMounted(async () => {
       <!-- Amazon Breadcrumbs Bar -->
       <nav aria-label="breadcrumb" class="mb-3">
         <ol class="breadcrumb mb-0 small">
-          <li class="breadcrumb-item"><router-link to="/" class="text-muted text-decoration-none">Inicio</router-link></li>
-          <li class="breadcrumb-item"><router-link to="/catalog" class="text-muted text-decoration-none">Catálogo</router-link></li>
-          <li v-if="product?.category_name" class="breadcrumb-item text-muted">{{ product.category_name }}</li>
-          <li v-if="product?.name" class="breadcrumb-item active text-truncate" style="max-width: 300px;" aria-current="page">{{ product.name }}</li>
+          <li class="breadcrumb-item breadcrumb-home"><router-link to="/" class="text-muted text-decoration-none">Inicio</router-link></li>
+          <li class="breadcrumb-item breadcrumb-catalog"><router-link to="/catalog" class="text-muted text-decoration-none">Catálogo</router-link></li>
+          <li v-if="product?.category_name" class="breadcrumb-item breadcrumb-category text-muted">
+            <span class="breadcrumb-label" :title="product.category_name">{{ product.category_name }}</span>
+          </li>
+          <li v-if="product?.name" class="breadcrumb-item breadcrumb-product active" aria-current="page">
+            <span class="breadcrumb-label" :title="product.name">{{ product.name }}</span>
+          </li>
         </ol>
       </nav>
 
@@ -642,6 +646,47 @@ onMounted(async () => {
   font-size: 0.75rem;
 }
 
+.amazon-product-detail .breadcrumb {
+  flex-wrap: nowrap;
+  overflow: hidden;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.amazon-product-detail .breadcrumb-item {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.amazon-product-detail .breadcrumb-item::before {
+  float: none;
+  flex: 0 0 auto;
+}
+
+.amazon-product-detail .breadcrumb-label {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.amazon-product-detail .breadcrumb-home,
+.amazon-product-detail .breadcrumb-catalog {
+  flex: 0 0 auto;
+}
+
+.amazon-product-detail .breadcrumb-category {
+  flex: 0 1 auto;
+  max-width: 220px;
+}
+
+.amazon-product-detail .breadcrumb-product {
+  flex: 0 1 auto;
+  max-width: 300px;
+}
+
 @media (max-width: 767.98px) {
   .amazon-product-detail {
     padding-top: 0.75rem !important;
@@ -651,18 +696,14 @@ onMounted(async () => {
     padding-inline: 0.75rem !important;
   }
 
-  .amazon-product-detail .breadcrumb {
-    flex-wrap: nowrap;
-    overflow: hidden;
-    white-space: nowrap;
+  .amazon-product-detail .breadcrumb-category {
+    flex: 0 1 auto;
+    max-width: 27%;
   }
 
-  .amazon-product-detail .breadcrumb-item {
-    min-width: 0;
-  }
-
-  .amazon-product-detail .breadcrumb-item.active {
-    max-width: min(48vw, 220px) !important;
+  .amazon-product-detail .breadcrumb-product {
+    flex: 1 1 0;
+    max-width: none !important;
   }
 
   .amazon-product-card {
