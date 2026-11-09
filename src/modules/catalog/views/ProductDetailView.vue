@@ -328,8 +328,8 @@ onMounted(async () => {
 
               <!-- Variant Selector (Talles / Medidas) -->
               <div v-if="showSizeSelector" class="mb-4">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                  <label class="fw-bold small text-dark">
+                <div class="amazon-size-heading d-flex justify-content-between align-items-center mb-2">
+                  <label class="fw-bold small text-dark mb-0">
                     Seleccionar {{ sizeLabel }}:
                     <span v-if="selectedSize" class="text-primary ms-1 fw-bold">{{ selectedSize }}</span>
                   </label>
@@ -691,6 +691,21 @@ onMounted(async () => {
     flex: 0 0 76px;
     width: 76px;
     height: 76px;
+  }
+
+  .amazon-size-heading {
+    min-width: 0;
+    flex-wrap: wrap;
+    justify-content: flex-start !important;
+    gap: 0.25rem 0.75rem;
+  }
+
+  .amazon-size-heading > * {
+    min-width: 0;
+  }
+
+  .amazon-size-heading > span {
+    white-space: normal;
   }
 
   .amazon-detail-title {
