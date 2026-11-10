@@ -13,6 +13,9 @@ const showModal = ref(false)
 const modalMode = ref('create') // 'create' or 'edit'
 const saving = ref(false)
 const editingSku = ref('')
+const galleryInput = ref(null)
+const cameraInput = ref(null)
+const maxNewImages = 20
 
 const handleBeforeUnload = (e) => {
   if (saving.value) {
@@ -50,7 +53,7 @@ const form = ref({
   price: 0,
   purchase_price: 0,
   existing_images: [],
-  new_image_boxes: [{ file: null, preview: null }],
+  new_image_boxes: [],
   variants: [],
   
   // Purchase order fields
@@ -78,24 +81,38 @@ const sizeLabel = computed(() => {
   return 'Talle'
 })
 
-// Dynamic image boxes
-const addImageBox = () => {
-  form.value.new_image_boxes.push({ file: null, preview: null })
-}
-
 const removeImageBox = (index) => {
+  const image = form.value.new_image_boxes[index]
+  if (image?.preview) URL.revokeObjectURL(image.preview)
   form.value.new_image_boxes.splice(index, 1)
 }
 
-const handleImageFileChange = async (e, index) => {
-  const file = e.target.files[0]
-  if (file) {
-    const originalSize = file.size
+const openGalleryPicker = () => galleryInput.value?.click()
+const openCameraPicker = () => cameraInput.value?.click()
+
+const handleImageFileChange = async (e) => {
+  const selectedFiles = Array.from(e.target.files || [])
+  e.target.value = ''
+  if (!selectedFiles.length) return
+
+  const slotsAvailable = maxNewImages - form.value.new_image_boxes.length
+  if (slotsAvailable <= 0) {
+    toast.warning(`Puedes agregar hasta ${maxNewImages} imágenes nuevas por producto.`, 'Límite de imágenes')
+    return
+  }
+
+  if (selectedFiles.length > slotsAvailable) {
+    toast.warning(`Se agregarán ${slotsAvailable} imágenes para no superar el máximo de ${maxNewImages}.`, 'Límite de imágenes')
+  }
+
+  for (const file of selectedFiles.slice(0, slotsAvailable)) {
     const compressed = await compressImage(file)
-    form.value.new_image_boxes[index].file = compressed
-    form.value.new_image_boxes[index].preview = URL.createObjectURL(compressed)
-    form.value.new_image_boxes[index].originalSize = originalSize
-    form.value.new_image_boxes[index].compressedSize = compressed.size
+    form.value.new_image_boxes.push({
+      file: compressed,
+      preview: URL.createObjectURL(compressed),
+      originalSize: file.size,
+      compressedSize: compressed.size
+    })
   }
 }
 
@@ -139,7 +156,7 @@ const openCreateModal = () => {
     price: 0, 
     purchase_price: 0,
     existing_images: [],
-    new_image_boxes: [{ file: null, preview: null }],
+    new_image_boxes: [],
     variants: [{ 
       id: null, 
       size: '', 
@@ -179,7 +196,7 @@ const openEditModal = async (productSku) => {
       price: product.price, 
       purchase_price: product.purchase_price || 0,
       existing_images: product.images || [],
-      new_image_boxes: [{ file: null, preview: null }],
+      new_image_boxes: [],
       variants: product.variants.map(v => {
         const stocks = {}
         productStore.stores.forEach(s => {
@@ -425,7 +442,7 @@ defineExpose({
           <!-- IMAGENES DINÁMICAS -->
           <h4 class="fw-black mb-3 border-bottom border-black pb-2 text-uppercase text-primary d-flex justify-content-between align-items-center mt-5">
             2. Galería de Imágenes
-            <button type="button" @click="addImageBox" class="btn btn-sm btn-dark fw-black">+ AÑADIR OTRA IMAGEN</button>
+            <span class="badge bg-dark">{{ form.new_image_boxes.length }} / {{ maxNewImages }}</span>
           </h4>
 
           <!-- Existing Images when editing -->
@@ -440,28 +457,52 @@ defineExpose({
             </div>
           </div>
 
-          <!-- New Image sequential input boxes -->
+          <!-- New images: gallery multi-select and direct camera capture -->
           <div class="mb-5 p-3 bg-light border border-black border-2">
-            <label class="form-label fw-black text-uppercase fs-7 mb-3 d-block">Nuevas Imágenes</label>
-            
-            <div v-for="(box, idx) in form.new_image_boxes" :key="idx" class="d-flex flex-column flex-sm-row align-items-sm-center gap-3 mb-3 pb-3 border-bottom border-black">
-              <div class="flex-grow-1">
-                <label class="form-label fw-bold fs-7 mb-1 d-flex align-items-center flex-wrap gap-2">
-                  <span>Imagen #{{ idx + 1 }} {{ idx === 0 && form.existing_images.length === 0 ? '(Será la Portada)' : '' }}</span>
-                  <span v-if="box.compressedSize" class="badge bg-success text-black border border-black font-monospace fs-7 fw-black">
-                    ⚡ {{ formatBytes(box.originalSize) }} ➔ {{ formatBytes(box.compressedSize) }} ({{ Math.round((1 - box.compressedSize / box.originalSize) * 100) }}% menos)
-                  </span>
-                </label>
-                <input type="file" @change="(e) => handleImageFileChange(e, idx)" class="form-control border-black shadow-none fw-bold bg-white" accept="image/*">
-              </div>
-              
-              <div v-if="box.preview" class="border border-black bg-white p-1" style="width: 70px; height: 70px;">
-                <img :src="box.preview" class="w-100 h-100 object-fit-cover">
-              </div>
+            <label class="form-label fw-black text-uppercase fs-7 mb-3 d-block">Nuevas Imágenes (hasta {{ maxNewImages }})</label>
 
-              <button type="button" @click="removeImageBox(idx)" class="btn btn-danger fw-black border-black border-2 m-0 px-3 py-2 align-self-sm-end" :disabled="form.new_image_boxes.length === 1 && !box.file">
-                X
+            <input
+              ref="galleryInput"
+              type="file"
+              accept="image/*"
+              multiple
+              class="d-none"
+              @change="handleImageFileChange"
+            >
+            <input
+              ref="cameraInput"
+              type="file"
+              accept="image/*"
+              capture="environment"
+              class="d-none"
+              @change="handleImageFileChange"
+            >
+
+            <div class="d-flex flex-wrap gap-2 mb-3">
+              <button type="button" class="btn btn-primary fw-bold" @click="openGalleryPicker" :disabled="form.new_image_boxes.length >= maxNewImages || saving">
+                Elegir del carrete
               </button>
+              <button type="button" class="btn btn-outline-dark fw-bold" @click="openCameraPicker" :disabled="form.new_image_boxes.length >= maxNewImages || saving">
+                Tomar foto
+              </button>
+            </div>
+            <p class="small text-muted mb-3">Puedes seleccionar varias fotos del carrete. La primera imagen será la portada.</p>
+
+            <div v-if="form.new_image_boxes.length" class="row g-2">
+              <div v-for="(box, idx) in form.new_image_boxes" :key="box.preview" class="col-6 col-sm-4 col-md-3">
+                <div class="h-100 bg-white border border-2 p-2">
+                  <div class="ratio ratio-1x1 mb-2">
+                    <img :src="box.preview" class="w-100 h-100 object-fit-cover" :alt="`Imagen nueva ${idx + 1}`">
+                  </div>
+                  <div class="small fw-bold text-truncate mb-2">
+                    Imagen #{{ idx + 1 }} {{ idx === 0 && form.existing_images.length === 0 ? '(Portada)' : '' }}
+                  </div>
+                  <div v-if="box.compressedSize" class="small text-muted mb-2">
+                    {{ formatBytes(box.originalSize) }} → {{ formatBytes(box.compressedSize) }}
+                  </div>
+                  <button type="button" @click="removeImageBox(idx)" class="btn btn-sm btn-danger w-100" :disabled="saving">Quitar</button>
+                </div>
+              </div>
             </div>
           </div>
 
