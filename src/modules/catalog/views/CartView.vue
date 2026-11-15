@@ -71,7 +71,7 @@ const goToCheckout = () => {
                       v-if="item.image" 
                       :src="item.image" 
                       :alt="item.name" 
-                      class="rounded border object-fit-contain bg-white" 
+                      class="rounded border object-fit-cover bg-white"
                       style="width: 80px; height: 80px;"
                     />
                     <div v-else class="rounded border bg-light d-flex align-items-center justify-content-center text-muted flex-shrink-0" style="width: 80px; height: 80px;">

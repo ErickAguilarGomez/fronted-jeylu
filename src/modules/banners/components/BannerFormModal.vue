@@ -164,7 +164,7 @@ const handleSubmit = () => {
   width: 100%;
   max-height: 260px;
   aspect-ratio: 16 / 9;
-  object-fit: contain;
+  object-fit: cover;
   object-position: center;
   background-color: #f0f0f0;
   margin: 0 auto;

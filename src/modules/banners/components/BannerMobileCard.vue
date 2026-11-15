@@ -93,7 +93,7 @@ const formatDate = (dateString) => {
 
 .banner-mobile-image img {
   display: block;
-  object-fit: contain;
+  object-fit: cover;
   object-position: center;
 }
 </style>

@@ -64,9 +64,9 @@ const openCreateModal = () => {
   }
 }
 
-const openEditModal = (productSku) => {
+const openEditModal = (productId) => {
   if (productFormRef.value) {
-    productFormRef.value.openEditModal(productSku)
+    productFormRef.value.openEditModal(productId)
   }
 }
 
@@ -165,11 +165,12 @@ const handleRestore = async (sku) => {
       :columns="columns"
       :items="productStore.products"
       :loading="productStore.loading"
+      mobileLayout="rows"
       itemKey="sku"
       emptyText="NO HAY PRODUCTOS EN ESTA TIENDA"
     >
       <template #cell-image="{ item }">
-        <img :src="item.image_url || 'https://via.placeholder.com/60'" width="60" height="60" class="border border-black border-2 object-fit-contain shadow-sm">
+        <img :src="item.image_url || 'https://via.placeholder.com/60'" width="60" height="60" class="product-image border border-black border-2 object-fit-cover shadow-sm">
       </template>
       <template #cell-sku="{ item }">
         {{ item.sku }}
@@ -201,7 +202,7 @@ const handleRestore = async (sku) => {
           <button @click="handleRestore(item.sku)" class="btn btn-success fw-black px-3 m-0 shadow-none text-black">RESTAURAR</button>
         </template>
         <template v-else>
-          <button @click="openEditModal(item.sku)" class="btn btn-secondary fw-black me-2 px-3 m-0 shadow-none">EDITAR</button>
+          <button @click="openEditModal(item.id)" class="btn btn-secondary fw-black me-2 px-3 m-0 shadow-none">EDITAR</button>
           <button @click="triggerDeleteProduct(item.sku)" class="btn btn-danger fw-black px-3 m-0 shadow-none">ELIMINAR</button>
         </template>
       </template>

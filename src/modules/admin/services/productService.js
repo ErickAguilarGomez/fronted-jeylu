@@ -12,6 +12,11 @@ class ProductService {
     return res.data
   }
 
+  async getById(id, params = {}) {
+    const res = await api.get(`/products/by-id/${id}`, { params })
+    return res.data
+  }
+
   async create(formData) {
     const res = await api.post('/products', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
@@ -22,6 +27,14 @@ class ProductService {
 
   async update(sku, formData) {
     const res = await api.post(`/products/${sku}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 300000
+    })
+    return res.data
+  }
+
+  async updateById(id, formData) {
+    const res = await api.post(`/products/by-id/${id}`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
       timeout: 300000
     })

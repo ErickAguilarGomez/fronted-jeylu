@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { cartStore } from '../stores/cartStore.js'
 import { whatsappStore } from '@/modules/settings/stores/whatsappStore.js'
@@ -22,7 +22,10 @@ const customerName = ref('')
 const customerPhone = ref('')
 const customerEmail = ref('')
 const deliveryType = ref('pickup') // 'pickup' | 'delivery'
-const selectedStore = ref('')
+const selectedStoreId = ref('')
+const selectedStore = computed(() =>
+  stores.value.find(store => String(store.id) === String(selectedStoreId.value)) || null
+)
 const deliveryAddress = ref('')
 const orderNotes = ref('')
 
@@ -52,7 +55,7 @@ onMounted(async () => {
     if (res.data && res.data.success) {
       stores.value = res.data.stores
       if (stores.value.length > 0) {
-        selectedStore.value = stores.value[0].name
+        selectedStoreId.value = stores.value[0].id
       }
     }
   } catch (err) {
@@ -142,7 +145,8 @@ const processCardCheckout = async () => {
       customer_phone: customerPhone.value.trim(),
       customer_email: customerEmail.value.trim() || null,
       delivery_type: deliveryType.value,
-      delivery_address: deliveryType.value === 'delivery' ? deliveryAddress.value.trim() : `Retiro en Sucursal: ${selectedStore.value}`,
+      delivery_address: deliveryType.value === 'delivery' ? deliveryAddress.value.trim() : `Retiro en Sucursal: ${selectedStore.value?.name || ''}`,
+      store_id: deliveryType.value === 'pickup' ? selectedStoreId.value : null,
       order_notes: orderNotes.value.trim() || null,
       card_name: cardHolder.value.trim(),
       card_number: cardNumber.value.slice(-4) // Last 4 digits for security record
@@ -427,8 +431,8 @@ const processCardCheckout = async () => {
               <!-- Store Select for Pickup -->
               <div v-if="deliveryType === 'pickup'" class="col-12 mt-2">
                 <label class="form-label small fw-semibold text-dark mb-1">Seleccionar Sucursal de Retiro</label>
-                <select v-model="selectedStore" class="form-select border shadow-none">
-                  <option v-for="st in stores" :key="st.id" :value="st.name">
+                <select v-model="selectedStoreId" class="form-select border shadow-none">
+                  <option v-for="st in stores" :key="st.id" :value="st.id">
                     {{ st.name }} ({{ st.address }})
                   </option>
                 </select>
@@ -558,7 +562,7 @@ const processCardCheckout = async () => {
                     v-if="item.image" 
                     :src="item.image" 
                     :alt="item.name" 
-                    class="rounded border bg-white object-fit-contain flex-shrink-0" 
+                    class="rounded border bg-white object-fit-cover flex-shrink-0"
                     style="width: 44px; height: 44px;"
                   />
                   <div class="overflow-hidden">

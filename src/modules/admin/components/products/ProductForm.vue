@@ -12,7 +12,7 @@ const showModal = ref(false)
 const modalMode = ref('create') // 'create' or 'edit'
 const saving = ref(false)
 const processingImages = ref(0)
-const editingSku = ref('')
+const editingProductId = ref(null)
 const maxNewImages = 20
 const maxImageSize = 5 * 1024 * 1024
 let imageProcessingSequence = 0
@@ -183,13 +183,13 @@ const openCreateModal = () => {
   showModal.value = true
 }
 
-const openEditModal = async (productSku) => {
+const openEditModal = async (productId) => {
   try {
-    const product = await productStore.getProductBySku(productSku)
+    const product = await productStore.getProductById(productId)
 
     releaseNewImagePreviews()
     modalMode.value = 'edit'
-    editingSku.value = productSku
+    editingProductId.value = product.id
     form.value = { 
       base_sku: product.sku, 
       category_id: product.category_id || productStore.categories[0]?.id || '',
@@ -326,7 +326,7 @@ const submitForm = async () => {
       await productStore.createProduct(formData)
       toast.success('El producto ha sido registrado exitosamente.', '¡Producto registrado!')
     } else {
-      await productStore.updateProduct(editingSku.value, formData)
+      await productStore.updateProductById(editingProductId.value, formData)
       toast.success('El producto ha sido actualizado exitosamente.', '¡Producto actualizado!')
     }
   } catch (err) {
@@ -418,7 +418,7 @@ defineExpose({
             <label class="form-label fw-black text-uppercase fs-7 mb-3 d-block">Imágenes</label>
             <div class="d-flex flex-wrap gap-3">
               <div v-for="(img, idx) in form.existing_images" :key="img.id" class="position-relative border border-black border-2 bg-white text-center" style="width: 140px;">
-                <img :src="img.image_url" class="object-fit-contain w-100 mb-2 border border-black" style="height: 100px;">
+                <img :src="img.image_url" class="object-fit-cover w-100 mb-2 border border-black" style="height: 100px;">
                 <span v-if="img.is_primary" class="badge bg-warning text-black mb-2 d-block border border-black fw-bold fs-8">PORTADA</span>
                 <button type="button" @click="deleteExistingImage(img.image_url, idx)" class="btn btn-sm btn-danger fw-black w-100 fs-8">ELIMINAR</button>
               </div>
@@ -440,8 +440,8 @@ defineExpose({
                 <input type="file" @change="(e) => handleImageFileChange(e, idx)" class="form-control border-black shadow-none fw-bold bg-white" accept="image/*" :disabled="saving || processingImages > 0">
               </div>
               
-              <div v-if="box.preview" class="border border-black bg-white p-1" style="width: 70px; height: 70px;">
-                <img :src="box.preview" class="w-100 h-100 object-fit-contain">
+              <div v-if="box.preview" class="border border-black bg-white overflow-hidden" style="width: 70px; height: 70px;">
+                <img :src="box.preview" class="w-100 h-100 object-fit-cover">
               </div>
 
               <button type="button" @click="removeImageBox(idx)" class="btn btn-danger fw-black border-black border-2 m-0 px-3 py-2 align-self-sm-end" :disabled="saving || processingImages > 0 || (form.new_image_boxes.length === 1 && !box.file)">
