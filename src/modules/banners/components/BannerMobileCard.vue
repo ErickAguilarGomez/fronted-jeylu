@@ -86,11 +86,14 @@ const formatDate = (dateString) => {
 .banner-mobile-image {
   aspect-ratio: 16 / 9;
   background-color: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .banner-mobile-image img {
   display: block;
-  object-fit: cover;
+  object-fit: contain;
   object-position: center;
 }
 </style>
