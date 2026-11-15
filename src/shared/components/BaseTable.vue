@@ -259,6 +259,7 @@ defineProps({
 .mobile-table-card--rows .mobile-table-value {
   width: 100%;
   font-size: 0.9rem;
+  text-align: left !important;
   overflow-wrap: break-word;
   word-break: normal;
 }
@@ -311,7 +312,8 @@ defineProps({
 
 .mobile-table-card--rows .mobile-table-actions .mobile-table-value {
   display: flex;
-  justify-content: flex-end;
+  grid-column: 2;
+  justify-content: flex-start;
   gap: 0.35rem;
 }
 
