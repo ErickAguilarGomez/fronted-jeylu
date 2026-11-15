@@ -27,8 +27,8 @@ const formatDate = (dateString) => {
 <template>
   <div class="card border-black border-3 shadow-solid bg-white overflow-hidden animate-fade-in">
     <!-- Banner Image -->
-    <div class="border-bottom border-black border-3" style="height: 180px; background-color: #f0f0f0;">
-      <img :src="item.image_url" class="w-100 h-100" style="object-fit: cover;" alt="Banner Preview" />
+    <div class="banner-mobile-image border-bottom border-black border-3">
+      <img :src="item.image_url" class="w-100 h-100" :alt="`Banner ${item.sort_order}`" />
     </div>
 
     <!-- Card Body -->
@@ -81,5 +81,16 @@ const formatDate = (dateString) => {
 <style scoped>
 .shadow-solid {
   box-shadow: 8px 8px 0px #000 !important;
+}
+
+.banner-mobile-image {
+  aspect-ratio: 16 / 9;
+  background-color: #f0f0f0;
+}
+
+.banner-mobile-image img {
+  display: block;
+  object-fit: cover;
+  object-position: center;
 }
 </style>
