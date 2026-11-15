@@ -108,9 +108,11 @@ const priceParts = computed(() => {
 }
 
 .amazon-product-img {
-  max-height: 90%;
-  max-width: 90%;
+  display: block;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
+  object-position: center;
   transition: transform 0.25s ease;
 }
 

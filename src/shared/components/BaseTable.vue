@@ -171,7 +171,7 @@ defineProps({
   .responsive-data-table :deep(img) {
     max-width: 40px;
     max-height: 40px;
-    object-fit: cover;
+    object-fit: contain;
   }
 }
 
@@ -224,7 +224,7 @@ defineProps({
 .mobile-table-value :deep(img) {
   max-width: 48px;
   max-height: 48px;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 .mobile-table-value :deep(.d-flex) {

@@ -417,8 +417,8 @@ defineExpose({
           <div v-if="form.existing_images.length > 0" class="mb-4 p-3 bg-light border border-black border-2">
             <label class="form-label fw-black text-uppercase fs-7 mb-3 d-block">Imágenes</label>
             <div class="d-flex flex-wrap gap-3">
-              <div v-for="(img, idx) in form.existing_images" :key="img.id" class="position-relative border border-black border-2 bg-white p-2 text-center" style="width: 140px;">
-                <img :src="img.image_url" class="object-fit-cover w-100 mb-2 border border-black" style="height: 100px;">
+              <div v-for="(img, idx) in form.existing_images" :key="img.id" class="position-relative border border-black border-2 bg-white text-center" style="width: 140px;">
+                <img :src="img.image_url" class="object-fit-contain w-100 mb-2 border border-black" style="height: 100px;">
                 <span v-if="img.is_primary" class="badge bg-warning text-black mb-2 d-block border border-black fw-bold fs-8">PORTADA</span>
                 <button type="button" @click="deleteExistingImage(img.image_url, idx)" class="btn btn-sm btn-danger fw-black w-100 fs-8">ELIMINAR</button>
               </div>
@@ -441,7 +441,7 @@ defineExpose({
               </div>
               
               <div v-if="box.preview" class="border border-black bg-white p-1" style="width: 70px; height: 70px;">
-                <img :src="box.preview" class="w-100 h-100 object-fit-cover">
+                <img :src="box.preview" class="w-100 h-100 object-fit-contain">
               </div>
 
               <button type="button" @click="removeImageBox(idx)" class="btn btn-danger fw-black border-black border-2 m-0 px-3 py-2 align-self-sm-end" :disabled="saving || processingImages > 0 || (form.new_image_boxes.length === 1 && !box.file)">
