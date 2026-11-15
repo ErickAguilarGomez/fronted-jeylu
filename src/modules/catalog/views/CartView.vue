@@ -5,6 +5,10 @@ import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
+const productLink = (item) => item.productId
+  ? `/producto/id/${item.productId}`
+  : `/producto/${encodeURIComponent(item.sku)}`
+
 const goToCheckout = () => {
   if (cartStore.isEmpty) return
   router.push('/checkout')
@@ -66,7 +70,7 @@ const goToCheckout = () => {
               >
                 <!-- Thumbnail & Main Info -->
                 <div class="d-flex align-items-center gap-3 flex-grow-1 overflow-hidden">
-                  <router-link :to="'/producto/' + item.sku" class="flex-shrink-0">
+                  <router-link :to="productLink(item)" class="flex-shrink-0">
                     <img 
                       v-if="item.image" 
                       :src="item.image" 
@@ -81,7 +85,7 @@ const goToCheckout = () => {
 
                   <div class="overflow-hidden flex-grow-1">
                     <h5 class="m-0 mb-1 fs-6 fw-bold">
-                      <router-link :to="'/producto/' + item.sku" class="text-dark text-decoration-none hover-link text-truncate d-block">
+                      <router-link :to="productLink(item)" class="text-dark text-decoration-none hover-link text-truncate d-block">
                         {{ item.name }}
                       </router-link>
                     </h5>
