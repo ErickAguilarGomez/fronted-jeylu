@@ -3,66 +3,99 @@
  * Reduce dimensiones a un máximo permitido y comprime la calidad a formato WebP o JPEG
  * antes de enviar el archivo al servidor mediante FormData.
  */
+export const SUPPORTED_UPLOAD_IMAGE_TYPES = [
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+  'image/bmp'
+]
+
 export async function compressImage(file, maxWidth = 1200, maxHeight = 1200, quality = 0.8) {
-  if (!file || !file.type || !file.type.startsWith('image/')) {
+  if (!file) {
+    return file
+  }
+
+  const fileName = file.name || ''
+  const isKnownImageExtension = /\.(avif|bmp|gif|heic|heif|jpe?g|png|tiff?|webp)$/i.test(fileName)
+  if (!file.type?.startsWith('image/') && !isKnownImageExtension) {
     return file
   }
 
   // Si la imagen es un GIF animado, no la comprimimos con canvas para preservar la animación
-  if (file.type === 'image/gif') {
+  if (file.type === 'image/gif' || /\.gif$/i.test(fileName)) {
     return file
   }
 
-  return new Promise((resolve) => {
-    const reader = new FileReader()
-    reader.readAsDataURL(file)
-    reader.onload = (event) => {
-      const img = new Image()
-      img.src = event.target.result
-      img.onload = () => {
-        let width = img.width
-        let height = img.height
+  let source
+  let cleanup = () => {}
 
-        // Redimensionamiento proporcional
-        if (width > maxWidth || height > maxHeight) {
-          if (width > height) {
-            height = Math.round((height * maxWidth) / width)
-            width = maxWidth
-          } else {
-            width = Math.round((width * maxHeight) / height)
-            height = maxHeight
-          }
-        }
-
-        const canvas = document.createElement('canvas')
-        canvas.width = width
-        canvas.height = height
-
-        const ctx = canvas.getContext('2d')
-        ctx.drawImage(img, 0, 0, width, height)
-
-        // Exportar a WebP comprimido
-        canvas.toBlob(
-          (blob) => {
-            if (!blob) {
-              resolve(file)
-              return
-            }
-            const newFileName = file.name.replace(/\.[^/.]+$/, "") + ".webp"
-            const compressedFile = new File([blob], newFileName, {
-              type: 'image/webp',
-              lastModified: Date.now()
-            })
-            resolve(compressedFile)
-          },
-          'image/webp',
-          quality
-        )
+  try {
+    if (typeof createImageBitmap === 'function') {
+      try {
+        source = await createImageBitmap(file)
+        cleanup = () => source.close?.()
+      } catch {
+        // Safari and some phone formats need the HTMLImageElement fallback.
       }
-      img.onerror = () => resolve(file)
     }
-    reader.onerror = () => resolve(file)
-  })
+
+    if (!source) {
+      const objectUrl = URL.createObjectURL(file)
+      cleanup = () => URL.revokeObjectURL(objectUrl)
+      source = await new Promise((resolve, reject) => {
+        const image = new Image()
+        image.onload = () => resolve(image)
+        image.onerror = () => reject(new Error('No se pudo abrir la imagen'))
+        image.src = objectUrl
+      })
+    }
+
+    let width = source.width || source.naturalWidth
+    let height = source.height || source.naturalHeight
+    if (!width || !height) return file
+
+    // Redimensionamiento proporcional
+    if (width > maxWidth || height > maxHeight) {
+      const scale = Math.min(maxWidth / width, maxHeight / height)
+      width = Math.max(1, Math.round(width * scale))
+      height = Math.max(1, Math.round(height * scale))
+    }
+
+    const canvas = document.createElement('canvas')
+    canvas.width = width
+    canvas.height = height
+
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return file
+    ctx.drawImage(source, 0, 0, width, height)
+
+    const blob = await new Promise(resolve => {
+      canvas.toBlob(resolve, 'image/webp', quality)
+    })
+    if (!blob) return file
+
+    // Some browsers fall back to PNG/JPEG when WebP encoding is unavailable.
+    // Preserve the MIME type reported by the actual encoded bytes.
+    const outputType = blob.type
+    const extension = ({
+      'image/webp': 'webp',
+      'image/png': 'png',
+      'image/jpeg': 'jpg'
+    })[outputType]
+    if (!extension) return file
+    const baseName = file.name.replace(/\.[^/.]+$/, '') || 'imagen'
+
+    return new File([blob], `${baseName}.${extension}`, {
+      type: outputType,
+      lastModified: Date.now()
+    })
+  } catch {
+    // Let the caller show a clear format/size message instead of crashing the form.
+    return file
+  } finally {
+    cleanup()
+  }
 }
 
 /**

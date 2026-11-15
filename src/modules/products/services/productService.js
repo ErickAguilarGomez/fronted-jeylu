@@ -14,14 +14,16 @@ class ProductService {
 
   async create(formData) {
     const res = await api.post('/products', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 300000
     })
     return res.data
   }
 
   async update(sku, formData) {
     const res = await api.post(`/products/${sku}`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 300000
     })
     return res.data
   }
