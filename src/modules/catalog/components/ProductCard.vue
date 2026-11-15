@@ -111,7 +111,7 @@ const priceParts = computed(() => {
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   object-position: center;
   transition: transform 0.25s ease;
 }
