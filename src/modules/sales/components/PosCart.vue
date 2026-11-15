@@ -57,7 +57,7 @@ const toast = useToast()
           <img 
             v-if="item.image" 
             :src="item.image" 
-            class="rounded border object-fit-cover flex-shrink-0" 
+            class="rounded border object-fit-contain flex-shrink-0"
             style="width: 44px; height: 44px;"
           />
           <div v-else class="rounded border bg-light d-flex align-items-center justify-content-center flex-shrink-0 text-muted" style="width: 44px; height: 44px;">

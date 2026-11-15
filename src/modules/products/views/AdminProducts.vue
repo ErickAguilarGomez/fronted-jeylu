@@ -169,7 +169,7 @@ const handleRestore = async (sku) => {
       emptyText="NO HAY PRODUCTOS EN ESTA TIENDA"
     >
       <template #cell-image="{ item }">
-        <img :src="item.image_url || 'https://via.placeholder.com/60'" width="60" height="60" class="border border-black border-2 object-fit-cover shadow-sm">
+        <img :src="item.image_url || 'https://via.placeholder.com/60'" width="60" height="60" class="border border-black border-2 object-fit-contain shadow-sm">
       </template>
       <template #cell-sku="{ item }">
         {{ item.sku }}
