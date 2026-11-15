@@ -4,6 +4,7 @@ import BaseModal from '@/shared/components/BaseModal.vue'
 import BaseButton from '@/shared/components/BaseButton.vue'
 import { useToast } from '@/composables/useToast.js'
 import { compressImage, formatBytes } from '@/utils/imageCompressor.js'
+import { BANNER_RECOMMENDED_WIDTH, BANNER_RECOMMENDED_HEIGHT } from '../bannerImageConfig.js'
 
 const props = defineProps({
   show: {
@@ -62,7 +63,7 @@ const handleFileChange = async (e) => {
   }
 
   const origSize = file.size
-  const compressed = await compressImage(file, 1920, 1080, 0.85)
+  const compressed = await compressImage(file, BANNER_RECOMMENDED_WIDTH, BANNER_RECOMMENDED_HEIGHT, 0.85)
 
   selectedFile.value = compressed
   originalSize.value = origSize
@@ -96,6 +97,7 @@ const handleSubmit = () => {
           <div v-if="!imagePreview" class="py-4">
             <span class="fs-3">📁</span>
             <p class="m-0 mt-2 fw-bold text-uppercase">Hacer clic para buscar imagen</p>
+            <span class="small text-muted d-block">Recomendado: {{ BANNER_RECOMMENDED_WIDTH }} × {{ BANNER_RECOMMENDED_HEIGHT }} px (16:9).</span>
             <span class="small text-muted">Formatos soportados: JPG, PNG, WEBP (Max 5MB)</span>
           </div>
           <div v-else class="banner-preview">
