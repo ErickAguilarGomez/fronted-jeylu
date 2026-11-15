@@ -189,7 +189,7 @@ onUnmounted(() => {
 <template>
   <div class="amazon-home-page">
 
-    <!-- 1. Hero Banner Carousel with Amazon Bottom Gradient Mask -->
+    <!-- 1. Hero Banner Carousel -->
     <div 
       v-if="banners.length > 0" 
       class="amazon-hero-slider position-relative"
@@ -240,8 +240,6 @@ onUnmounted(() => {
         </template>
       </div>
 
-      <!-- Amazon Signature Gradient Overlay (Fades banner to background #EAEDED) -->
-      <div class="amazon-hero-gradient"></div>
     </div>
 
     <!-- Fallback Hero Header if no banners loaded -->
@@ -262,8 +260,8 @@ onUnmounted(() => {
       </div>
     </div>
 
-    <!-- 2. Amazon 4-Card Multi-Feature Section (Overlapping Hero only if banners exist) -->
-    <div class="container-fluid px-3 px-lg-4 position-relative" :class="{ 'amazon-cards-overlap': banners.length > 0 }" style="z-index: 5;">
+    <!-- 2. Amazon 4-Card Multi-Feature Section -->
+    <div class="container-fluid px-3 px-lg-4 position-relative" style="z-index: 5;">
       <div class="row g-3 g-xl-4 mb-4">
         
         <!-- Card 1: Categorías de Temporada -->
@@ -475,12 +473,13 @@ onUnmounted(() => {
 .amazon-hero-slider {
   width: 100%;
   position: relative;
-  background-color: #000000;
+  background-color: var(--amazon-bg, #eaeded);
 }
 
 .amazon-hero-wrapper {
   width: 100%;
   height: clamp(190px, 56.25vw, 460px);
+  background-color: var(--amazon-bg, #eaeded);
 }
 
 .amazon-hero-slide {
@@ -504,32 +503,15 @@ onUnmounted(() => {
 .amazon-hero-img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  object-position: center;
   display: block;
-}
-
-/* GRADIENT FADE TO #EAEDED */
-.amazon-hero-gradient {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 200px;
-  background: linear-gradient(180deg, rgba(234, 237, 237, 0) 0%, #eaeded 100%);
-  pointer-events: none;
-  z-index: 3;
-}
-
-@media (max-width: 767.98px) {
-  .amazon-hero-gradient {
-    height: 100px;
-  }
 }
 
 /* CONTROLS */
 .amazon-slider-arrow {
   position: absolute;
-  top: 35%;
+  top: 50%;
   transform: translateY(-50%);
   background: transparent;
   color: #ffffff;
@@ -560,7 +542,7 @@ onUnmounted(() => {
 
 .amazon-slider-dots {
   position: absolute;
-  bottom: 50px;
+  bottom: 16px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -580,13 +562,6 @@ onUnmounted(() => {
 .amazon-dot.active {
   background-color: #febd69;
   transform: scale(1.3);
-}
-
-/* OVERLAPPING CARDS */
-@media (min-width: 992px) {
-  .amazon-cards-overlap {
-    margin-top: -140px;
-  }
 }
 
 .hover-cat-tile {

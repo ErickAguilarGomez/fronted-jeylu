@@ -271,13 +271,16 @@ const formatDate = (dateString) => {
   overflow: hidden;
   border: 2px solid #000;
   background: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .banner-table-image-frame img {
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   object-position: center;
 }
 </style>
