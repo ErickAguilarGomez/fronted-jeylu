@@ -14,12 +14,16 @@ const priceParts = computed(() => {
   const [whole, fraction] = num.toFixed(2).split('.')
   return { whole, fraction }
 })
+
+const productDetailUrl = computed(() => props.product.id
+  ? `/producto/id/${props.product.id}`
+  : `/producto/${encodeURIComponent(props.product.sku)}`)
 </script>
 
 <template>
   <div class="card amazon-product-card h-100 d-flex flex-column bg-white">
     <!-- Image Box with Stock Status -->
-    <router-link :to="'/producto/' + product.sku" class="amazon-img-wrapper position-relative text-decoration-none">
+    <router-link :to="productDetailUrl" class="amazon-img-wrapper position-relative text-decoration-none">
       <img 
         v-if="product.image_url"
         :src="product.image_url" 
@@ -48,7 +52,7 @@ const priceParts = computed(() => {
 
         <!-- Product Name (Max 2 lines, Amazon link style) -->
         <h3 class="amazon-title mb-2">
-          <router-link :to="'/producto/' + product.sku" class="amazon-title-link">
+          <router-link :to="productDetailUrl" class="amazon-title-link">
             {{ product.name }}
           </router-link>
         </h3>
@@ -74,7 +78,7 @@ const priceParts = computed(() => {
       <!-- Action Button (Amazon Pill) -->
       <div class="mt-2 pt-2 border-top border-light">
         <router-link 
-          :to="'/producto/' + product.sku"
+          :to="productDetailUrl"
           :class="['btn w-100 py-2 fs-7 fw-semibold d-flex justify-content-center align-items-center gap-2 rounded-pill', product.is_available ? 'btn-amazon-primary' : 'btn-outline-secondary disabled']"
         >
           <i class="bi bi-eye me-1"></i>
@@ -98,6 +102,8 @@ const priceParts = computed(() => {
 }
 
 .amazon-img-wrapper {
+  width: 100%;
+  padding: 0;
   background-color: #f7f7f7;
   height: 220px;
   display: flex;
@@ -108,9 +114,13 @@ const priceParts = computed(() => {
 }
 
 .amazon-product-img {
+  position: absolute;
+  inset: 0;
   display: block;
   width: 100%;
   height: 100%;
+  max-width: none;
+  padding: 0;
   object-fit: cover;
   object-position: center;
   transition: transform 0.25s ease;

@@ -134,7 +134,7 @@ const fetchRelatedProducts = async (categoryId) => {
 }
 
 // Load product details
-const loadProduct = async (slug) => {
+const loadProduct = async (identifier, byId = false) => {
   loading.value = true
   error.value = null
   productNotFound.value = false
@@ -142,7 +142,9 @@ const loadProduct = async (slug) => {
   quantity.value = 1
   
   try {
-    const res = await catalogService.getProductBySku(slug)
+    const res = byId
+      ? await catalogService.getProductById(identifier)
+      : await catalogService.getProductBySku(identifier)
     if (res && res.success && res.data) {
       product.value = res.data
       activeImage.value = allImages.value[0] || ''
@@ -168,10 +170,11 @@ const loadProduct = async (slug) => {
 }
 
 watch(
-  () => route.params.slug,
-  async (newSlug) => {
-    if (newSlug) {
-      await loadProduct(newSlug)
+  () => [route.params.slug, route.params.id],
+  async ([slug, id]) => {
+    const identifier = id || slug
+    if (identifier) {
+      await loadProduct(identifier, Boolean(id))
     }
   }
 )
@@ -202,8 +205,9 @@ const isDirectVideo = computed(() => {
 
 onMounted(async () => {
   socialMediaStore.fetchActiveSocialMedia()
-  if (route.params.slug) {
-    await loadProduct(route.params.slug)
+  const identifier = route.params.id || route.params.slug
+  if (identifier) {
+    await loadProduct(identifier, Boolean(route.params.id))
   }
 })
 </script>
@@ -238,14 +242,14 @@ onMounted(async () => {
       <div v-else-if="error" class="alert alert-danger shadow-sm my-4 p-4 text-center">
         <h4 class="fw-bold mb-2">Error al cargar producto</h4>
         <p class="mb-3">{{ error }}</p>
-        <button @click="loadProduct(route.params.slug)" class="btn btn-amazon-primary px-4">Reintentar</button>
+        <button @click="loadProduct(route.params.id || route.params.slug, Boolean(route.params.id))" class="btn btn-amazon-primary px-4">Reintentar</button>
       </div>
 
       <!-- 404 Not Found Screen -->
       <div v-else-if="productNotFound" class="card bg-white p-5 text-center my-4 border-0 shadow-sm">
         <div class="display-3 text-warning fw-bold mb-2">404</div>
         <h3 class="fw-bold text-dark mb-2">Producto no encontrado</h3>
-        <p class="text-muted mb-4">El SKU "{{ route.params.slug }}" no se encuentra disponible en nuestro catálogo actual.</p>
+        <p class="text-muted mb-4">El producto "{{ route.params.slug || route.params.id }}" no se encuentra disponible en nuestro catálogo actual.</p>
         <div>
           <router-link to="/catalog" class="btn btn-amazon-primary px-4 py-2">
             Explorar otros productos del catálogo

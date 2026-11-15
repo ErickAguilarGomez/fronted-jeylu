@@ -11,6 +11,11 @@ class CatalogService {
     return res.data
   }
 
+  async getProductById(id) {
+    const res = await api.get(`/products/by-id/${id}`)
+    return res.data
+  }
+
   async getCategories() {
     const res = await api.get('/categories', { params: { all: 1 } })
     return res.data

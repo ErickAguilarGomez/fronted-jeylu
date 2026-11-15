@@ -492,6 +492,7 @@ onUnmounted(() => {
   visibility: hidden;
   transition: opacity 0.6s ease-in-out, visibility 0.6s ease-in-out;
   z-index: 1;
+  overflow: hidden;
 }
 
 .amazon-hero-slide.active {

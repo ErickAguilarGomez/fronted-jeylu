@@ -12,6 +12,12 @@ export default [
     meta: { requiresAuth: false }
   },
   {
+    path: '/producto/id/:id',
+    name: 'ProductDetailById',
+    component: () => import('./views/ProductDetailView.vue'),
+    meta: { requiresAuth: false }
+  },
+  {
     path: '/producto/:slug',
     name: 'ProductDetail',
     component: () => import('./views/ProductDetailView.vue'),
