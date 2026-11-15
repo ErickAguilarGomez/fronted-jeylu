@@ -9,6 +9,7 @@ import ConfirmDeleteModal from '@/shared/components/ConfirmDeleteModal.vue'
 import BannerFormModal from '../components/BannerFormModal.vue'
 import BannerMobileCard from '../components/BannerMobileCard.vue'
 import { useToast } from '@/composables/useToast.js'
+import { BANNER_RECOMMENDED_WIDTH, BANNER_RECOMMENDED_HEIGHT } from '../bannerImageConfig.js'
 
 const toast = useToast()
 
@@ -95,7 +96,7 @@ const handleSubmit = async (submitData) => {
     formData.append('sort_order', submitData.sort_order)
     
     if (submitData.file) {
-      const compressed = await compressImage(submitData.file, 1920, 1080, 0.85)
+      const compressed = await compressImage(submitData.file, BANNER_RECOMMENDED_WIDTH, BANNER_RECOMMENDED_HEIGHT, 0.85)
       formData.append('image', compressed)
     }
 
@@ -164,6 +165,11 @@ const formatDate = (dateString) => {
         </svg>
       </template>
     </PageHeader>
+
+    <div class="alert alert-info border border-black border-2 fw-bold" role="note">
+      Tamaño recomendado para los banners: {{ BANNER_RECOMMENDED_WIDTH }} × {{ BANNER_RECOMMENDED_HEIGHT }} px (16:9).
+      En la página principal se muestran a ancho completo y centrados; otras proporciones pueden recortarse.
+    </div>
 
     <!-- Desktop/Tablet view -->
     <div class="d-none d-md-block">
