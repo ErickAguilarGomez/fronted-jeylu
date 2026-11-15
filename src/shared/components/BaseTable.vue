@@ -23,6 +23,11 @@ defineProps({
   itemKey: {
     type: String,
     default: 'id'
+  },
+  mobileLayout: {
+    type: String,
+    default: 'grid',
+    validator: (value) => ['grid', 'rows'].includes(value)
   }
 })
 </script>
@@ -83,7 +88,13 @@ defineProps({
       <div v-else-if="items.length === 0" class="mobile-table-state text-muted">
         {{ emptyText }}
       </div>
-      <article v-else v-for="item in items" :key="item[itemKey]" class="mobile-table-card">
+      <article
+        v-else
+        v-for="item in items"
+        :key="item[itemKey]"
+        class="mobile-table-card"
+        :class="{ 'mobile-table-card--rows': mobileLayout === 'rows' }"
+      >
         <div
           v-for="col in columns"
           :key="col.key"
@@ -173,6 +184,10 @@ defineProps({
     max-height: 40px;
     object-fit: contain;
   }
+
+  .responsive-data-table :deep(img.product-image) {
+    object-fit: cover;
+  }
 }
 
 .mobile-table-list {
@@ -194,10 +209,25 @@ defineProps({
   box-shadow: 0 1px 3px rgb(0 0 0 / 8%);
 }
 
+.mobile-table-card--rows {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+  padding: 0.6rem 0.75rem;
+}
+
 .mobile-table-row {
   min-width: 0;
   padding: 0.3rem 0;
   text-align: left;
+}
+
+.mobile-table-card--rows .mobile-table-row {
+  display: grid;
+  grid-template-columns: minmax(4.25rem, 27%) minmax(0, 1fr);
+  align-items: center;
+  gap: 0.55rem;
+  border-bottom: 1px solid #edf0f0;
+  padding: 0.4rem 0;
 }
 
 .mobile-table-row:last-child {
@@ -214,6 +244,11 @@ defineProps({
   overflow-wrap: anywhere;
 }
 
+.mobile-table-card--rows .mobile-table-label {
+  margin: 0;
+  font-size: 0.68rem;
+}
+
 .mobile-table-value {
   min-width: 0;
   font-size: 0.78rem;
@@ -221,10 +256,29 @@ defineProps({
   overflow-wrap: anywhere;
 }
 
+.mobile-table-card--rows .mobile-table-value {
+  width: 100%;
+  font-size: 0.9rem;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+.mobile-table-card--rows .mobile-table-value.fs-5 {
+  font-size: 0.98rem !important;
+}
+
+.mobile-table-card--rows .mobile-table-value.fs-6 {
+  font-size: 0.82rem !important;
+}
+
 .mobile-table-value :deep(img) {
   max-width: 48px;
   max-height: 48px;
   object-fit: contain;
+}
+
+.mobile-table-value :deep(img.product-image) {
+  object-fit: cover;
 }
 
 .mobile-table-value :deep(.d-flex) {
@@ -235,6 +289,11 @@ defineProps({
   grid-column: 1 / -1;
   border-top: 1px solid #edf0f0;
   padding-top: 0.45rem;
+}
+
+.mobile-table-card--rows .mobile-table-actions {
+  border-bottom: 0;
+  padding-top: 0.55rem;
 }
 
 .mobile-table-actions .mobile-table-label {
@@ -248,6 +307,12 @@ defineProps({
   font-size: 0.68rem !important;
   line-height: 1.15;
   white-space: normal;
+}
+
+.mobile-table-card--rows .mobile-table-actions .mobile-table-value {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.35rem;
 }
 
 .mobile-table-value :deep(.fs-4) {
@@ -270,9 +335,14 @@ defineProps({
 }
 
 @media (max-width: 360px) {
-  .mobile-table-card {
+  .mobile-table-card:not(.mobile-table-card--rows) {
     gap: 0.05rem 0.4rem;
     padding: 0.4rem;
+  }
+
+  .mobile-table-card--rows .mobile-table-row {
+    grid-template-columns: minmax(4rem, 29%) minmax(0, 1fr);
+    gap: 0.4rem;
   }
 
   .mobile-table-label {

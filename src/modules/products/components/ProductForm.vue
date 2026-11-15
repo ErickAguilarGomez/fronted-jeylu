@@ -14,7 +14,7 @@ const modalMode = ref('create') // 'create' or 'edit'
 const saving = ref(false)
 const processingImages = ref(false)
 const imageProcessingProgress = ref({ completed: 0, total: 0 })
-const editingSku = ref('')
+const editingProductId = ref(null)
 const galleryInput = ref(null)
 const cameraInput = ref(null)
 const maxNewImages = 20
@@ -244,13 +244,13 @@ const openCreateModal = () => {
   showModal.value = true
 }
 
-const openEditModal = async (productSku) => {
+const openEditModal = async (productId) => {
   try {
-    const product = await productStore.getProductBySku(productSku)
+    const product = await productStore.getProductById(productId)
 
     releaseNewImagePreviews()
     modalMode.value = 'edit'
-    editingSku.value = productSku
+    editingProductId.value = product.id
     form.value = { 
       base_sku: product.sku, 
       category_id: product.category_id || productStore.categories[0]?.id || '',
@@ -415,7 +415,7 @@ const submitForm = async () => {
       await productStore.createProduct(formData)
       toast.success('El producto ha sido registrado exitosamente.', '¡Producto registrado!')
     } else {
-      await productStore.updateProduct(editingSku.value, formData)
+      await productStore.updateProductById(editingProductId.value, formData)
       toast.success('El producto ha sido actualizado exitosamente.', '¡Producto actualizado!')
     }
   } catch (err) {
@@ -519,7 +519,7 @@ defineExpose({
             <label class="form-label fw-black text-uppercase fs-7 mb-3 d-block">Imágenes</label>
             <div class="d-flex flex-wrap gap-3">
               <div v-for="(img, idx) in form.existing_images" :key="img.id" class="position-relative border border-black border-2 bg-white text-center" style="width: 140px;">
-                <img :src="img.image_url" class="object-fit-contain w-100 mb-2 border border-black" style="height: 100px;">
+                <img :src="img.image_url" class="object-fit-cover w-100 mb-2 border border-black" style="height: 100px;">
                 <span v-if="img.is_primary" class="badge bg-warning text-black mb-2 d-block border border-black fw-bold fs-8">PORTADA</span>
                 <button type="button" @click="deleteExistingImage(img.image_url, idx)" class="btn btn-sm btn-danger fw-black w-100 fs-8" :disabled="saving || processingImages">ELIMINAR</button>
               </div>
@@ -564,17 +564,19 @@ defineExpose({
 
             <div v-if="form.new_image_boxes.length" class="row g-2">
               <div v-for="(box, idx) in form.new_image_boxes" :key="box.preview" class="col-6 col-sm-4 col-md-3">
-                <div class="h-100 bg-white border border-2 p-2">
-                  <div class="ratio ratio-1x1 mb-2">
-                    <img :src="box.preview" class="w-100 h-100 object-fit-contain" :alt="`Imagen nueva ${idx + 1}`">
+                <div class="h-100 bg-white border border-2 overflow-hidden">
+                  <div class="ratio ratio-1x1">
+                    <img :src="box.preview" class="w-100 h-100 object-fit-cover" :alt="`Imagen nueva ${idx + 1}`">
                   </div>
-                  <div class="small fw-bold text-truncate mb-2">
-                    Imagen #{{ idx + 1 }} {{ idx === 0 && form.existing_images.length === 0 ? '(Portada)' : '' }}
+                  <div class="p-2">
+                    <div class="small fw-bold text-truncate mb-2">
+                      Imagen #{{ idx + 1 }} {{ idx === 0 && form.existing_images.length === 0 ? '(Portada)' : '' }}
+                    </div>
+                    <div v-if="box.compressedSize" class="small text-muted mb-2">
+                      {{ formatBytes(box.originalSize) }} → {{ formatBytes(box.compressedSize) }}
+                    </div>
+                    <button type="button" @click="removeImageBox(idx)" class="btn btn-sm btn-danger w-100" :disabled="saving || processingImages">Quitar</button>
                   </div>
-                  <div v-if="box.compressedSize" class="small text-muted mb-2">
-                    {{ formatBytes(box.originalSize) }} → {{ formatBytes(box.compressedSize) }}
-                  </div>
-                  <button type="button" @click="removeImageBox(idx)" class="btn btn-sm btn-danger w-100" :disabled="saving || processingImages">Quitar</button>
                 </div>
               </div>
             </div>

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, defineExpose, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { whatsappStore } from '@/modules/settings/stores/whatsappStore.js'
 
 const showModal = ref(false)

@@ -44,6 +44,12 @@ export const productStore = reactive({
     return data.data
   },
 
+  async getProductById(id) {
+    const storeParam = this.selectedFilterStore ? { store_id: this.selectedFilterStore } : {}
+    const data = await productService.getById(id, storeParam)
+    return data.data
+  },
+
   async createProduct(formData) {
     await productService.create(formData)
     await this.fetchProducts(this.page)
@@ -51,6 +57,11 @@ export const productStore = reactive({
 
   async updateProduct(sku, formData) {
     await productService.update(sku, formData)
+    await this.fetchProducts(this.page)
+  },
+
+  async updateProductById(id, formData) {
+    await productService.updateById(id, formData)
     await this.fetchProducts(this.page)
   },
 
