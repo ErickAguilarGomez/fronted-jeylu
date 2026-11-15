@@ -480,19 +480,7 @@ onUnmounted(() => {
 
 .amazon-hero-wrapper {
   width: 100%;
-  height: 460px;
-}
-
-@media (max-width: 991.98px) {
-  .amazon-hero-wrapper {
-    height: 320px;
-  }
-}
-
-@media (max-width: 575.98px) {
-  .amazon-hero-wrapper {
-    height: 200px;
-  }
+  height: clamp(190px, 56.25vw, 460px);
 }
 
 .amazon-hero-slide {

@@ -23,15 +23,26 @@ RUN touch /var/run/nginx.pid && \
 RUN printf 'server {\n\
     listen 8080;\n\
     server_name _;\n\
-    client_max_body_size 64m;\n\
+    client_max_body_size 128m;\n\
+    client_body_timeout 300s;\n\
     root /usr/share/nginx/html;\n\
     index index.html;\n\
+    location ^~ /storage/ {\n\
+        proxy_pass http://backend_jeilu:8000;\n\
+        proxy_set_header Host $http_host;\n\
+        proxy_set_header X-Real-IP $remote_addr;\n\
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n\
+        proxy_set_header X-Forwarded-Proto $scheme;\n\
+    }\n\
     location /api {\n\
         proxy_pass http://backend_jeilu:8000;\n\
         proxy_set_header Host $http_host;\n\
         proxy_set_header X-Real-IP $remote_addr;\n\
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n\
         proxy_set_header X-Forwarded-Proto $scheme;\n\
+        proxy_connect_timeout 30s;\n\
+        proxy_send_timeout 300s;\n\
+        proxy_read_timeout 300s;\n\
     }\n\
     location /sanctum {\n\
         proxy_pass http://backend_jeilu:8000;\n\

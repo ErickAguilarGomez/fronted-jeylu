@@ -3,7 +3,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { productStore } from '../stores/productStore.js'
 import { authStore } from '@/modules/auth/stores/authStore.js'
 import { useToast } from '@/composables/useToast.js'
-import { compressImage, formatBytes } from '@/utils/imageCompressor.js'
+import { compressImage, formatBytes, SUPPORTED_UPLOAD_IMAGE_TYPES } from '@/utils/imageCompressor.js'
 import PurchaseOrderSelector from './PurchaseOrderSelector.vue'
 
 const toast = useToast()
@@ -12,21 +12,27 @@ const emit = defineEmits(['closed'])
 const showModal = ref(false)
 const modalMode = ref('create') // 'create' or 'edit'
 const saving = ref(false)
+const processingImages = ref(false)
+const imageProcessingProgress = ref({ completed: 0, total: 0 })
 const editingSku = ref('')
 const galleryInput = ref(null)
 const cameraInput = ref(null)
 const maxNewImages = 20
+const maxImageSize = 5 * 1024 * 1024
+let componentActive = true
 
 const handleBeforeUnload = (e) => {
-  if (saving.value) {
+  if (saving.value || processingImages.value) {
     e.preventDefault()
-    e.returnValue = 'Se está guardando el producto. Por favor no abandones ni recargues la página.'
+    e.returnValue = saving.value
+      ? 'Se está guardando el producto. Por favor no abandones ni recargues la página.'
+      : 'Se están procesando las imágenes del producto. Por favor espera.'
     return e.returnValue
   }
 }
 
 const handleKeydown = (e) => {
-  if (saving.value && (e.key === 'Escape' || e.key === 'Esc')) {
+  if ((saving.value || processingImages.value) && (e.key === 'Escape' || e.key === 'Esc')) {
     e.preventDefault()
     e.stopPropagation()
   }
@@ -38,6 +44,8 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  componentActive = false
+  releaseNewImagePreviews()
   window.removeEventListener('beforeunload', handleBeforeUnload)
   window.removeEventListener('keydown', handleKeydown, true)
 })
@@ -82,9 +90,17 @@ const sizeLabel = computed(() => {
 })
 
 const removeImageBox = (index) => {
+  if (processingImages.value || saving.value) return
   const image = form.value.new_image_boxes[index]
   if (image?.preview) URL.revokeObjectURL(image.preview)
   form.value.new_image_boxes.splice(index, 1)
+}
+
+const releaseNewImagePreviews = () => {
+  for (const image of form.value.new_image_boxes || []) {
+    if (image?.preview) URL.revokeObjectURL(image.preview)
+  }
+  form.value.new_image_boxes = []
 }
 
 const openGalleryPicker = () => galleryInput.value?.click()
@@ -94,6 +110,7 @@ const handleImageFileChange = async (e) => {
   const selectedFiles = Array.from(e.target.files || [])
   e.target.value = ''
   if (!selectedFiles.length) return
+  if (processingImages.value || saving.value) return
 
   const slotsAvailable = maxNewImages - form.value.new_image_boxes.length
   if (slotsAvailable <= 0) {
@@ -105,18 +122,62 @@ const handleImageFileChange = async (e) => {
     toast.warning(`Se agregarán ${slotsAvailable} imágenes para no superar el máximo de ${maxNewImages}.`, 'Límite de imágenes')
   }
 
-  for (const file of selectedFiles.slice(0, slotsAvailable)) {
-    const compressed = await compressImage(file)
-    form.value.new_image_boxes.push({
-      file: compressed,
-      preview: URL.createObjectURL(compressed),
-      originalSize: file.size,
-      compressedSize: compressed.size
-    })
+  const filesToProcess = selectedFiles.slice(0, slotsAvailable)
+  const skippedFiles = []
+  processingImages.value = true
+  imageProcessingProgress.value = { completed: 0, total: filesToProcess.length }
+
+  try {
+    for (const file of filesToProcess) {
+      try {
+        const compressed = await compressImage(file)
+        if (!componentActive) return
+
+        if (/image\/(heic|heif)/i.test(compressed?.type || '') || /\.(heic|heif)$/i.test(compressed?.name || file.name || '')) {
+          skippedFiles.push(`${file.name} (formato HEIC/HEIF no compatible)`)
+          continue
+        }
+
+        if (!SUPPORTED_UPLOAD_IMAGE_TYPES.includes(compressed?.type || '')) {
+          skippedFiles.push(`${file.name} (formato no compatible)`)
+          continue
+        }
+
+        if (!compressed || compressed.size > maxImageSize) {
+          skippedFiles.push(`${file.name} (supera 5 MB después de optimizar)`)
+          continue
+        }
+
+        form.value.new_image_boxes.push({
+          file: compressed,
+          preview: URL.createObjectURL(compressed),
+          originalSize: file.size,
+          compressedSize: compressed.size
+        })
+      } catch (error) {
+        skippedFiles.push(`${file.name} (no se pudo procesar)`)
+      } finally {
+        imageProcessingProgress.value.completed += 1
+      }
+    }
+  } finally {
+    if (componentActive) {
+      processingImages.value = false
+      imageProcessingProgress.value = { completed: 0, total: 0 }
+    }
+  }
+
+  if (skippedFiles.length && componentActive) {
+    toast.warning(
+      `No se agregaron: ${skippedFiles.join(', ')}. Elige JPEG, PNG, WebP, GIF o BMP; las fotos deben quedar en 5 MB o menos.`,
+      'Algunas imágenes no se pudieron usar',
+      10000
+    )
   }
 }
 
 const deleteExistingImage = async (imgUrl, index) => {
+  if (saving.value || processingImages.value) return
   if (confirm('¿ESTÁS SEGURO DE ELIMINAR ESTA IMAGEN? ESTO LA BORRARÁ DEFINITIVAMENTE DEL ALMACENAMIENTO CLOUDINARY Y BASE DE DATOS.')) {
     try {
       await productStore.deleteImage(imgUrl)
@@ -131,7 +192,8 @@ const deleteExistingImage = async (imgUrl, index) => {
 const addVariant = () => {
   form.value.variants.push({ 
     id: null, 
-    size: '', 
+    size: '',
+    color: '',
     stocks: productStore.stores.reduce((acc, s) => {
       acc[s.id] = 0
       return acc
@@ -145,6 +207,7 @@ const removeVariant = (index) => {
 }
 
 const openCreateModal = () => {
+  releaseNewImagePreviews()
   modalMode.value = 'create'
   form.value = { 
     base_sku: '', 
@@ -159,7 +222,8 @@ const openCreateModal = () => {
     new_image_boxes: [],
     variants: [{ 
       id: null, 
-      size: '', 
+      size: '',
+      color: '',
       stocks: productStore.stores.reduce((acc, s) => {
         acc[s.id] = 0
         return acc
@@ -184,6 +248,7 @@ const openEditModal = async (productSku) => {
   try {
     const product = await productStore.getProductBySku(productSku)
 
+    releaseNewImagePreviews()
     modalMode.value = 'edit'
     editingSku.value = productSku
     form.value = { 
@@ -210,6 +275,7 @@ const openEditModal = async (productSku) => {
         return {
           id: v.id,
           size: v.size || '',
+          color: v.color || '',
           stocks: stocks
         }
       }),
@@ -237,12 +303,15 @@ const openEditModal = async (productSku) => {
 }
 
 const close = (force = false) => {
-  if (saving.value && !force) return
+  if ((saving.value || processingImages.value) && !force) return
+  releaseNewImagePreviews()
   showModal.value = false
   emit('closed')
 }
 
 const submitForm = async () => {
+  if (saving.value || processingImages.value) return
+
   // Front-end validations
   if (!form.value.name || !form.value.name.trim()) {
     toast.warning('El nombre del producto es obligatorio.', 'Formulario incompleto')
@@ -311,6 +380,7 @@ const submitForm = async () => {
     form.value.variants.forEach((v, index) => {
       if (v.id) formData.append(`variants[${index}][id]`, v.id)
       formData.append(`variants[${index}][size]`, v.size)
+      formData.append(`variants[${index}][color]`, v.color || '')
       for (const storeId in v.stocks) {
         formData.append(`variants[${index}][stocks][${storeId}]`, v.stocks[storeId])
       }
@@ -319,8 +389,7 @@ const submitForm = async () => {
     let imgCount = 0
     for (const box of form.value.new_image_boxes) {
       if (box.file) {
-        const compressed = await compressImage(box.file)
-        formData.append(`images[${imgCount}]`, compressed)
+        formData.append(`images[${imgCount}]`, box.file, box.file.name)
         imgCount++
       }
     }
@@ -384,7 +453,7 @@ defineExpose({
     <div class="card border-2 shadow w-100 position-relative" style="max-width: 900px; max-height: 92vh; overflow-y: auto;">
       <div class="card-header bg-black text-white p-4 border-bottom border-black border-2 d-flex justify-content-between align-items-center position-sticky top-0" style="z-index: 100;">
         <h2 class="m-0 fw-black text-uppercase fs-3">{{ modalMode === 'create' ? 'NUEVO PRODUCTO EN INVENTARIO' : 'EDITAR PRODUCTO Y VARIANTES' }}</h2>
-        <button type="button" @click="close" :disabled="saving" class="btn btn-danger py-2 px-3 fw-black border border-white text-white m-0 fs-5" :class="{ 'opacity-50': saving }">X</button>
+        <button type="button" @click="close" :disabled="saving || processingImages" class="btn btn-danger py-2 px-3 fw-black border border-white text-white m-0 fs-5" :class="{ 'opacity-50': saving || processingImages }">X</button>
       </div>
       
       <div class="card-body p-4 p-md-5 bg-white">
@@ -452,7 +521,7 @@ defineExpose({
               <div v-for="(img, idx) in form.existing_images" :key="img.id" class="position-relative border border-black border-2 bg-white p-2 text-center" style="width: 140px;">
                 <img :src="img.image_url" class="object-fit-cover w-100 mb-2 border border-black" style="height: 100px;">
                 <span v-if="img.is_primary" class="badge bg-warning text-black mb-2 d-block border border-black fw-bold fs-8">PORTADA</span>
-                <button type="button" @click="deleteExistingImage(img.image_url, idx)" class="btn btn-sm btn-danger fw-black w-100 fs-8">ELIMINAR</button>
+                <button type="button" @click="deleteExistingImage(img.image_url, idx)" class="btn btn-sm btn-danger fw-black w-100 fs-8" :disabled="saving || processingImages">ELIMINAR</button>
               </div>
             </div>
           </div>
@@ -466,6 +535,7 @@ defineExpose({
               type="file"
               accept="image/*"
               multiple
+              :disabled="saving || processingImages"
               class="d-none"
               @change="handleImageFileChange"
             >
@@ -474,19 +544,23 @@ defineExpose({
               type="file"
               accept="image/*"
               capture="environment"
+              :disabled="saving || processingImages"
               class="d-none"
               @change="handleImageFileChange"
             >
 
             <div class="d-flex flex-wrap gap-2 mb-3">
-              <button type="button" class="btn btn-primary fw-bold" @click="openGalleryPicker" :disabled="form.new_image_boxes.length >= maxNewImages || saving">
+              <button type="button" class="btn btn-primary fw-bold" @click="openGalleryPicker" :disabled="form.new_image_boxes.length >= maxNewImages || saving || processingImages">
                 Elegir del carrete
               </button>
-              <button type="button" class="btn btn-outline-dark fw-bold" @click="openCameraPicker" :disabled="form.new_image_boxes.length >= maxNewImages || saving">
+              <button type="button" class="btn btn-outline-dark fw-bold" @click="openCameraPicker" :disabled="form.new_image_boxes.length >= maxNewImages || saving || processingImages">
                 Tomar foto
               </button>
             </div>
-            <p class="small text-muted mb-3">Puedes seleccionar varias fotos del carrete. La primera imagen será la portada.</p>
+            <div v-if="processingImages" class="alert alert-info py-2 mb-3" role="status" aria-live="polite">
+              Procesando fotos {{ imageProcessingProgress.completed }} de {{ imageProcessingProgress.total }}. Guardar se habilitará al terminar.
+            </div>
+            <p class="small text-muted mb-3">Puedes seleccionar varias fotos del carrete (hasta 20). Cada foto debe quedar en 5 MB o menos. La primera imagen será la portada.</p>
 
             <div v-if="form.new_image_boxes.length" class="row g-2">
               <div v-for="(box, idx) in form.new_image_boxes" :key="box.preview" class="col-6 col-sm-4 col-md-3">
@@ -500,7 +574,7 @@ defineExpose({
                   <div v-if="box.compressedSize" class="small text-muted mb-2">
                     {{ formatBytes(box.originalSize) }} → {{ formatBytes(box.compressedSize) }}
                   </div>
-                  <button type="button" @click="removeImageBox(idx)" class="btn btn-sm btn-danger w-100" :disabled="saving">Quitar</button>
+                  <button type="button" @click="removeImageBox(idx)" class="btn btn-sm btn-danger w-100" :disabled="saving || processingImages">Quitar</button>
                 </div>
               </div>
             </div>
@@ -514,11 +588,15 @@ defineExpose({
 
           <div v-for="(v, idx) in form.variants" :key="idx" class="bg-light p-3 border border-black border-2 mb-3 mx-0">
             <div class="row g-2 align-items-center mb-3">
-              <div class="col-md-6">
+              <div class="col-md-4">
                 <label class="form-label fw-black fs-6 m-0 mb-1">{{ sizeLabel.toUpperCase() }} (Letra/Número) (Opcional)</label>
                 <input v-model="v.size" type="text" class="form-control border-black fw-bold" :placeholder="selectedCategory?.unit_of_measure ? 'Ejem: 1 o 5' : 'Ejem: 40, M, S — dejar vacío si no aplica'">
               </div>
-              <div class="col-md-6 text-end">
+              <div class="col-md-4">
+                <label class="form-label fw-black fs-6 m-0 mb-1">COLOR (Opcional)</label>
+                <input v-model="v.color" type="text" maxlength="50" class="form-control border-black fw-bold" placeholder="Ejem: Negro, Azul">
+              </div>
+              <div class="col-md-4 text-end">
                 <button type="button" @click="removeVariant(idx)" class="btn btn-danger fw-black border-black border-2 m-0" :disabled="form.variants.length === 1">ELIMINAR {{ sizeLabel.toUpperCase() }}</button>
               </div>
             </div>
@@ -545,8 +623,8 @@ defineExpose({
             @update="handlePurchaseOrderUpdate" 
           />
 
-          <button type="submit" class="btn btn-primary w-100 py-4 mt-4 fw-black text-uppercase fs-4 m-0 shadow" :disabled="saving">
-            {{ saving ? 'GUARDANDO DATOS E IMÁGENES...' : (modalMode === 'create' ? 'REGISTRAR PRODUCTO' : 'GUARDAR CAMBIOS') }}
+          <button type="submit" class="btn btn-primary w-100 py-4 mt-4 fw-black text-uppercase fs-4 m-0 shadow" :disabled="saving || processingImages">
+            {{ processingImages ? `PROCESANDO FOTOS ${imageProcessingProgress.completed}/${imageProcessingProgress.total}...` : (saving ? 'GUARDANDO DATOS E IMÁGENES...' : (modalMode === 'create' ? 'REGISTRAR PRODUCTO' : 'GUARDAR CAMBIOS')) }}
           </button>
         </form>
       </div>

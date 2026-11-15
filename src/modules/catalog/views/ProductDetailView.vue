@@ -261,12 +261,12 @@ onMounted(async () => {
           <div class="col-lg-4 col-md-5">
             <div class="d-flex flex-column gap-3 sticky-top" style="top: 85px;">
               <!-- Main Image Box -->
-              <div class="amazon-gallery-main rounded border p-2 bg-white d-flex align-items-center justify-content-center position-relative">
+              <div class="amazon-gallery-main rounded border bg-white d-flex align-items-center justify-content-center position-relative">
                 <img 
                   v-if="activeImage"
                   :src="activeImage" 
                   :alt="product.name" 
-                  class="amazon-main-img img-fluid"
+                  class="amazon-main-img"
                 />
                 <div v-else class="text-muted small p-5">Sin imagen disponible</div>
 
@@ -553,14 +553,18 @@ onMounted(async () => {
 
 .amazon-gallery-main {
   height: 380px;
+  padding: 0;
+  overflow: hidden;
   background-color: #ffffff;
   border-color: #e7e7e7 !important;
 }
 
 .amazon-main-img {
-  max-height: 100%;
-  max-width: 100%;
-  object-fit: contain;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
 }
 
 .amazon-thumbnail {
@@ -725,7 +729,7 @@ onMounted(async () => {
   .amazon-main-img {
     width: 100%;
     height: 100%;
-    object-fit: contain;
+    object-fit: cover;
   }
 
   .amazon-thumbnail {

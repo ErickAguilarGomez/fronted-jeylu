@@ -3,7 +3,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { productStore } from '../stores/productStore.js'
 import { authStore } from '@/modules/auth/stores/authStore.js'
 import { useToast } from '@/composables/useToast.js'
-import { compressImage, formatBytes } from '@/utils/imageCompressor.js'
+import { compressImage, formatBytes, SUPPORTED_UPLOAD_IMAGE_TYPES } from '@/utils/imageCompressor.js'
 
 const toast = useToast()
 const emit = defineEmits(['closed'])
@@ -11,18 +11,25 @@ const emit = defineEmits(['closed'])
 const showModal = ref(false)
 const modalMode = ref('create') // 'create' or 'edit'
 const saving = ref(false)
+const processingImages = ref(0)
 const editingSku = ref('')
+const maxNewImages = 20
+const maxImageSize = 5 * 1024 * 1024
+let imageProcessingSequence = 0
+let componentActive = true
 
 const handleBeforeUnload = (e) => {
-  if (saving.value) {
+  if (saving.value || processingImages.value > 0) {
     e.preventDefault()
-    e.returnValue = 'Se está guardando el producto. Por favor no abandones ni recargues la página.'
+    e.returnValue = saving.value
+      ? 'Se está guardando el producto. Por favor no abandones ni recargues la página.'
+      : 'Se están procesando las imágenes del producto. Por favor espera.'
     return e.returnValue
   }
 }
 
 const handleKeydown = (e) => {
-  if (saving.value && (e.key === 'Escape' || e.key === 'Esc')) {
+  if ((saving.value || processingImages.value > 0) && (e.key === 'Escape' || e.key === 'Esc')) {
     e.preventDefault()
     e.stopPropagation()
   }
@@ -34,6 +41,8 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  componentActive = false
+  releaseNewImagePreviews()
   window.removeEventListener('beforeunload', handleBeforeUnload)
   window.removeEventListener('keydown', handleKeydown, true)
 })
@@ -55,22 +64,66 @@ const form = ref({
 
 // Dynamic image boxes
 const addImageBox = () => {
+  if (saving.value || processingImages.value > 0 || form.value.new_image_boxes.length >= maxNewImages) return
   form.value.new_image_boxes.push({ file: null, preview: null })
 }
 
 const removeImageBox = (index) => {
+  if (saving.value || processingImages.value > 0) return
+  const box = form.value.new_image_boxes[index]
+  if (box?.preview) URL.revokeObjectURL(box.preview)
   form.value.new_image_boxes.splice(index, 1)
+}
+
+const releaseNewImagePreviews = () => {
+  for (const box of form.value.new_image_boxes || []) {
+    if (box?.preview) URL.revokeObjectURL(box.preview)
+  }
+  form.value.new_image_boxes = []
 }
 
 const handleImageFileChange = async (e, index) => {
   const file = e.target.files[0]
-  if (file) {
-    const originalSize = file.size
+  e.target.value = ''
+  const box = form.value.new_image_boxes[index]
+  if (!file || !box || saving.value) return
+
+  const token = ++imageProcessingSequence
+  box.processingToken = token
+  processingImages.value += 1
+
+  try {
     const compressed = await compressImage(file)
-    form.value.new_image_boxes[index].file = compressed
-    form.value.new_image_boxes[index].preview = URL.createObjectURL(compressed)
-    form.value.new_image_boxes[index].originalSize = originalSize
-    form.value.new_image_boxes[index].compressedSize = compressed.size
+    if (!componentActive || box.processingToken !== token || !form.value.new_image_boxes.includes(box)) return
+
+    if (/image\/(heic|heif)/i.test(compressed?.type || '') || /\.(heic|heif)$/i.test(compressed?.name || file.name || '')) {
+      toast.warning('Elige una foto JPEG, PNG o WebP; este navegador no pudo convertir el archivo HEIC/HEIF.', 'Formato de imagen no compatible')
+      return
+    }
+
+    if (!SUPPORTED_UPLOAD_IMAGE_TYPES.includes(compressed?.type || '')) {
+      toast.warning('Elige una foto JPEG, PNG, WebP, GIF o BMP.', 'Formato no compatible')
+      return
+    }
+
+    if (!compressed || compressed.size > maxImageSize) {
+      toast.warning('La foto supera 5 MB después de optimizarla. Elige otra imagen o reduce su tamaño.', 'Imagen demasiado grande')
+      return
+    }
+
+    if (box.preview) URL.revokeObjectURL(box.preview)
+    box.file = compressed
+    box.preview = URL.createObjectURL(compressed)
+    box.originalSize = file.size
+    box.compressedSize = compressed.size
+  } catch {
+    if (componentActive) {
+      toast.warning('No se pudo procesar esta foto. Elige otra imagen.', 'Error al procesar la imagen')
+    }
+  } finally {
+    if (componentActive) {
+      processingImages.value = Math.max(0, processingImages.value - 1)
+    }
   }
 }
 
@@ -90,6 +143,7 @@ const addVariant = () => {
   form.value.variants.push({ 
     id: null, 
     size: '', 
+    color: '',
     stocks: productStore.stores.reduce((acc, s) => {
       acc[s.id] = 0
       return acc
@@ -103,6 +157,7 @@ const removeVariant = (index) => {
 }
 
 const openCreateModal = () => {
+  releaseNewImagePreviews()
   modalMode.value = 'create'
   form.value = { 
     base_sku: '', 
@@ -118,6 +173,7 @@ const openCreateModal = () => {
     variants: [{ 
       id: null, 
       size: '', 
+      color: '',
       stocks: productStore.stores.reduce((acc, s) => {
         acc[s.id] = 0
         return acc
@@ -131,6 +187,7 @@ const openEditModal = async (productSku) => {
   try {
     const product = await productStore.getProductBySku(productSku)
 
+    releaseNewImagePreviews()
     modalMode.value = 'edit'
     editingSku.value = productSku
     form.value = { 
@@ -157,6 +214,7 @@ const openEditModal = async (productSku) => {
         return {
           id: v.id,
           size: v.size || '',
+          color: v.color || '',
           stocks: stocks
         }
       })
@@ -173,12 +231,15 @@ const openEditModal = async (productSku) => {
 }
 
 const close = (force = false) => {
-  if (saving.value && !force) return
+  if ((saving.value || processingImages.value > 0) && !force) return
+  releaseNewImagePreviews()
   showModal.value = false
   emit('closed')
 }
 
 const submitForm = async () => {
+  if (saving.value || processingImages.value > 0) return
+
   // Front-end validations
   if (!form.value.name || !form.value.name.trim()) {
     toast.warning('El nombre del producto es obligatorio.', 'Formulario incompleto')
@@ -247,6 +308,7 @@ const submitForm = async () => {
     form.value.variants.forEach((v, index) => {
       if (v.id) formData.append(`variants[${index}][id]`, v.id)
       formData.append(`variants[${index}][size]`, v.size)
+      formData.append(`variants[${index}][color]`, v.color || '')
       for (const storeId in v.stocks) {
         formData.append(`variants[${index}][stocks][${storeId}]`, v.stocks[storeId])
       }
@@ -255,8 +317,7 @@ const submitForm = async () => {
     let imgCount = 0
     for (const box of form.value.new_image_boxes) {
       if (box.file) {
-        const compressed = await compressImage(box.file)
-        formData.append(`images[${imgCount}]`, compressed)
+        formData.append(`images[${imgCount}]`, box.file, box.file.name)
         imgCount++
       }
     }
@@ -349,7 +410,7 @@ defineExpose({
           <!-- IMAGENES DINÁMICAS -->
           <h4 class="fw-black mb-3 border-bottom border-black pb-2 text-uppercase text-primary d-flex justify-content-between align-items-center mt-5">
             2. Galería de Imágenes
-            <button type="button" @click="addImageBox" class="btn btn-sm btn-dark fw-black">+ AÑADIR OTRA IMAGEN</button>
+            <button type="button" @click="addImageBox" class="btn btn-sm btn-dark fw-black" :disabled="saving || processingImages > 0 || form.new_image_boxes.length >= maxNewImages">+ AÑADIR OTRA IMAGEN</button>
           </h4>
 
           <!-- Existing Images when editing -->
@@ -376,16 +437,19 @@ defineExpose({
                     ⚡ {{ formatBytes(box.originalSize) }} ➔ {{ formatBytes(box.compressedSize) }} ({{ Math.round((1 - box.compressedSize / box.originalSize) * 100) }}% menos)
                   </span>
                 </label>
-                <input type="file" @change="(e) => handleImageFileChange(e, idx)" class="form-control border-black shadow-none fw-bold bg-white" accept="image/*">
+                <input type="file" @change="(e) => handleImageFileChange(e, idx)" class="form-control border-black shadow-none fw-bold bg-white" accept="image/*" :disabled="saving || processingImages > 0">
               </div>
               
               <div v-if="box.preview" class="border border-black bg-white p-1" style="width: 70px; height: 70px;">
                 <img :src="box.preview" class="w-100 h-100 object-fit-cover">
               </div>
 
-              <button type="button" @click="removeImageBox(idx)" class="btn btn-danger fw-black border-black border-2 m-0 px-3 py-2 align-self-sm-end" :disabled="form.new_image_boxes.length === 1 && !box.file">
+              <button type="button" @click="removeImageBox(idx)" class="btn btn-danger fw-black border-black border-2 m-0 px-3 py-2 align-self-sm-end" :disabled="saving || processingImages > 0 || (form.new_image_boxes.length === 1 && !box.file)">
                 X
               </button>
+            </div>
+            <div v-if="processingImages > 0" class="alert alert-info py-2 mb-0" role="status" aria-live="polite">
+              Procesando foto. Espera antes de guardar el producto.
             </div>
           </div>
 
@@ -401,7 +465,11 @@ defineExpose({
                 <label class="form-label fw-black fs-6 m-0 mb-1">TALLA (Letra/Número) (Obligatorio)</label>
                 <input v-model="v.size" type="text" class="form-control border-black fw-bold" placeholder="Ejem: 40 o M" required>
               </div>
-              <div class="col-md-6 text-end">
+              <div class="col-md-3">
+                <label class="form-label fw-black fs-6 m-0 mb-1">COLOR (Opcional)</label>
+                <input v-model="v.color" type="text" maxlength="50" class="form-control border-black fw-bold" placeholder="Ejem: Negro">
+              </div>
+              <div class="col-md-3 text-end">
                 <button type="button" @click="removeVariant(idx)" class="btn btn-danger fw-black border-black border-2 m-0" :disabled="form.variants.length === 1">ELIMINAR TALLA</button>
               </div>
             </div>
@@ -421,8 +489,8 @@ defineExpose({
             </div>
           </div>
 
-          <button type="submit" class="btn btn-primary w-100 py-4 mt-4 fw-black text-uppercase fs-4 m-0 shadow" :disabled="saving">
-            {{ saving ? 'GUARDANDO DATOS E IMÁGENES...' : (modalMode === 'create' ? 'REGISTRAR PRODUCTO' : 'GUARDAR CAMBIOS') }}
+          <button type="submit" class="btn btn-primary w-100 py-4 mt-4 fw-black text-uppercase fs-4 m-0 shadow" :disabled="saving || processingImages > 0">
+            {{ processingImages > 0 ? 'PROCESANDO FOTO...' : (saving ? 'GUARDANDO DATOS E IMÁGENES...' : (modalMode === 'create' ? 'REGISTRAR PRODUCTO' : 'GUARDAR CAMBIOS')) }}
           </button>
         </form>
       </div>

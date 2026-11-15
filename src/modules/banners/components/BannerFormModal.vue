@@ -86,7 +86,7 @@ const handleSubmit = () => {
       <!-- Image File Picker -->
       <div>
         <label class="form-label fw-black text-uppercase fs-5">Imagen del Banner</label>
-        <div class="border border-black border-3 p-3 text-center bg-light position-relative">
+        <div class="banner-upload-frame border border-black border-3 text-center bg-light position-relative">
           <input 
             type="file" 
             @change="handleFileChange" 
@@ -98,8 +98,8 @@ const handleSubmit = () => {
             <p class="m-0 mt-2 fw-bold text-uppercase">Hacer clic para buscar imagen</p>
             <span class="small text-muted">Formatos soportados: JPG, PNG, WEBP (Max 5MB)</span>
           </div>
-          <div v-else class="py-2">
-            <img :src="imagePreview" class="border border-black border-2 mw-100" style="max-height: 200px; object-fit: contain;" />
+          <div v-else class="banner-preview">
+            <img :src="imagePreview" class="border border-black border-2" alt="Vista previa del banner" />
             <div v-if="compressedSize" class="mt-2">
               <span class="badge bg-success text-black border border-black font-monospace fs-7 fw-black">
                 ⚡ {{ formatBytes(originalSize) }} ➔ {{ formatBytes(compressedSize) }} ({{ Math.round((1 - compressedSize / originalSize) * 100) }}% menos)
@@ -146,3 +146,24 @@ const handleSubmit = () => {
     </form>
   </BaseModal>
 </template>
+
+<style scoped>
+.banner-upload-frame {
+  min-height: 180px;
+  padding: 0.75rem;
+}
+
+.banner-preview {
+  width: 100%;
+}
+
+.banner-preview img {
+  display: block;
+  width: 100%;
+  max-height: 260px;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  object-position: center;
+  margin: 0 auto;
+}
+</style>

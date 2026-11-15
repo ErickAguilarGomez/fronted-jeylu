@@ -34,7 +34,15 @@ function removeToast(id) {
 function parseApiError(e) {
   const data = e?.response?.data
 
-  if (!data) return ['Error de conexión con el servidor.']
+  if (e?.response?.status === 413) {
+    return ['El envío supera el tamaño permitido. Reduce u optimiza las imágenes e inténtalo de nuevo.']
+  }
+
+  if (e?.code === 'ECONNABORTED' || e?.code === 'ETIMEDOUT') {
+    return ['La carga tardó demasiado. Comprueba la conexión e inténtalo de nuevo.']
+  }
+
+  if (!data) return ['No se pudo completar la solicitud. Comprueba la conexión e inténtalo de nuevo.']
 
   // Laravel validation errors: { errors: { field: [msg, ...] } }
   if (data.errors && typeof data.errors === 'object') {

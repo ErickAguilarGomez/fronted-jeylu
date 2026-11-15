@@ -175,7 +175,9 @@ const formatDate = (dateString) => {
         emptyText="NO HAY BANNERS REGISTRADOS"
       >
         <template #cell-image_url="{ item }">
-          <img :src="item.image_url" class="border border-black border-2 my-1" style="max-height: 80px; max-width: 200px; object-fit: cover;" />
+          <div class="banner-table-image-frame">
+            <img :src="item.image_url" :alt="`Banner ${item.sort_order}`" />
+          </div>
         </template>
         <template #cell-sort_order="{ item }">
           <span class="fs-5 fw-bold font-monospace">{{ item.sort_order }}</span>
@@ -261,5 +263,21 @@ const formatDate = (dateString) => {
 <style scoped>
 .shadow-solid {
   box-shadow: 8px 8px 0px #000 !important;
+}
+
+.banner-table-image-frame {
+  width: min(100%, 220px);
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border: 2px solid #000;
+  background: #f0f0f0;
+}
+
+.banner-table-image-frame img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
 }
 </style>
