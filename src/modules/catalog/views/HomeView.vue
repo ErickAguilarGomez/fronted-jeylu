@@ -478,7 +478,7 @@ onUnmounted(() => {
 
 .amazon-hero-wrapper {
   width: 100%;
-  height: clamp(190px, 56.25vw, 460px);
+  aspect-ratio: 16 / 9;
   background-color: var(--amazon-bg, #eaeded);
 }
 
