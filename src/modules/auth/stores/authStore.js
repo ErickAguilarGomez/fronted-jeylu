@@ -2,9 +2,48 @@ import { reactive } from 'vue'
 import authService from '../services/authService.js'
 import router from '@/router.js'
 
+const AUTH_USER_KEY = 'auth_user'
+
+const isPositiveInteger = (value) => {
+  if (typeof value !== 'number' && (typeof value !== 'string' || !value.trim())) return false
+
+  const number = Number(value)
+  return Number.isSafeInteger(number) && number > 0
+}
+
+const loadStoredUser = () => {
+  try {
+    const storedUser = localStorage.getItem(AUTH_USER_KEY)
+    if (!storedUser) return null
+
+    const user = JSON.parse(storedUser)
+    const isValidUser = user &&
+      typeof user === 'object' &&
+      !Array.isArray(user) &&
+      isPositiveInteger(user.id) &&
+      isPositiveInteger(user.role_id) &&
+      typeof user.email === 'string' &&
+      user.email.trim().length > 0
+
+    if (isValidUser) return user
+  } catch {
+    // Corrupt or unavailable browser storage must not prevent the app from starting.
+  }
+
+  try {
+    localStorage.removeItem(AUTH_USER_KEY)
+  } catch {
+    // Storage can be unavailable in restricted browser contexts.
+  }
+
+  return null
+}
+
+const storedUser = loadStoredUser()
+
 export const authStore = reactive({
-  user: JSON.parse(localStorage.getItem('auth_user')) || null,
-  isAuthenticated: !!localStorage.getItem('auth_user'),
+  user: storedUser,
+  isAuthenticated: Boolean(storedUser),
   loading: false,
   error: null,
 
@@ -16,7 +55,7 @@ export const authStore = reactive({
       if (data && data.success) {
         this.user = data.user
         this.isAuthenticated = true
-        localStorage.setItem('auth_user', JSON.stringify(this.user))
+        localStorage.setItem(AUTH_USER_KEY, JSON.stringify(this.user))
         return true
       }
     } catch (e) {
@@ -36,7 +75,7 @@ export const authStore = reactive({
     } finally {
       this.user = null
       this.isAuthenticated = false
-      localStorage.removeItem('auth_user')
+      localStorage.removeItem(AUTH_USER_KEY)
       window.location.href = '/login'
       this.loading = false
     }
@@ -48,12 +87,12 @@ export const authStore = reactive({
       if (data && data.success) {
         this.user = data.user
         this.isAuthenticated = true
-        localStorage.setItem('auth_user', JSON.stringify(this.user))
+        localStorage.setItem(AUTH_USER_KEY, JSON.stringify(this.user))
       }
     } catch (e) {
       this.user = null
       this.isAuthenticated = false
-      localStorage.removeItem('auth_user')
+      localStorage.removeItem(AUTH_USER_KEY)
     }
   },
 

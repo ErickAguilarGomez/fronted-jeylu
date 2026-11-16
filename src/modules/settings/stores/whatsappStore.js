@@ -1,27 +1,43 @@
 import { reactive } from 'vue'
 import api from '@/plugins/axios'
 
+let activeNumbersRequest = null
+
 export const whatsappStore = reactive({
   whatsappNumbers: [],
+  activeNumbersLoaded: false,
   adminWhatsappNumbers: [],
   loading: false,
   _fetchingActive: false,
 
   async fetchActiveNumbers() {
-    if (this._fetchingActive || this.whatsappNumbers.length > 0) return
+    if (this.whatsappNumbers.length > 0) {
+      this.activeNumbersLoaded = true
+      return this.whatsappNumbers
+    }
+    if (activeNumbersRequest) return activeNumbersRequest
+
     this._fetchingActive = true
     this.loading = true
-    try {
-      const res = await api.get('/settings/whatsapp-numbers')
-      if (res.data && res.data.success) {
-        this.whatsappNumbers = res.data.data
-      }
-    } catch (e) {
-      console.error('Error fetching active whatsapp numbers:', e)
-    } finally {
-      this.loading = false
-      this._fetchingActive = false
-    }
+    activeNumbersRequest = api.get('/settings/whatsapp-numbers')
+      .then(res => {
+        if (res.data && res.data.success) {
+          this.whatsappNumbers = Array.isArray(res.data.data) ? res.data.data : []
+        }
+        return this.whatsappNumbers
+      })
+      .catch(e => {
+        console.error('Error fetching active whatsapp numbers:', e)
+        return []
+      })
+      .finally(() => {
+        this.loading = false
+        this._fetchingActive = false
+        this.activeNumbersLoaded = true
+        activeNumbersRequest = null
+      })
+
+    return activeNumbersRequest
   },
 
   async fetchAdminNumbers() {

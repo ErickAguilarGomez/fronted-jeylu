@@ -2,14 +2,78 @@ import { reactive } from 'vue'
 
 const STORAGE_KEY = 'jeilu_customer_cart'
 
-const loadCartFromStorage = () => {
+const toFiniteNumber = (value, fallback = NaN) => {
+  if (typeof value === 'number') return Number.isFinite(value) ? value : fallback
+  if (typeof value !== 'string' || !value.trim()) return fallback
+
+  const number = Number(value)
+  return Number.isFinite(number) ? number : fallback
+}
+
+const discardStoredCart = () => {
   try {
-    const data = localStorage.getItem(STORAGE_KEY)
-    return data ? JSON.parse(data) : []
+    localStorage.removeItem(STORAGE_KEY)
+  } catch {
+    // Storage can be unavailable in restricted browser contexts.
+  }
+}
+
+const normalizeCartItem = (item) => {
+  if (!item || typeof item !== 'object' || Array.isArray(item)) return null
+
+  const quantity = toFiniteNumber(item.quantity)
+  const price = toFiniteNumber(item.price)
+  if (!['string', 'number'].includes(typeof item.id) || !String(item.id).trim()) return null
+  if (!Number.isSafeInteger(quantity) || quantity < 1 || !Number.isFinite(price) || price < 0) return null
+
+  if (typeof item.sku !== 'string' || !item.sku.trim()) return null
+  const stock = toFiniteNumber(item.stock, 0)
+  return {
+    ...item,
+    id: String(item.id),
+    sku: item.sku,
+    name: typeof item.name === 'string' && item.name ? item.name : 'Producto',
+    quantity,
+    price,
+    stock: Number.isFinite(stock) && stock > 0 ? stock : 0,
+    image: typeof item.image === 'string' ? item.image : '',
+    size: typeof item.size === 'string' ? item.size : null,
+    storeName: typeof item.storeName === 'string' ? item.storeName : ''
+  }
+}
+
+const loadCartFromStorage = () => {
+  let parsed
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY)
+    if (!stored) return []
+
+    parsed = JSON.parse(stored)
   } catch (e) {
-    console.error('Error loading cart from localStorage:', e)
+    console.warn('Invalid saved cart was discarded.', e)
+    discardStoredCart()
     return []
   }
+
+  if (!Array.isArray(parsed)) {
+    discardStoredCart()
+    return []
+  }
+
+  const items = parsed.map(normalizeCartItem).filter(Boolean)
+  if (items.length !== parsed.length) {
+    try {
+      if (items.length > 0) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(items))
+      } else {
+        discardStoredCart()
+      }
+    } catch (error) {
+      console.warn('Could not repair the saved cart in storage.', error)
+    }
+  }
+
+  return items
 }
 
 const saveCartToStorage = (items) => {

@@ -20,7 +20,7 @@ const emit = defineEmits(['close', 'saved'])
 
 const toast = useToast()
 const saving = ref(false)
-const editForm = ref({ customer_name: '', status: 'COMPLETED', items: [] })
+const editForm = ref({ customer_name: '', status: 'COMPLETED', items: [], payments: [] })
 
 watch(() => props.show, (newVal) => {
   if (newVal && props.sale) {
@@ -32,6 +32,11 @@ watch(() => props.show, (newVal) => {
         quantity: i.quantity,
         price: Number(i.price),
         product_name: i.product_name
+      })),
+      payments: (props.sale.payments || []).map(payment => ({
+        payment_method_id: payment.payment_method_id,
+        payment_method_name: payment.payment_method_name,
+        amount: Number(payment.amount || 0)
       }))
     }
   }
@@ -41,7 +46,16 @@ const recalculatedTotal = computed(() => {
   return editForm.value.items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
 })
 
+const paymentTotal = computed(() => editForm.value.payments.reduce((sum, payment) => sum + (Number(payment.amount) || 0), 0))
+const paymentsMatchTotal = computed(() => editForm.value.payments.length === 0 ||
+  Math.abs(Math.round(paymentTotal.value * 100) - Math.round(recalculatedTotal.value * 100)) <= 1)
+
 const saveSaleEdit = async () => {
+  if (!paymentsMatchTotal.value) {
+    toast.warning('Ajusta el desglose de pagos para que coincida con el nuevo total.', 'Pagos no coinciden')
+    return
+  }
+
   saving.value = true
   try {
     const payload = {
@@ -51,7 +65,13 @@ const saveSaleEdit = async () => {
         sku: item.sku,
         quantity: item.quantity,
         price: item.price
-      }))
+      })),
+      ...(editForm.value.payments.length > 0 ? {
+        payments: editForm.value.payments.map(payment => ({
+          payment_method_id: payment.payment_method_id,
+          amount: Number(payment.amount)
+        }))
+      } : {})
     }
     const response = await saleService.updateSale(props.sale.id, payload)
     if (response && response.success) {
@@ -142,10 +162,28 @@ const saveSaleEdit = async () => {
       <span class="fw-black fs-4 text-success">$ {{ recalculatedTotal.toFixed(2) }}</span>
     </div>
 
+    <div v-if="editForm.payments.length > 0" class="border border-black border-2 p-3 mb-4">
+      <h4 class="fw-black text-uppercase border-bottom border-black border-2 pb-2 mb-3">Desglose de Pagos</h4>
+      <div v-for="(payment, index) in editForm.payments" :key="`${payment.payment_method_id}-${index}`" class="d-flex align-items-center justify-content-between gap-3 mb-2">
+        <label class="fw-bold text-dark">{{ payment.payment_method_name }}</label>
+        <div class="input-group input-group-sm" style="max-width: 180px;">
+          <span class="input-group-text">$</span>
+          <input v-model.number="payment.amount" type="number" min="0.01" step="0.01" class="form-control text-end" :aria-label="`Monto de ${payment.payment_method_name}`">
+        </div>
+      </div>
+      <div class="d-flex justify-content-between border-top pt-2 mt-2 fw-bold">
+        <span>Total de pagos</span>
+        <span>$ {{ paymentTotal.toFixed(2) }}</span>
+      </div>
+      <p v-if="!paymentsMatchTotal" class="text-danger fw-semibold small mb-0 mt-2" role="alert">
+        Ajusta los importes para que sumen $ {{ recalculatedTotal.toFixed(2) }}.
+      </p>
+    </div>
+
     <!-- Footer de acciones -->
     <div class="d-flex gap-3 justify-content-end mt-4 pt-3 border-top border-black border-2">
       <button @click="emit('close')" class="btn btn-outline-dark fw-black border border-black border-2 py-2 px-4 shadow-sm text-uppercase" :disabled="saving">Cancelar</button>
-      <button @click="saveSaleEdit" class="btn btn-success fw-black border border-black border-2 py-2 px-4 shadow-sm text-uppercase text-white" :disabled="saving">
+      <button @click="saveSaleEdit" class="btn btn-success fw-black border border-black border-2 py-2 px-4 shadow-sm text-uppercase text-white" :disabled="saving || !paymentsMatchTotal">
         {{ saving ? 'GUARDANDO...' : 'GUARDAR CAMBIOS' }}
       </button>
     </div>

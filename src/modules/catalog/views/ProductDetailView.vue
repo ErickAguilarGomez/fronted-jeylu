@@ -37,6 +37,11 @@ const selectSize = (size) => {
   } else {
     selectedSize.value = size
   }
+
+  const availableStock = currentStock.value
+  quantity.value = availableStock > 0
+    ? Math.min(quantity.value, availableStock)
+    : 1
 }
 
 const relatedProducts = ref([])
@@ -94,18 +99,21 @@ const addToCart = (redirectToCheckout = false) => {
     return
   }
 
+  const quantityToAdd = Math.min(quantity.value, currentStock.value)
+  quantity.value = quantityToAdd
+
   cartStore.addItem({
     product: product.value,
     variant: selectedVariant.value,
     size: selectedSize.value,
-    quantity: quantity.value
+    quantity: quantityToAdd
   })
 
   if (redirectToCheckout) {
     router.push('/checkout')
   } else {
     const sizeInfo = selectedSize.value ? ` (${sizeLabel.value} ${selectedSize.value})` : ''
-    toast.success(`"${product.value.name}"${sizeInfo} x ${quantity.value} se agregó al carrito.`, '¡Agregado al carrito!')
+    toast.success(`"${product.value.name}"${sizeInfo} x ${quantityToAdd} se agregó al carrito.`, '¡Agregado al carrito!')
   }
 }
 
@@ -557,7 +565,7 @@ onMounted(async () => {
 
 .amazon-gallery-main {
   height: 380px;
-  padding: 0;
+  padding: 0 !important;
   overflow: hidden;
   background-color: #ffffff;
   border-color: #e7e7e7 !important;
@@ -565,10 +573,14 @@ onMounted(async () => {
 
 .amazon-main-img {
   display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none;
+  max-height: none;
+  padding: 0 !important;
+  margin: 0 !important;
+  object-fit: cover !important;
+  object-position: center center !important;
 }
 
 .amazon-thumbnail {
@@ -731,9 +743,9 @@ onMounted(async () => {
   }
 
   .amazon-main-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
   }
 
   .amazon-thumbnail {

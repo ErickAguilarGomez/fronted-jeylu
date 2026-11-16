@@ -72,6 +72,11 @@ const processWhatsAppCheckout = () => {
     return
   }
 
+  if (!whatsappStore.activeNumbersLoaded) {
+    toast.warning('Espera mientras cargamos los canales de WhatsApp.')
+    return
+  }
+
   const activeNumbers = whatsappStore.whatsappNumbers
   if (activeNumbers.length === 0) {
     toast.error('No hay números de atención por WhatsApp configurados en este momento.')
@@ -92,7 +97,11 @@ const processWhatsAppCheckout = () => {
   message += `¿Tienen disponibilidad para coordinar el pago y la entrega? ¡Muchas gracias!`
 
   if (activeNumbers.length === 1) {
-    const rawNumber = activeNumbers[0].phone_number.replace(/\D/g, '')
+    const rawNumber = String(activeNumbers[0].phone_number || activeNumbers[0].phone || '').replace(/\D/g, '')
+    if (!rawNumber) {
+      toast.error('El número de WhatsApp configurado no es válido.')
+      return
+    }
     const whatsappUrl = `https://api.whatsapp.com/send?phone=${rawNumber}&text=${encodeURIComponent(message)}`
     window.open(whatsappUrl, '_blank')
     toast.success('Abriendo WhatsApp para confirmar tu pedido...')
@@ -601,10 +610,12 @@ const processCardCheckout = async () => {
               <button 
                 v-if="selectedPaymentMethod === 'whatsapp'"
                 @click="processWhatsAppCheckout"
+                :disabled="!whatsappStore.activeNumbersLoaded"
                 class="btn btn-amazon-primary w-100 py-3 fw-bold text-dark d-flex align-items-center justify-content-center gap-2 shadow-sm rounded-pill fs-6"
               >
-                <i class="bi bi-whatsapp fs-5 text-success"></i>
-                <span>Comprar por WhatsApp</span>
+                <span v-if="!whatsappStore.activeNumbersLoaded" class="spinner-border spinner-border-sm" role="status"></span>
+                <i v-else class="bi bi-whatsapp fs-5 text-success"></i>
+                <span>{{ whatsappStore.activeNumbersLoaded ? 'Comprar por WhatsApp' : 'Cargando canales de WhatsApp...' }}</span>
               </button>
 
               <button 

@@ -35,6 +35,10 @@ const openReceiptModal = (sale) => {
     deliveryAddress: sale.delivery_address || '',
     sellerName: sale.seller_name || 'Vendedor',
     paymentMethodName: sale.payment_method_name || 'Efectivo',
+    paymentMethodsList: (sale.payments || []).map(payment => ({
+      name: payment.payment_method_name || 'Forma de Pago',
+      amount: Number(payment.amount || 0),
+    })),
     storeName: sale.store_name || 'TIENDA PRINCIPAL',
     date: new Date(sale.created_at).toLocaleString('es-PE', { dateStyle: 'medium', timeStyle: 'short' })
   }

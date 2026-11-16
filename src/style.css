@@ -59,6 +59,24 @@ body {
   padding: 0;
 }
 
+/* Product photos must reach the edge of their frame instead of showing inner bands. */
+img.object-fit-cover,
+img.product-image,
+img.amazon-hero-img {
+  padding: 0 !important;
+  object-fit: cover !important;
+  object-position: center center !important;
+}
+
+/* Catalog card and detail images fill their frames without inner padding. */
+img.amazon-product-img,
+img.amazon-main-img,
+img.amazon-thumbnail-img {
+  padding: 0 !important;
+  object-fit: cover !important;
+  object-position: center center !important;
+}
+
 /* Enlaces estilo Amazon */
 a {
   color: var(--amazon-link);

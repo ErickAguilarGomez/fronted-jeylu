@@ -103,9 +103,10 @@ const productDetailUrl = computed(() => props.product.id
 
 .amazon-img-wrapper {
   width: 100%;
-  padding: 0;
+  padding: 0 !important;
   background-color: #f7f7f7;
   height: 220px;
+  flex: 0 0 220px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -114,20 +115,22 @@ const productDetailUrl = computed(() => props.product.id
 }
 
 .amazon-product-img {
-  position: absolute;
-  inset: 0;
+  position: absolute !important;
+  inset: 0 !important;
   display: block;
-  width: 100%;
-  height: 100%;
+  width: 100% !important;
+  height: 100% !important;
   max-width: none;
-  padding: 0;
-  object-fit: cover;
-  object-position: center;
+  max-height: none;
+  padding: 0 !important;
+  margin: 0 !important;
+  object-fit: cover !important;
+  object-position: center center !important;
   transition: transform 0.25s ease;
 }
 
 .amazon-product-card:hover .amazon-product-img {
-  transform: scale(1.04);
+  transform: none;
 }
 
 .no-img-placeholder {
