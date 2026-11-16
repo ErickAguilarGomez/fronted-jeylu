@@ -105,8 +105,9 @@ const productDetailUrl = computed(() => props.product.id
   width: 100%;
   padding: 0 !important;
   background-color: #f7f7f7;
-  height: 220px;
-  flex: 0 0 220px;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: center;
