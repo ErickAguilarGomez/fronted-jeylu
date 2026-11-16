@@ -160,7 +160,6 @@ onMounted(() => {
               <div class="col" v-for="(product, index) in filteredProducts" :key="product.sku">
                 <ProductCard
                   :product="product"
-                  :eager-image="index < 4"
                   :priority-image="index === 0"
                 />
               </div>

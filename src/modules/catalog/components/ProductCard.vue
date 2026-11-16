@@ -6,10 +6,6 @@ const props = defineProps({
     type: Object,
     required: true
   },
-  eagerImage: {
-    type: Boolean,
-    default: false
-  },
   priorityImage: {
     type: Boolean,
     default: false
@@ -37,7 +33,7 @@ const productDetailUrl = computed(() => props.product.id
         :src="product.image_url" 
         :alt="product.name" 
         class="amazon-product-img"
-        :loading="eagerImage ? 'eager' : 'lazy'"
+        loading="eager"
         :fetchpriority="priorityImage ? 'high' : 'auto'"
         decoding="async"
       />

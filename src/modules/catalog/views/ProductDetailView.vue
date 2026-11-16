@@ -567,7 +567,8 @@ onMounted(async () => {
 }
 
 .amazon-gallery-main {
-  height: 380px;
+  height: auto;
+  aspect-ratio: 1 / 1;
   padding: 0 !important;
   overflow: hidden;
   background-color: #ffffff;
