@@ -124,7 +124,7 @@ const productDetailUrl = computed(() => props.product.id
   max-height: none;
   padding: 0 !important;
   margin: 0 !important;
-  object-fit: cover !important;
+  object-fit: contain !important;
   object-position: center center !important;
   transition: transform 0.25s ease;
 }

@@ -579,7 +579,7 @@ onMounted(async () => {
   max-height: none;
   padding: 0 !important;
   margin: 0 !important;
-  object-fit: cover !important;
+  object-fit: contain !important;
   object-position: center center !important;
 }
 
@@ -599,7 +599,7 @@ onMounted(async () => {
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   object-position: center;
 }
 
@@ -745,7 +745,7 @@ onMounted(async () => {
   .amazon-main-img {
     width: 100% !important;
     height: 100% !important;
-    object-fit: cover !important;
+    object-fit: contain !important;
   }
 
   .amazon-thumbnail {
