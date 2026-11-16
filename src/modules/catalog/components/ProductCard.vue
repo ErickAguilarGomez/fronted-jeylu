@@ -5,6 +5,14 @@ const props = defineProps({
   product: {
     type: Object,
     required: true
+  },
+  eagerImage: {
+    type: Boolean,
+    default: false
+  },
+  priorityImage: {
+    type: Boolean,
+    default: false
   }
 })
 
@@ -29,7 +37,9 @@ const productDetailUrl = computed(() => props.product.id
         :src="product.image_url" 
         :alt="product.name" 
         class="amazon-product-img"
-        loading="lazy"
+        :loading="eagerImage ? 'eager' : 'lazy'"
+        :fetchpriority="priorityImage ? 'high' : 'auto'"
+        decoding="async"
       />
       <div v-else class="no-img-placeholder d-flex align-items-center justify-content-center text-muted">
         <i class="bi bi-image fs-1 opacity-25"></i>

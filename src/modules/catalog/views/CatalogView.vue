@@ -157,8 +157,12 @@ onMounted(() => {
           <!-- Products Grid (Amazon Style) -->
           <template v-else>
             <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-xl-4 g-3 mb-4">
-              <div class="col" v-for="product in filteredProducts" :key="product.sku">
-                <ProductCard :product="product" />
+              <div class="col" v-for="(product, index) in filteredProducts" :key="product.sku">
+                <ProductCard
+                  :product="product"
+                  :eager-image="index < 4"
+                  :priority-image="index === 0"
+                />
               </div>
             </div>
 

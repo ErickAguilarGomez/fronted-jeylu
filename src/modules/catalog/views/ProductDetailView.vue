@@ -162,7 +162,8 @@ const loadProduct = async (identifier, byId = false) => {
         selectedSize.value = sizes.value[0]
       }
       
-      await fetchRelatedProducts(product.value.category_id)
+      // Render the product and start its main image before the related-products request finishes.
+      fetchRelatedProducts(product.value.category_id)
     } else {
       productNotFound.value = true
     }
@@ -279,6 +280,8 @@ onMounted(async () => {
                   :src="activeImage" 
                   :alt="product.name" 
                   class="amazon-main-img"
+                  fetchpriority="high"
+                  decoding="async"
                 />
                 <div v-else class="text-muted small p-5">Sin imagen disponible</div>
 
