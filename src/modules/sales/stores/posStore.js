@@ -2,6 +2,9 @@ import { reactive } from 'vue'
 import posService from '../services/posService.js'
 import api from '@/plugins/axios.js'
 import { authStore } from '@/modules/auth/stores/authStore.js'
+import { createLatestSearch } from '../utils/latestSearch.js'
+
+const productSearch = createLatestSearch()
 
 export const posStore = reactive({
   cart: [],
@@ -83,12 +86,21 @@ export const posStore = reactive({
   },
 
   async searchProductsApi(query) {
-    const data = await posService.searchProducts({ search: query, per_page: 15 })
-    if (data && data.success) {
-      this.searchResults = data.data
-      return this.searchResults.length > 0
-    }
-    return false
+    return productSearch.run(
+      query,
+      async (search) => {
+        const data = await posService.searchProducts({ search, per_page: 15 })
+        return data?.success ? data.data : []
+      },
+      (results) => {
+        this.searchResults = results
+      }
+    )
+  },
+
+  clearProductSearchResults() {
+    productSearch.invalidate()
+    this.searchResults = []
   },
 
   async addProductBySku(sku, toast) {

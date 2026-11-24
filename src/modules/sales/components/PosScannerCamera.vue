@@ -19,7 +19,19 @@ const showDropdown = ref(false)
 const searching = ref(false)
 const cameraError = ref('')
 let searchTimeout = null
+let searchGeneration = 0
 let html5QrcodeScanner = null
+
+const cancelProductSearch = () => {
+  searchGeneration += 1
+  if (searchTimeout) {
+    clearTimeout(searchTimeout)
+    searchTimeout = null
+  }
+  searching.value = false
+  showDropdown.value = false
+  posStore.clearProductSearchResults()
+}
 
 const onCameraError = (error) => {
   console.error('Error de cámara:', error)
@@ -105,41 +117,56 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  cancelProductSearch()
   if (html5QrcodeScanner && html5QrcodeScanner.isScanning) {
     html5QrcodeScanner.stop().catch(console.error)
   }
 })
 
 const handleSearchInput = () => {
-  if (!searchQuery.value.trim()) {
-    posStore.searchResults = []
-    showDropdown.value = false
+  if (searchTimeout) {
+    clearTimeout(searchTimeout)
+    searchTimeout = null
+  }
+
+  const query = searchQuery.value.trim()
+  const currentGeneration = ++searchGeneration
+  posStore.clearProductSearchResults()
+  showDropdown.value = false
+
+  if (!query) {
+    searching.value = false
     return
   }
-  
-  if (searchTimeout) clearTimeout(searchTimeout)
+
   searchTimeout = setTimeout(async () => {
+    searchTimeout = null
+    if (currentGeneration !== searchGeneration || query !== searchQuery.value.trim()) return
+
     searching.value = true
     try {
-      const hasResults = await posStore.searchProductsApi(searchQuery.value.trim())
-      showDropdown.value = hasResults
+      const hasResults = await posStore.searchProductsApi(query)
+      if (currentGeneration === searchGeneration && query === searchQuery.value.trim() && hasResults !== null) {
+        showDropdown.value = hasResults
+      }
     } catch (e) {
-      console.error('Error buscando productos:', e)
+      if (currentGeneration === searchGeneration) {
+        console.error('Error buscando productos:', e)
+      }
     } finally {
-      searching.value = false
+      if (currentGeneration === searchGeneration) searching.value = false
     }
   }, 250)
 }
 
 const clearSearch = () => {
   searchQuery.value = ''
-  posStore.searchResults = []
-  showDropdown.value = false
+  cancelProductSearch()
 }
 
 const selectProductFromSearch = (product) => {
-  showDropdown.value = false
   searchQuery.value = ''
+  cancelProductSearch()
   emit('add-product', product.sku)
 }
 
