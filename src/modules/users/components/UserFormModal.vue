@@ -36,8 +36,13 @@ const localForm = ref({
 watch(() => props.show, (newShow) => {
   if (newShow) {
     localForm.value = { ...props.userData }
+    if (Number(localForm.value.role_id) !== 2) localForm.value.is_helper = false
   }
 })
+
+const handleRoleChange = () => {
+  if (Number(localForm.value.role_id) !== 2) localForm.value.is_helper = false
+}
 
 const handleSubmit = () => {
   emit('submit', { ...localForm.value })
@@ -61,7 +66,7 @@ const handleSubmit = () => {
       </div>
       <div>
         <label class="form-label fw-black text-uppercase fs-5">Rol de Sistema</label>
-        <select v-model="localForm.role_id" class="form-select border-black border-3 p-3 fs-5 fw-bold" required>
+        <select v-model="localForm.role_id" @change="handleRoleChange" class="form-select border-black border-3 p-3 fs-5 fw-bold" required>
           <option v-for="role in userStore.roles" :key="role.id" :value="role.id">{{ role.name.toUpperCase() }}</option>
         </select>
       </div>
@@ -74,7 +79,7 @@ const handleSubmit = () => {
       </div>
 
       <!-- Is Helper Option -->
-      <div class="form-check form-switch p-3 border border-black border-3 bg-light">
+      <div v-if="Number(localForm.role_id) === 2" class="form-check form-switch p-3 border border-black border-3 bg-light">
         <input 
           v-model="localForm.is_helper" 
           class="form-check-input border-2 border-black ms-0 me-3" 
