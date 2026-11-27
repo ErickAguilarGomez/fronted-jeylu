@@ -4,6 +4,7 @@ import { productStore } from '../stores/productStore.js'
 import { authStore } from '@/modules/auth/stores/authStore.js'
 import { useToast } from '@/composables/useToast.js'
 import { compressImage, formatBytes, SUPPORTED_UPLOAD_IMAGE_TYPES } from '@/utils/imageCompressor.js'
+import { isValidProductSku, PRODUCT_SKU_HELP } from '@/utils/productSku.js'
 import PurchaseOrderSelector from './PurchaseOrderSelector.vue'
 
 const toast = useToast()
@@ -15,6 +16,8 @@ const saving = ref(false)
 const processingImages = ref(false)
 const imageProcessingProgress = ref({ completed: 0, total: 0 })
 const editingProductId = ref(null)
+const originalBaseSku = ref('')
+const hasInvalidSku = computed(() => !isValidProductSku(form.value.base_sku, originalBaseSku.value))
 const galleryInput = ref(null)
 const cameraInput = ref(null)
 const maxNewImages = 20
@@ -214,6 +217,7 @@ const removeVariant = (index) => {
 const openCreateModal = () => {
   releaseNewImagePreviews()
   modalMode.value = 'create'
+  originalBaseSku.value = ''
   form.value = { 
     base_sku: '', 
     category_id: productStore.categories[0]?.id || '',
@@ -256,6 +260,7 @@ const openEditModal = async (productId) => {
     releaseNewImagePreviews()
     modalMode.value = 'edit'
     editingProductId.value = product.id
+    originalBaseSku.value = product.sku
     form.value = { 
       base_sku: product.sku, 
       category_id: product.category_id || productStore.categories[0]?.id || '',
@@ -318,6 +323,11 @@ const submitForm = async () => {
   if (saving.value || processingImages.value) return
 
   // Front-end validations
+  if (hasInvalidSku.value) {
+    toast.warning(PRODUCT_SKU_HELP, 'SKU inválido')
+    return
+  }
+
   if (!form.value.name || !form.value.name.trim()) {
     toast.warning('El nombre del producto es obligatorio.', 'Formulario incompleto')
     return
@@ -489,10 +499,11 @@ defineExpose({
 
           <div class="row g-3 mb-4">
             <div class="col-md-5">
-              <label class="form-label fw-black text-uppercase fs-6">
+              <label for="product-base-sku" class="form-label fw-black text-uppercase fs-6">
                 SKU <span class="text-muted fw-normal text-lowercase">(opcional)</span>
               </label>
-              <input v-model="form.base_sku" type="text" class="form-control form-control-lg border-black border-2 shadow-none fw-bold font-monospace" placeholder="Ejem: CABL-7851 (o dejar en blanco)">
+              <input id="product-base-sku" v-model="form.base_sku" type="text" class="form-control form-control-lg border-2 shadow-none fw-bold font-monospace" :class="hasInvalidSku ? 'is-invalid' : 'border-black'" :aria-invalid="hasInvalidSku" aria-describedby="product-sku-help" placeholder="Ejem: CABL-7851 (o dejar en blanco)">
+              <div id="product-sku-help" :class="hasInvalidSku ? 'invalid-feedback' : 'form-text'">{{ PRODUCT_SKU_HELP }}</div>
             </div>
             <div class="col-md-7">
               <label class="form-label fw-black text-uppercase fs-6">CATEGORÍA (Obligatorio)</label>
