@@ -6,6 +6,7 @@ import { socialMediaStore } from '@/modules/settings/stores/socialMediaStore.js'
 import { cartStore } from '../stores/cartStore.js'
 import { useToast } from '@/composables/useToast.js'
 import ProductCard from '../components/ProductCard.vue'
+import { findProductVariant, getAvailableColors, getAvailableSizes } from '../utils/productVariants.js'
 
 const route = useRoute()
 const router = useRouter()
@@ -18,6 +19,7 @@ const productNotFound = ref(false)
 
 const activeImage = ref('')
 const selectedSize = ref(null)
+const selectedColor = ref(null)
 const quantity = ref(1)
 
 const sizeLabel = computed(() => {
@@ -31,17 +33,35 @@ const showSizeSelector = computed(() => {
   return sizes.value.length > 0
 })
 
-const selectSize = (size) => {
-  if (selectedSize.value === size) {
-    selectedSize.value = null
-  } else {
-    selectedSize.value = size
-  }
+const hasColorVariants = computed(() =>
+  getAvailableColors(product.value?.variants).length > 0
+)
 
+const colors = computed(() => {
+  if (!product.value?.variants) return []
+  return getAvailableColors(product.value.variants, selectedSize.value)
+})
+
+const showColorSelector = computed(() => hasColorVariants.value)
+
+const syncQuantityToStock = () => {
   const availableStock = currentStock.value
   quantity.value = availableStock > 0
     ? Math.min(quantity.value, availableStock)
     : 1
+}
+
+const selectSize = (size) => {
+  selectedSize.value = selectedSize.value === size ? null : size
+  selectedColor.value = null
+  const availableColors = getAvailableColors(product.value?.variants, selectedSize.value)
+  if (availableColors.length === 1) selectedColor.value = availableColors[0]
+  syncQuantityToStock()
+}
+
+const selectColor = (color) => {
+  selectedColor.value = selectedColor.value === color ? null : color
+  syncQuantityToStock()
 }
 
 const relatedProducts = ref([])
@@ -59,18 +79,13 @@ const allImages = computed(() => {
 // Unique sizes
 const sizes = computed(() => {
   if (!product.value || !product.value.variants) return []
-  return [...new Set(product.value.variants.map(v => v.size).filter(Boolean))]
+  return getAvailableSizes(product.value.variants)
 })
 
-// Matching variant based on selected size
+// Match the exact size/color combination instead of the first variant of a size.
 const selectedVariant = computed(() => {
   if (!product.value || !product.value.variants) return null
-  const hasSizes = sizes.value.length > 0
-  if (!hasSizes) {
-    return product.value.variants[0] || null
-  }
-  if (!selectedSize.value) return null
-  return product.value.variants.find(v => v.size === selectedSize.value) || null
+  return findProductVariant(product.value.variants, selectedSize.value, selectedColor.value)
 })
 
 // Dynamic stock calculation
@@ -79,7 +94,10 @@ const currentStock = computed(() => {
     return Number(selectedVariant.value.stock)
   }
   if (product.value && product.value.variants) {
-    return product.value.variants.reduce((acc, v) => acc + Number(v.stock), 0)
+    const variants = selectedSize.value
+      ? product.value.variants.filter((variant) => variant.size === selectedSize.value)
+      : product.value.variants
+    return variants.reduce((acc, variant) => acc + Number(variant.stock), 0)
   }
   return Number(product.value?.stock || 0)
 })
@@ -98,6 +116,10 @@ const addToCart = (redirectToCheckout = false) => {
     toast.warning(`Por favor selecciona un ${sizeLabel.value.toLowerCase()} antes de continuar.`)
     return
   }
+  if (showColorSelector.value && !selectedColor.value) {
+    toast.warning('Por favor selecciona un color antes de continuar.')
+    return
+  }
 
   const quantityToAdd = Math.min(quantity.value, currentStock.value)
   quantity.value = quantityToAdd
@@ -106,6 +128,7 @@ const addToCart = (redirectToCheckout = false) => {
     product: product.value,
     variant: selectedVariant.value,
     size: selectedSize.value,
+    color: selectedColor.value,
     quantity: quantityToAdd
   })
 
@@ -113,7 +136,8 @@ const addToCart = (redirectToCheckout = false) => {
     router.push('/checkout')
   } else {
     const sizeInfo = selectedSize.value ? ` (${sizeLabel.value} ${selectedSize.value})` : ''
-    toast.success(`"${product.value.name}"${sizeInfo} x ${quantityToAdd} se agregó al carrito.`, '¡Agregado al carrito!')
+    const colorInfo = selectedColor.value ? ` (${selectedColor.value})` : ''
+    toast.success(`"${product.value.name}"${sizeInfo}${colorInfo} x ${quantityToAdd} se agregó al carrito.`, '¡Agregado al carrito!')
   }
 }
 
@@ -147,6 +171,7 @@ const loadProduct = async (identifier, byId = false) => {
   error.value = null
   productNotFound.value = false
   selectedSize.value = null
+  selectedColor.value = null
   quantity.value = 1
   
   try {
@@ -161,6 +186,8 @@ const loadProduct = async (identifier, byId = false) => {
       if (sizes.value.length === 1) {
         selectedSize.value = sizes.value[0]
       }
+      const initialColors = getAvailableColors(product.value.variants, selectedSize.value)
+      if (initialColors.length === 1) selectedColor.value = initialColors[0]
       
       // Render the product and start its main image before the related-products request finishes.
       fetchRelatedProducts(product.value.category_id)
@@ -368,6 +395,30 @@ onMounted(async () => {
                 </div>
               </div>
 
+              <div v-if="showColorSelector" class="mb-4">
+                <div class="amazon-size-heading d-flex justify-content-between align-items-center mb-2">
+                  <label class="fw-bold small text-dark mb-0">
+                    Seleccionar color:
+                    <span v-if="selectedColor" class="text-primary ms-1 fw-bold">{{ selectedColor }}</span>
+                  </label>
+                  <span class="fs-8 text-muted">{{ showSizeSelector && !selectedSize ? 'Primero selecciona un talle' : 'Selecciona una opción' }}</span>
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                  <button
+                    v-for="color in colors"
+                    :key="color"
+                    type="button"
+                    @click="selectColor(color)"
+                    :class="['btn btn-sm amazon-size-tile', selectedColor === color ? 'active-size' : 'inactive-size']"
+                  >
+                    {{ color }}
+                    <i v-if="selectedColor === color" class="bi bi-check-lg ms-1"></i>
+                  </button>
+                  <span v-if="showSizeSelector && !selectedSize" class="small text-muted">Elige un talle para ver los colores disponibles.</span>
+                  <span v-else-if="colors.length === 0" class="small text-muted">No hay colores disponibles para este talle.</span>
+                </div>
+              </div>
+
               <!-- Quantity Selector -->
               <div v-if="currentStock > 0" class="mb-4 d-flex align-items-center gap-3">
                 <label class="fw-bold small text-dark m-0">Cantidad:</label>
@@ -500,6 +551,7 @@ onMounted(async () => {
                   <i class="bi bi-cart-plus fs-5"></i>
                   <span v-if="currentStock === 0">Producto Agotado</span>
                   <span v-else-if="showSizeSelector && !selectedSize">Seleccionar {{ sizeLabel }}</span>
+                  <span v-else-if="showColorSelector && !selectedColor">Seleccionar color</span>
                   <span v-else>Agregar al Carrito</span>
                 </button>
               </div>

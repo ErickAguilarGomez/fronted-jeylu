@@ -87,9 +87,13 @@ const processWhatsAppCheckout = () => {
   let message = `¡Hola JEILU! 👋 Deseo realizar el siguiente pedido desde la tienda virtual:\n\n`
   message += `📦 *DETALLE DEL PEDIDO:*\n`
   cartStore.items.forEach((item, index) => {
-    const sizeStr = item.size ? ` (Talle: ${item.size})` : ''
+    const variantDetails = [
+      item.size ? `Talle: ${item.size}` : null,
+      item.color ? `Color: ${item.color}` : null
+    ].filter(Boolean)
+    const variantStr = variantDetails.length ? ` (${variantDetails.join(' | ')})` : ''
     const itemTotal = (Number(item.price) * Number(item.quantity)).toFixed(2)
-    message += `${index + 1}. ${item.name}${sizeStr}\n`
+    message += `${index + 1}. ${item.name}${variantStr}\n`
     message += `   ↳ Cantidad: ${item.quantity} | Unitario: $${Number(item.price).toFixed(2)} | Subtotal: $${itemTotal}\n`
   })
 
@@ -147,6 +151,7 @@ const processCardCheckout = async () => {
         sku: item.sku,
         productId: item.productId,
         size: item.size,
+        color: item.color,
         quantity: item.quantity,
         price: item.price
       })),
@@ -578,6 +583,7 @@ const processCardCheckout = async () => {
                     <div class="fw-semibold text-dark text-truncate fs-8 lh-sm">{{ item.name }}</div>
                     <div class="text-muted fs-8">
                       <span v-if="item.size" class="fw-semibold text-dark">Talle {{ item.size }} &bull; </span>
+                      <span v-if="item.color" class="fw-semibold text-dark">Color {{ item.color }} &bull; </span>
                       Cant: {{ item.quantity }}
                     </div>
                   </div>

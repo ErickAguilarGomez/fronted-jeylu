@@ -94,6 +94,9 @@ const goToCheckout = () => {
                       <span v-if="item.size" class="badge bg-warning text-dark fw-bold px-2 py-1">
                         Talle: {{ item.size }}
                       </span>
+                      <span v-if="item.color" class="badge bg-light text-dark border fw-bold px-2 py-1">
+                        Color: {{ item.color }}
+                      </span>
                       <span class="text-muted small font-monospace">SKU: {{ item.sku }}</span>
                       <span class="text-success small fw-semibold">
                         <i class="bi bi-check-circle-fill me-1"></i> En Stock

@@ -38,6 +38,7 @@ const normalizeCartItem = (item) => {
     stock: Number.isFinite(stock) && stock > 0 ? stock : 0,
     image: typeof item.image === 'string' ? item.image : '',
     size: typeof item.size === 'string' ? item.size : null,
+    color: typeof item.color === 'string' ? item.color : null,
     storeName: typeof item.storeName === 'string' ? item.storeName : ''
   }
 }
@@ -99,11 +100,14 @@ export const cartStore = reactive({
     return this.items.length === 0
   },
 
-  addItem({ product, variant = null, size = null, quantity = 1 }) {
+  addItem({ product, variant = null, size = null, color = null, quantity = 1 }) {
     const qty = Math.max(1, Number(quantity) || 1)
     const sku = variant?.sku || product.sku
     const sizeVal = size || variant?.size || null
-    const itemId = `${product.id}-${sizeVal || 'base'}`
+    const colorVal = color || variant?.color || null
+    const itemId = colorVal
+      ? `${product.id}-${sizeVal || 'base'}-${colorVal}`
+      : `${product.id}-${sizeVal || 'base'}`
     const price = Number(product.price || 0)
     const stock = variant ? Number(variant.stock || 0) : Number(product.total_stock || product.stock || 99)
 
@@ -120,6 +124,7 @@ export const cartStore = reactive({
         name: product.name,
         sku: sku,
         size: sizeVal,
+        color: colorVal,
         price: price, // Read-only, verified from backend product
         quantity: stock > 0 ? Math.min(qty, stock) : qty,
         stock: stock,
