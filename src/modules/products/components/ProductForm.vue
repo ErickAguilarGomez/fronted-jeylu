@@ -89,6 +89,11 @@ const sizeLabel = computed(() => {
   return 'Talle'
 })
 
+const variantSizeColor = (variant) => [variant.size, variant.color]
+  .map(value => String(value || '').trim())
+  .filter(Boolean)
+  .join('-')
+
 const removeImageBox = (index) => {
   if (processingImages.value || saving.value) return
   const image = form.value.new_image_boxes[index]
@@ -601,6 +606,11 @@ defineExpose({
               <div class="col-md-4 text-end">
                 <button type="button" @click="removeVariant(idx)" class="btn btn-danger fw-black border-black border-2 m-0" :disabled="form.variants.length === 1">ELIMINAR {{ sizeLabel.toUpperCase() }}</button>
               </div>
+            </div>
+
+            <div v-if="variantSizeColor(v)" class="small text-muted mb-3">
+              Talle y color para el SKU:
+              <code class="fw-bold">{{ variantSizeColor(v) }}</code>
             </div>
             
             <div>
